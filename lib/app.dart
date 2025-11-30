@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hamro_service/screens/icon_screen.dart';
+import 'package:hamro_service/screens/login_screen.dart';
+import 'package:hamro_service/screens/onboarding1_screen.dart';
 import 'package:hamro_service/screens/signup_screen.dart';
 
 class App extends StatelessWidget {
@@ -9,7 +11,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const SignupScreen(),
+      home: const Onboarding1Screen(),
     );
   }
 }
