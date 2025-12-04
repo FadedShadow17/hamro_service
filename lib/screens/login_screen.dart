@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hamro_service/screens/dashboard.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -11,6 +12,7 @@ class LoginScreen extends StatelessWidget {
         builder: (context, constraints) {
           return Stack(
             children: [
+              // Background gradient
               Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -46,7 +48,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
+              // Main content card
               Center(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.only(
@@ -66,6 +68,7 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
+// Custom painter for the curved header
 class _CurvedHeaderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -83,7 +86,12 @@ class _CurvedHeaderPainter extends CustomPainter {
         size.width * 0.3,
         size.height * 0.9,
       )
-      ..quadraticBezierTo(size.width * 0.1, size.height, 0, size.height * 0.95)
+      ..quadraticBezierTo(
+        size.width * 0.1,
+        size.height,
+        0,
+        size.height * 0.95,
+      )
       ..lineTo(0, 0)
       ..close();
 
@@ -127,7 +135,10 @@ class _LoginCard extends StatelessWidget {
             child: const TextField(
               decoration: InputDecoration(
                 hintText: 'E-mail',
-                hintStyle: TextStyle(color: Color(0xFF757575), fontSize: 16),
+                hintStyle: TextStyle(
+                  color: Color(0xFF757575),
+                  fontSize: 16,
+                ),
                 border: InputBorder.none,
               ),
             ),
@@ -180,7 +191,10 @@ class _LoginCard extends StatelessWidget {
               ),
               child: const Text(
                 'forgot password?',
-                style: TextStyle(color: Color(0xFF757575), fontSize: 14),
+                style: TextStyle(
+                  color: Color(0xFF757575),
+                  fontSize: 14,
+                ),
               ),
             ),
           ),
@@ -196,7 +210,13 @@ class _LoginCard extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => const Dashboard(),
+                    ),
+                  );
+                },
                 child: const Center(
                   child: Text(
                     'LOGIN',
@@ -216,7 +236,10 @@ class _LoginCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Container(height: 1, color: const Color(0xFFA0A0A0)),
+                child: Container(
+                  height: 1,
+                  color: const Color(0xFFA0A0A0),
+                ),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
@@ -230,7 +253,10 @@ class _LoginCard extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: Container(height: 1, color: const Color(0xFFA0A0A0)),
+                child: Container(
+                  height: 1,
+                  color: const Color(0xFFA0A0A0),
+                ),
               ),
             ],
           ),
@@ -282,7 +308,10 @@ class _LoginCard extends StatelessWidget {
             children: [
               const Text(
                 'Don\'t have an account ? ',
-                style: TextStyle(color: Color(0xFF757575), fontSize: 14),
+                style: TextStyle(
+                  color: Color(0xFF757575),
+                  fontSize: 14,
+                ),
               ),
               TextButton(
                 onPressed: () {},
@@ -312,7 +341,10 @@ class _SocialIcon extends StatelessWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const _SocialIcon({required this.child, required this.onTap});
+  const _SocialIcon({
+    required this.child,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -334,3 +366,4 @@ class _SocialIcon extends StatelessWidget {
     );
   }
 }
+
