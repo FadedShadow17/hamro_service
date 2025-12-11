@@ -33,11 +33,7 @@ class Onboarding3 extends StatelessWidget {
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return const Center(
-                  child: Icon(
-                    Icons.build,
-                    size: 100,
-                    color: Colors.grey,
-                  ),
+                  child: Icon(Icons.build, size: 100, color: Colors.grey),
                 );
               },
             ),
@@ -69,11 +65,7 @@ class Onboarding3 extends StatelessWidget {
           child: Text(
             'Verified local technicians ready\nto serve.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black54,
-              height: 1.4,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.black54, height: 1.4),
           ),
         ),
 
@@ -122,6 +114,3 @@ class Onboarding3 extends StatelessWidget {
     );
   }
 }
-
-
-

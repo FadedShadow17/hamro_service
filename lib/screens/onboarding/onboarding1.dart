@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class Onboarding1 extends StatelessWidget {
   final VoidCallback? onNext;
-  
+
   const Onboarding1({super.key, this.onNext});
 
   @override
@@ -34,11 +34,7 @@ class Onboarding1 extends StatelessWidget {
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return const Center(
-                  child: Icon(
-                    Icons.image,
-                    size: 100,
-                    color: Colors.grey,
-                  ),
+                  child: Icon(Icons.image, size: 100, color: Colors.grey),
                 );
               },
             ),
@@ -70,11 +66,7 @@ class Onboarding1 extends StatelessWidget {
           child: Text(
             'Fast home help anywhere in\nKathmandu.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black54,
-              height: 1.4,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.black54, height: 1.4),
           ),
         ),
 
@@ -117,4 +109,3 @@ class Onboarding1 extends StatelessWidget {
     );
   }
 }
-
