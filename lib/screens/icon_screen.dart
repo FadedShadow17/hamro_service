@@ -13,9 +13,8 @@ class IconScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 60),
 
-            // Logo text
             const Text(
-              'Logo',
+              'Welcome to',
               style: TextStyle(
                 fontSize: 16,
                 color: Color(0xFF9AA3B1),
@@ -26,7 +25,6 @@ class IconScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // White card with logo
             Container(
               width: 200,
               padding: const EdgeInsets.all(24),
@@ -46,11 +44,7 @@ class IconScreen extends StatelessWidget {
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return const Center(
-                    child: Icon(
-                      Icons.image,
-                      size: 80,
-                      color: Colors.grey,
-                    ),
+                    child: Icon(Icons.image, size: 80, color: Colors.grey),
                   );
                 },
               ),
@@ -58,7 +52,6 @@ class IconScreen extends StatelessWidget {
 
             const SizedBox(height: 48),
 
-            // App title
             const Text(
               'Hamro Service App',
               textAlign: TextAlign.center,
@@ -73,7 +66,6 @@ class IconScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Description
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 40),
               child: Text(
@@ -90,7 +82,6 @@ class IconScreen extends StatelessWidget {
 
             const Spacer(),
 
-            // START button
             Padding(
               padding: const EdgeInsets.only(bottom: 60, left: 40, right: 40),
               child: SizedBox(

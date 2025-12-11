@@ -43,7 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header with SKIP button
+          
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
@@ -70,7 +70,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // PageView for onboarding screens
+            
             Expanded(
               child: PageView(
                 controller: _pageController,
@@ -87,7 +87,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // Indicator dots
+     
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(

@@ -11,7 +11,6 @@ class Onboarding1 extends StatelessWidget {
       children: [
         const Spacer(),
 
-        // Main image card
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 24),
           width: double.infinity,
@@ -43,7 +42,6 @@ class Onboarding1 extends StatelessWidget {
 
         const SizedBox(height: 32),
 
-        // Title
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 40),
           child: Text(
@@ -60,7 +58,6 @@ class Onboarding1 extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Description
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 40),
           child: Text(
@@ -72,7 +69,6 @@ class Onboarding1 extends StatelessWidget {
 
         const Spacer(),
 
-        // NEXT button
         Padding(
           padding: const EdgeInsets.only(right: 24, bottom: 32),
           child: Align(

@@ -11,7 +11,7 @@ class Onboarding2 extends StatelessWidget {
       children: [
         const Spacer(),
 
-        // Main image card with teal green background
+      
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 24),
           width: double.infinity,
