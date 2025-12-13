@@ -3,6 +3,7 @@ import 'package:hamro_service/screens/onboarding/onboarding1.dart';
 import 'package:hamro_service/screens/onboarding/onboarding2.dart';
 import 'package:hamro_service/screens/onboarding/onboarding3.dart';
 import 'package:hamro_service/screens/login_screen.dart';
+import 'package:hamro_service/screens/role_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -32,7 +33,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _skipToLogin() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      MaterialPageRoute(builder: (context) => const RoleScreen()),
     );
   }
 
@@ -43,7 +44,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-          
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
@@ -70,7 +70,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            
             Expanded(
               child: PageView(
                 controller: _pageController,
@@ -87,7 +86,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-     
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(

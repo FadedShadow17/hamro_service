@@ -26,7 +26,7 @@ class _BottomNavigationScreenState extends State<Dashboard> {
       appBar: AppBar(
         title: Text("Dashboard"),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 25, 28, 237),
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       body: lstBottomScreen[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hamro_service/screens/login_screen.dart';
+import 'package:hamro_service/screens/role_screen.dart';
 
 class Onboarding3 extends StatelessWidget {
   const Onboarding3({super.key});
@@ -90,7 +91,7 @@ class Onboarding3 extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
+                        builder: (context) => const RoleScreen(),
                       ),
                     );
                   },
