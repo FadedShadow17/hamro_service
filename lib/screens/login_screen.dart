@@ -15,7 +15,6 @@ class LoginScreen extends StatelessWidget {
         builder: (context, constraints) {
           return Stack(
             children: [
-              // Background gradient
               Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -25,7 +24,6 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              // Dark blue header with curved bottom-right corner
               Positioned(
                 top: 0,
                 left: 0,
@@ -37,8 +35,8 @@ class LoginScreen extends StatelessWidget {
                   ),
                   painter: _CurvedHeaderPainter(),
                   child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16, top: 8),
+                    child: Align(
+                      alignment: Alignment.topLeft,
                       child: IconButton(
                         icon: const Icon(
                           Icons.chevron_left,
@@ -77,7 +75,6 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-// Custom painter for the curved header
 class _CurvedHeaderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -128,7 +125,6 @@ class _LoginCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Email input field
           Container(
             height: 50,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -145,7 +141,6 @@ class _LoginCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Password input field
           Container(
             height: 50,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -180,7 +175,6 @@ class _LoginCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          // Forgot password link
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
@@ -204,7 +198,6 @@ class _LoginCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          // Login button
           Container(
             height: 50,
             decoration: BoxDecoration(
@@ -235,7 +228,6 @@ class _LoginCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
-          // OR separator
           Row(
             children: [
               Expanded(
@@ -263,43 +255,26 @@ class _LoginCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _SocialIcon(
-                child: const Text(
-                  'f',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Roboto',
-                  ),
+                child: const Icon(
+                  Icons.facebook,
+                  color: Colors.white,
+                  size: 26,
                 ),
                 onTap: () {},
               ),
-              const SizedBox(width: 24),
-              _SocialIcon(
-                child: const Text(
-                  'G+',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Roboto',
-                  ),
-                ),
-                onTap: () {},
-              ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 32),
               _SocialIcon(
                 child: const Icon(
-                  Icons.alternate_email,
+                  Icons.g_mobiledata,
                   color: Colors.white,
-                  size: 20,
+                  size: 32,
                 ),
                 onTap: () {},
               ),
             ],
           ),
+
           const SizedBox(height: 32),
-          // Sign up link
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -354,8 +329,8 @@ class _SocialIcon extends StatelessWidget {
         child: Container(
           width: 50,
           height: 50,
-          decoration: BoxDecoration(
-            color: const Color(0xFFC0C0C0),
+          decoration: const BoxDecoration(
+            color: Color(0xFFC0C0C0),
             shape: BoxShape.circle,
           ),
           child: Center(child: child),

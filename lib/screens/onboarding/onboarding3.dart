@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hamro_service/screens/login_screen.dart';
+// import 'package:hamro_service/screens/login_screen.dart';
 import 'package:hamro_service/screens/role_screen.dart';
 
 class Onboarding3 extends StatelessWidget {

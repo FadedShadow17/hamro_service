@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hamro_service/screens/onboarding/onboarding1.dart';
 import 'package:hamro_service/screens/onboarding/onboarding2.dart';
 import 'package:hamro_service/screens/onboarding/onboarding3.dart';
-import 'package:hamro_service/screens/login_screen.dart';
+// import 'package:hamro_service/screens/login_screen.dart';
 import 'package:hamro_service/screens/role_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
