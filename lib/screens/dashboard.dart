@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hamro_service/bottom_navigation/about.dart';
-import 'package:hamro_service/bottom_navigation/cart.dart';
+import 'package:hamro_service/bottom_navigation/favorites.dart';
+import 'package:hamro_service/bottom_navigation/payment.dart';
 import 'package:hamro_service/bottom_navigation/home.dart';
 import 'package:hamro_service/bottom_navigation/profile.dart';
 
@@ -15,10 +15,10 @@ class _BottomNavigationScreenState extends State<Dashboard> {
   int _selectedIndex = 0;
 
   List<Widget> lstBottomScreen = [
-    const Home(),
-    const Cart(),
-    const Profile(),
-    const About(),
+    const HomeScreen(),
+    const FavoritesScreen(),
+    const PaymentScreen(),
+    const ProfileScreen(),
   ];
   @override
   Widget build(BuildContext context) {
@@ -34,14 +34,11 @@ class _BottomNavigationScreenState extends State<Dashboard> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag),
-            label: "Cart",
+            icon: Icon(Icons.favorite),
+            label: "Favorites",
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.album_outlined),
-            label: "About",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.payment), label: "Payment"),
+          BottomNavigationBarItem(icon: Icon(Icons.payment), label: "Profile"),
         ],
         backgroundColor: Colors.black,
         selectedItemColor: Colors.lightGreen,
