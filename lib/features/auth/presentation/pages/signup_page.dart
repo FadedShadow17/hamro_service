@@ -4,6 +4,7 @@ import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmod
 import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/screens/dashboard.dart';
 
+<<<<<<< HEAD
 class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({super.key});
 
@@ -17,6 +18,16 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+=======
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
+
+  @override
+  State<SignupPage> createState() => _SignupPageState();
+}
+
+class _SignupPageState extends State<SignupPage> {
+>>>>>>> 2d66b01 (Clean architecture)
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 

@@ -1,4 +1,5 @@
 import 'package:hamro_service/app/app.dart';
+<<<<<<< HEAD
 import 'package:hamro_service/core/providers/shared_prefs_provider.dart';
 import 'package:hamro_service/core/services/hive/hive_service.dart';
 import 'package:hamro_service/core/services/storage/user_session_service.dart';
@@ -9,10 +10,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+=======
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
+>>>>>>> 2d66b01 (Clean architecture)
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+<<<<<<< HEAD
   // Initialize Hive before runApp
   await HiveService.init();
 
@@ -21,6 +27,11 @@ void main() async {
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
+=======
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+
+>>>>>>> 2d66b01 (Clean architecture)
   ]).then((_) {
     runApp(
       ProviderScope(

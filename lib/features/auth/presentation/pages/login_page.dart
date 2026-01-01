@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/screens/dashboard.dart';
 import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart';
+<<<<<<< HEAD
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/screens/forgot_password.dart';
@@ -55,6 +56,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           password: password,
         );
   }
+=======
+import 'package:hamro_service/screens/forgot_password.dart';
+import 'package:hamro_service/screens/role_screen.dart';
+
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+>>>>>>> 2d66b01 (Clean architecture)
 
   @override
   Widget build(BuildContext context) {
