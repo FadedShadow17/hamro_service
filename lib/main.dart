@@ -1,14 +1,17 @@
-import 'app.dart';
+import 'package:hamro_service/app/app.dart';
+import 'package:hamro_service/core/services/hive/hive_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // needed for SystemChrome
+import 'package:flutter/services.dart'; 
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Lock orientation to portrait only
+  // Initialize Hive before runApp
+  await HiveService.init();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
-    // DeviceOrientation.portraitDown, // optional if you want to allow upside-down
+
   ]).then((_) {
     runApp(const App());
   });

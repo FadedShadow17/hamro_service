@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<SignupPage> createState() => _SignupPageState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupPageState extends State<SignupPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 

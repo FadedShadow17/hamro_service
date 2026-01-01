@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hamro_service/screens/login_screen.dart';
+import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
 
 class RoleScreen extends StatelessWidget {
   const RoleScreen({super.key});
@@ -51,7 +51,7 @@ class RoleScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
+                              builder: (context) => const LoginPage(),
                             ),
                           );
                         },
@@ -69,7 +69,7 @@ class RoleScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
+                              builder: (context) => const LoginPage(),
                             ),
                           );
                         },
@@ -83,7 +83,7 @@ class RoleScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
+                              builder: (context) => const LoginPage(),
                             ),
                           );
                         },
