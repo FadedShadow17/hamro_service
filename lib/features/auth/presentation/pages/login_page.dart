@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hamro_service/screens/dashboard.dart';
-import 'package:hamro_service/screens/signup_screen.dart';
+import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart';
 import 'package:hamro_service/screens/forgot_password.dart';
 import 'package:hamro_service/screens/role_screen.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -287,7 +287,7 @@ class _LoginCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const SignupScreen(),
+                      builder: (context) => const SignupPage(),
                     ),
                   );
                 },

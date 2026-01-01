@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hamro_service/screens/splash_screen.dart';
-import 'package:hamro_service/themes/themes.dart';
+import 'package:hamro_service/app/theme/themes.dart';
 
 
 
