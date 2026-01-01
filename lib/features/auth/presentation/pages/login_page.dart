@@ -1,14 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/screens/dashboard.dart';
 import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart';
+import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/screens/forgot_password.dart';
 import 'package:hamro_service/screens/role_screen.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends ConsumerState<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _handleLogin() {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+
+    ref.read(authViewModelProvider.notifier).login(
+          emailOrUsername: email,
+          password: password,
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authViewModelProvider);
+
+    // Handle navigation on success
+    if (authState.isAuthenticated && authState.user != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const Dashboard()),
+        );
+      });
+    }
+
+    // Show error if any
+    if (authState.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authState.errorMessage!)),
+        );
+      });
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: LayoutBuilder(
@@ -64,7 +118,18 @@ class LoginPage extends StatelessWidget {
                     left: 24,
                     right: 24,
                   ),
-                  child: _LoginCard(),
+                  child: _LoginCard(
+                    emailController: _emailController,
+                    passwordController: _passwordController,
+                    obscurePassword: _obscurePassword,
+                    onTogglePassword: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                    onLogin: _handleLogin,
+                    isLoading: authState.isLoading,
+                  ),
                 ),
               ),
             ],
@@ -103,9 +168,25 @@ class _CurvedHeaderPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _LoginCard extends StatelessWidget {
+class _LoginCard extends ConsumerWidget {
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final bool obscurePassword;
+  final VoidCallback onTogglePassword;
+  final VoidCallback onLogin;
+  final bool isLoading;
+
+  const _LoginCard({
+    required this.emailController,
+    required this.passwordController,
+    required this.obscurePassword,
+    required this.onTogglePassword,
+    required this.onLogin,
+    required this.isLoading,
+  });
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(maxWidth: 400),
@@ -132,8 +213,10 @@ class _LoginCard extends StatelessWidget {
               color: const Color(0xFFEFEFEF),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const TextField(
-              decoration: InputDecoration(
+            child: TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
                 hintText: 'E-mail',
                 hintStyle: TextStyle(color: Color(0xFF757575), fontSize: 16),
                 border: InputBorder.none,
@@ -150,10 +233,11 @@ class _LoginCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: TextField(
-                    obscureText: true,
-                    decoration: InputDecoration(
+                    controller: passwordController,
+                    obscureText: obscurePassword,
+                    decoration: const InputDecoration(
                       hintText: 'Password',
                       hintStyle: TextStyle(
                         color: Color(0xFF757575),
@@ -164,12 +248,12 @@ class _LoginCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(
-                    Icons.visibility_off,
-                    color: Color(0xFF757575),
+                  icon: Icon(
+                    obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: const Color(0xFF757575),
                     size: 20,
                   ),
-                  onPressed: () {},
+                  onPressed: onTogglePassword,
                 ),
               ],
             ),
@@ -208,21 +292,26 @@ class _LoginCard extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const Dashboard()),
-                  );
-                },
-                child: const Center(
-                  child: Text(
-                    'LOGIN',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
+                onTap: isLoading ? null : onLogin,
+                child: Center(
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'LOGIN',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
+                        ),
                 ),
               ),
             ),

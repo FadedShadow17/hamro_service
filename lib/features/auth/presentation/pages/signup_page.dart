@@ -1,18 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:hamro_service/screens/dashboard.dart';
 
-class SignupPage extends StatefulWidget {
+class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({super.key});
 
   @override
-  State<SignupPage> createState() => _SignupPageState();
+  ConsumerState<SignupPage> createState() => _SignupPageState();
 }
 
-class _SignupPageState extends State<SignupPage> {
+class _SignupPageState extends ConsumerState<SignupPage> {
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
   @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _handleSignup() {
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    ref.read(authViewModelProvider.notifier).register(
+          fullName: username.isNotEmpty ? username : email.split('@')[0],
+          email: email,
+          username: username.isNotEmpty ? username : null,
+          password: password,
+          phoneNumber: phone.isNotEmpty ? phone : null,
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authViewModelProvider);
+
+    // Handle navigation on success
+    if (authState.isRegistered) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const Dashboard()),
+        );
+      });
+    }
+
+    // Show error if any
+    if (authState.errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authState.errorMessage!)),
+        );
+      });
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
@@ -62,8 +129,9 @@ class _SignupPageState extends State<SignupPage> {
                   color: const Color(0xFFEFEFEF),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const TextField(
-                  decoration: InputDecoration(
+                child: TextField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
                     hintText: 'Username',
                     hintStyle: TextStyle(
                       color: Color(0xFF757575),
@@ -84,9 +152,10 @@ class _SignupPageState extends State<SignupPage> {
                   color: const Color(0xFFEFEFEF),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const TextField(
+                child: TextField(
+                  controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'E-mail',
                     hintStyle: TextStyle(
                       color: Color(0xFF757575),
@@ -107,9 +176,10 @@ class _SignupPageState extends State<SignupPage> {
                   color: const Color(0xFFEFEFEF),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const TextField(
+                child: TextField(
+                  controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Phone',
                     hintStyle: TextStyle(
                       color: Color(0xFF757575),
@@ -131,6 +201,7 @@ class _SignupPageState extends State<SignupPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: TextField(
+                  controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     hintText: 'Password',
@@ -168,6 +239,7 @@ class _SignupPageState extends State<SignupPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: TextField(
+                  controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     hintText: 'Confirm password',
@@ -207,19 +279,26 @@ class _SignupPageState extends State<SignupPage> {
                     borderRadius: BorderRadius.circular(12),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        // Handle sign up action
-                      },
-                      child: const Center(
-                        child: Text(
-                          'SIGN UP',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
-                          ),
-                        ),
+                      onTap: authState.isLoading ? null : _handleSignup,
+                      child: Center(
+                        child: authState.isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Text(
+                                'SIGN UP',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                ),
+                              ),
                       ),
                     ),
                   ),

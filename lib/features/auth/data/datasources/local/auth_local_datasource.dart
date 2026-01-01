@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:hamro_service/core/constants/hive_table_constant.dart';
+import 'package:hamro_service/core/error/exceptions.dart';
 import 'package:hamro_service/core/services/storage/user_session_service.dart';
 import '../../models/auth_hive_model.dart';
 import '../auth_datasource.dart';
@@ -28,17 +29,15 @@ class AuthLocalDatasource implements AuthDatasource {
     // Check if user with same email already exists
     try {
       box.values.firstWhere((u) => u.email == user.email);
-      throw Exception('User with this email already exists');
+      throw UserAlreadyExistsException('User with this email already exists');
     } catch (e) {
       // If StateError, it means no user found (safe to register)
-      // If other exception, rethrow
-      if (e.toString().contains('StateError')) {
-        // No user found with this email, safe to register
-      } else if (e.toString().contains('User with this email already exists')) {
+      if (e is UserAlreadyExistsException) {
         rethrow;
-      } else {
-        // Some other error occurred
-        rethrow;
+      }
+      // StateError means no user found, safe to register
+      if (!e.toString().contains('StateError')) {
+        throw CacheException('Error checking user existence: ${e.toString()}');
       }
     }
 
@@ -53,11 +52,19 @@ class AuthLocalDatasource implements AuthDatasource {
     final box = _getUsersBox();
     
     // Find user by email or username
-    final user = box.values.firstWhere(
-      (u) => (u.email == emailOrUsername || u.username == emailOrUsername) &&
-             u.password == password,
-      orElse: () => throw Exception('Invalid email/username or password'),
-    );
+    AuthHiveModel? user;
+    try {
+      user = box.values.firstWhere(
+        (u) => (u.email == emailOrUsername || u.username == emailOrUsername),
+      );
+    } catch (e) {
+      throw UserNotFoundException('User not found');
+    }
+    
+    // Verify password
+    if (user.password != password) {
+      throw AuthenticationException('Invalid password');
+    }
 
     // Save session
     await _sessionService.saveSession(user.authId);
