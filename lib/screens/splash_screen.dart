@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:hamro_service/screens/dashboard.dart';
 import 'package:hamro_service/screens/icon_screen.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -46,15 +49,53 @@ class _SplashScreenState extends State<SplashScreen>
 
     _animationController.forward();
 
-    Timer(const Duration(milliseconds: 2500), () {
-      if (mounted) {
+    // Check authentication status
+    _checkAuthAndNavigate();
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    // Wait for animation
+    await Future.delayed(const Duration(milliseconds: 2500));
+
+    if (!mounted) return;
+
+    // Check if user is authenticated
+    final authState = ref.read(authViewModelProvider);
+    
+    // If already authenticated, navigate to dashboard
+    if (authState.isAuthenticated && authState.user != null) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const Dashboard(),
+        ),
+      );
+    } else {
+      // Check auth status (this will update state if user is logged in)
+      await ref.read(authViewModelProvider.notifier).checkAuth();
+      
+      // Wait a bit for state to update
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (!mounted) return;
+      
+      final updatedAuthState = ref.read(authViewModelProvider);
+      
+      // Navigate based on auth status
+      if (updatedAuthState.isAuthenticated && updatedAuthState.user != null) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const Dashboard(),
+          ),
+        );
+      } else {
+        // Not logged in, go to icon screen (which leads to onboarding/login)
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const IconScreen(),
           ),
         );
       }
-    });
+    }
   }
 
   @override

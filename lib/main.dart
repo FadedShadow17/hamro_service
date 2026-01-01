@@ -1,7 +1,14 @@
 import 'package:hamro_service/app/app.dart';
+import 'package:hamro_service/core/providers/shared_prefs_provider.dart';
 import 'package:hamro_service/core/services/hive/hive_service.dart';
+import 'package:hamro_service/core/services/storage/user_session_service.dart';
+import 'package:hamro_service/features/auth/data/datasources/local/auth_local_datasource.dart';
+import 'package:hamro_service/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,10 +16,37 @@ void main() async {
   // Initialize Hive before runApp
   await HiveService.init();
 
+  // Initialize SharedPreferences
+  final sharedPreferences = await SharedPreferences.getInstance();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
-
   ]).then((_) {
-    runApp(const App());
+    runApp(
+      ProviderScope(
+        overrides: [
+          // Override SharedPreferences provider
+          sharedPrefsProvider.overrideWith(
+            (ref) => Future.value(sharedPreferences),
+          ),
+          // Override AuthRepository provider
+          authRepositoryProvider.overrideWith(
+            (ref) {
+              final prefsAsync = ref.watch(sharedPrefsProvider);
+              final prefs = prefsAsync.value!;
+              final sessionService = UserSessionService(prefs: prefs);
+              final datasource = AuthLocalDatasource(
+                sessionService: sessionService,
+              );
+              return AuthRepositoryImpl(
+                datasource: datasource,
+                sessionService: sessionService,
+              );
+            },
+          ),
+        ],
+        child: const App(),
+      ),
+    );
   });
 }
