@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../constants/hive_table_constant.dart';
+import '../../../features/auth/data/models/auth_hive_model.dart';
 
 /// Service for managing Hive database initialization and box operations
 class HiveService {
@@ -8,8 +9,8 @@ class HiveService {
   static Future<void> init() async {
     await Hive.initFlutter(HiveTableConstant.dbName);
 
-    // Register adapters will be added in later commits
-    // Example: Hive.registerAdapter(AuthHiveModelAdapter());
+    // Register adapters
+    Hive.registerAdapter(AuthHiveModelAdapter());
   }
 
   /// Open a Hive box
