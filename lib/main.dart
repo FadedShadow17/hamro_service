@@ -32,9 +32,8 @@ void main() async {
           // Override AuthRepository provider
           authRepositoryProvider.overrideWith(
             (ref) {
-              final prefsAsync = ref.watch(sharedPrefsProvider);
-              final prefs = prefsAsync.value!;
-              final sessionService = UserSessionService(prefs: prefs);
+              // Use the already-initialized SharedPreferences directly
+              final sessionService = UserSessionService(prefs: sharedPreferences);
               final datasource = AuthLocalDatasource(
                 sessionService: sessionService,
               );

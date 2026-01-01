@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/screens/dashboard.dart';
 import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/screens/forgot_password.dart';
 import 'package:hamro_service/screens/role_screen.dart';
 
@@ -17,6 +18,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Clear any error messages when page is shown (but keep loading if user just clicked login)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentState = ref.read(authViewModelProvider);
+      // Only clear error messages, don't reset loading state (that's from user action)
+      if (currentState.errorMessage != null && !currentState.isLoading) {
+        ref.read(authViewModelProvider.notifier).state = const AuthState.initial();
+      }
+    });
+  }
 
   @override
   void dispose() {

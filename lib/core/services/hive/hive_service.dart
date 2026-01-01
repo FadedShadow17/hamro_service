@@ -12,8 +12,8 @@ class HiveService {
     // Register adapters
     Hive.registerAdapter(AuthHiveModelAdapter());
 
-    // Open required boxes
-    await openBox(HiveTableConstant.usersBox);
+    // Open required boxes with proper types
+    await Hive.openBox<AuthHiveModel>(HiveTableConstant.usersBox);
   }
 
   /// Open a Hive box

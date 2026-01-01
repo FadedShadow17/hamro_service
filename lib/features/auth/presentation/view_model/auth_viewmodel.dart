@@ -26,18 +26,18 @@ class AuthViewModel extends Notifier<AuthState> {
     _getCurrentUserUsecase = GetCurrentUserUsecase(repository);
     _logoutUsecase = LogoutUsecase(repository);
 
-    // Check if user is already logged in
-    checkAuth();
-
     return const AuthState.initial();
   }
 
   /// Check if user is authenticated
   Future<void> checkAuth() async {
-    state = const AuthState.loading();
+    // Don't show loading for background auth check
     final result = await _getCurrentUserUsecase();
     result.fold(
-      (failure) => state = AuthState.error(failure.message),
+      (failure) {
+        // Silently fail - don't show error for background check
+        state = const AuthState.initial();
+      },
       (user) {
         if (user != null) {
           state = AuthState.authenticated(user);

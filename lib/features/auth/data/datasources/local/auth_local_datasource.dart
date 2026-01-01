@@ -15,9 +15,15 @@ class AuthLocalDatasource implements AuthDatasource {
   /// Get the users box
   Box<AuthHiveModel> _getUsersBox() {
     try {
+      if (!Hive.isBoxOpen(HiveTableConstant.usersBox)) {
+        throw Exception('Users box not opened. Call HiveService.init() first.');
+      }
       final box = Hive.box<AuthHiveModel>(HiveTableConstant.usersBox);
       return box;
     } catch (e) {
+      if (e.toString().contains('Users box not opened')) {
+        rethrow;
+      }
       throw Exception('Users box not initialized. Call HiveService.init() first.');
     }
   }
@@ -29,14 +35,19 @@ class AuthLocalDatasource implements AuthDatasource {
     // Check if user with same email already exists
     try {
       box.values.firstWhere((u) => u.email == user.email);
+      // If we get here, user exists
       throw UserAlreadyExistsException('User with this email already exists');
     } catch (e) {
-      // If StateError, it means no user found (safe to register)
+      // If UserAlreadyExistsException, rethrow it
       if (e is UserAlreadyExistsException) {
         rethrow;
       }
-      // StateError means no user found, safe to register
-      if (!e.toString().contains('StateError')) {
+      // If StateError (no element found), it means no user found - safe to register
+      // This is the expected case when registering a new user
+      if (e is StateError || e.toString().contains('StateError') || e.toString().contains('No element')) {
+        // No user found, safe to register - continue
+      } else {
+        // Some other unexpected error
         throw CacheException('Error checking user existence: ${e.toString()}');
       }
     }

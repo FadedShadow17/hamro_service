@@ -54,41 +54,46 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _checkAuthAndNavigate() async {
-    // Wait for animation
-    await Future.delayed(const Duration(milliseconds: 2500));
+    try {
+      // Wait for animation
+      await Future.delayed(const Duration(milliseconds: 2500));
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    // Check if user is authenticated
-    final authState = ref.read(authViewModelProvider);
-    
-    // If already authenticated, navigate to dashboard
-    if (authState.isAuthenticated && authState.user != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const Dashboard(),
-        ),
-      );
-    } else {
-      // Check auth status (this will update state if user is logged in)
+      // Check auth status
       await ref.read(authViewModelProvider.notifier).checkAuth();
-      
-      // Wait a bit for state to update
-      await Future.delayed(const Duration(milliseconds: 500));
       
       if (!mounted) return;
       
-      final updatedAuthState = ref.read(authViewModelProvider);
+      // Wait a bit for state to update
+      await Future.delayed(const Duration(milliseconds: 300));
+      
+      if (!mounted) return;
+      
+      final authState = ref.read(authViewModelProvider);
       
       // Navigate based on auth status
-      if (updatedAuthState.isAuthenticated && updatedAuthState.user != null) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const Dashboard(),
-          ),
-        );
+      if (authState.isAuthenticated && authState.user != null) {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const Dashboard(),
+            ),
+          );
+        }
       } else {
         // Not logged in, go to icon screen (which leads to onboarding/login)
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const IconScreen(),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // If there's any error, navigate to icon screen (login flow)
+      if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const IconScreen(),
