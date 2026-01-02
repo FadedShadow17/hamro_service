@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hamro_service/features/auth/presentation/viewmodel/auth_viewmodel.dart';
+import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/profile/presentation/viewmodel/profile_viewmodel.dart';
 import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
+import 'package:hamro_service/features/profile/presentation/pages/about_developer_page.dart';
+import 'package:hamro_service/core/providers/theme_provider.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -15,10 +17,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Load profile when page initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(profileViewModelProvider.notifier).loadProfile();
-    });
+    // Profile will be loaded automatically by ProfileViewModel.build()
   }
 
   void _handleLogout() {
@@ -62,12 +61,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final email = profile?.email ?? authState.user?.email ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
+              // Profile Screen Title
+              Text(
+                'Profile Screen',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
               // Profile Picture Section
               Stack(
                 children: [
@@ -128,11 +137,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               // Name
               Text(
                 name,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
 
               const SizedBox(height: 16),
@@ -142,24 +149,26 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+                      : const Color(0xFFE3F2FD),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.email,
-                      color: Color(0xFF4285F4),
+                      color: Theme.of(context).colorScheme.primary,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         email,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
-                          color: Color(0xFF4285F4),
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
@@ -175,7 +184,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -191,22 +200,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       icon: Icons.edit,
                       title: 'Edit Profile',
                       onTap: () {
-                        // TODO: Navigate to edit profile page
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Edit Profile coming soon')),
                         );
                       },
                     ),
                     const Divider(height: 1, indent: 60),
-                    _MenuItem(
-                      icon: Icons.lock,
-                      title: 'Add Pin',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Add Pin coming soon')),
-                        );
-                      },
-                    ),
+                    _DarkModeMenuItem(),
                     const Divider(height: 1, indent: 60),
                     _MenuItem(
                       icon: Icons.settings,
@@ -219,11 +219,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     ),
                     const Divider(height: 1, indent: 60),
                     _MenuItem(
-                      icon: Icons.people,
-                      title: 'Invite a friend',
+                      icon: Icons.info,
+                      title: 'About Developer',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Invite a friend coming soon')),
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const AboutDeveloperPage(),
+                          ),
                         );
                       },
                     ),
@@ -275,12 +277,14 @@ class _MenuItem extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]
+                      : Colors.grey[100],
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
-                  color: titleColor ?? Colors.black87,
+                  color: titleColor ?? Theme.of(context).textTheme.bodyLarge?.color,
                   size: 22,
                 ),
               ),
@@ -291,7 +295,7 @@ class _MenuItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: titleColor ?? Colors.black87,
+                    color: titleColor ?? Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ),
@@ -299,6 +303,65 @@ class _MenuItem extends StatelessWidget {
                 Icons.chevron_right,
                 color: Colors.grey[400],
                 size: 24,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DarkModeMenuItem extends ConsumerWidget {
+  const _DarkModeMenuItem();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == AppThemeMode.dark;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          ref.read(themeProvider.notifier).toggleTheme();
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]
+                      : Colors.grey[100],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isDark ? Icons.dark_mode : Icons.light_mode,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  'Dark Mode',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+              ),
+              Switch(
+                value: isDark,
+                onChanged: (value) {
+                  ref.read(themeProvider.notifier).toggleTheme();
+                },
               ),
             ],
           ),

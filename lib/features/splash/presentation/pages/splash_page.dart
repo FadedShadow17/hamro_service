@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hamro_service/features/auth/presentation/viewmodel/auth_viewmodel.dart';
+import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:hamro_service/features/icon_screen/presentation/pages/icon_page.dart';
 

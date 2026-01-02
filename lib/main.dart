@@ -5,6 +5,9 @@ import 'package:hamro_service/core/services/storage/user_session_service.dart';
 import 'package:hamro_service/features/auth/data/datasources/local/auth_local_datasource.dart';
 import 'package:hamro_service/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:hamro_service/features/profile/data/datasources/local/profile_local_datasource.dart';
+import 'package:hamro_service/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:hamro_service/features/profile/presentation/viewmodel/profile_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -38,6 +41,18 @@ void main() async {
                 sessionService: sessionService,
               );
               return AuthRepositoryImpl(
+                datasource: datasource,
+                sessionService: sessionService,
+              );
+            },
+          ),
+          // Override ProfileRepository provider
+          profileRepositoryProvider.overrideWith(
+            (ref) {
+              // Use the already-initialized SharedPreferences directly
+              final sessionService = UserSessionService(prefs: sharedPreferences);
+              final datasource = ProfileLocalDatasource();
+              return ProfileRepositoryImpl(
                 datasource: datasource,
                 sessionService: sessionService,
               );

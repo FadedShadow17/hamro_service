@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
-import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/screens/dashboard.dart';
 
 class SignupPage extends ConsumerStatefulWidget {

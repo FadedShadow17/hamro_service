@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hamro_service/bottom_navigation/favorites.dart';
 import 'package:hamro_service/bottom_navigation/payment.dart';
 import 'package:hamro_service/bottom_navigation/home.dart';
-import 'package:hamro_service/bottom_navigation/profile.dart';
+import 'package:hamro_service/features/profile/presentation/pages/profile_page.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -18,39 +18,44 @@ class _BottomNavigationScreenState extends State<Dashboard> {
     const HomeScreen(),
     const FavoritesScreen(),
     const PaymentScreen(),
-    const ProfileScreen(),
+    const ProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    // Hide AppBar when Profile tab is selected (index 3)
+    final bool showAppBar = _selectedIndex != 3;
+    
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color.fromARGB(
-          255,
-          230,
-          229,
-          231,
-        ), 
-        title: const Text(
-          "Dashboard",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      appBar: showAppBar
+          ? AppBar(
+              elevation: 0,
+              backgroundColor: const Color.fromARGB(
+                255,
+                230,
+                229,
+                231,
+              ), 
+              title: const Text(
+                "Dashboard",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.more_vert, color: Colors.white),
+                  onPressed: () {},
+                ),
+              ],
+            )
+          : null,
 
       body: lstBottomScreen[_selectedIndex],
 

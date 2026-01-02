@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/screens/dashboard.dart';
 import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
-import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/screens/forgot_password.dart';
 import 'package:hamro_service/screens/role_screen.dart';
 
@@ -43,10 +42,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       return;
     }
 
-    ref.read(authViewModelProvider.notifier).login(
-          emailOrUsername: email,
-          password: password,
-        );
+    ref
+        .read(authViewModelProvider.notifier)
+        .login(emailOrUsername: email, password: password);
   }
 
   @override
@@ -65,9 +63,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     // Show error if any
     if (authState.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authState.errorMessage!)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(authState.errorMessage!)));
       });
     }
     return Scaffold(
@@ -307,7 +305,9 @@ class _LoginCard extends ConsumerWidget {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : const Text(
@@ -382,9 +382,7 @@ class _LoginCard extends ConsumerWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const SignupPage(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const SignupPage()),
                   );
                 },
                 style: TextButton.styleFrom(

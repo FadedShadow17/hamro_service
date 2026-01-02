@@ -3,7 +3,7 @@ import '../../domain/repositories/profile_repository.dart';
 import '../../domain/usecases/get_profile_usecase.dart';
 import '../../domain/usecases/update_profile_usecase.dart';
 import '../../domain/entities/profile_entity.dart';
-import '../../../auth/presentation/viewmodel/auth_viewmodel.dart';
+import '../../../auth/presentation/view_model/auth_viewmodel.dart';
 import '../state/profile_state.dart';
 
 /// Provider for ProfileRepository (to be provided in main or app setup)
@@ -86,7 +86,4 @@ class ProfileViewModel extends Notifier<ProfileState> {
 
 /// Provider for ProfileViewModel
 final profileViewModelProvider =
-    NotifierProvider<ProfileViewModel, ProfileState>(
-  () => ProfileViewModel(),
-);
-
+    NotifierProvider<ProfileViewModel, ProfileState>(() => ProfileViewModel());
