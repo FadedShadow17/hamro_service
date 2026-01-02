@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../constants/hive_table_constant.dart';
 import '../../../features/auth/data/models/auth_hive_model.dart';
+import '../../../features/profile/data/models/profile_hive_model.dart';
 
 /// Service for managing Hive database initialization and box operations
 class HiveService {
@@ -11,9 +12,11 @@ class HiveService {
 
     // Register adapters
     Hive.registerAdapter(AuthHiveModelAdapter());
+    Hive.registerAdapter(ProfileHiveModelAdapter());
 
-    // Open required boxes
-    await openBox(HiveTableConstant.usersBox);
+    // Open required boxes with proper types
+    await Hive.openBox<AuthHiveModel>(HiveTableConstant.usersBox);
+    await Hive.openBox<ProfileHiveModel>(HiveTableConstant.profileBox);
   }
 
   /// Open a Hive box
