@@ -1,0 +1,31 @@
+import 'package:equatable/equatable.dart';
+
+/// Domain entity for user profile
+class ProfileEntity extends Equatable {
+  final String userId;
+  final String fullName;
+  final String email;
+  final String? phoneNumber;
+  final String? avatarUrl;
+  final String? address;
+
+  const ProfileEntity({
+    required this.userId,
+    required this.fullName,
+    required this.email,
+    this.phoneNumber,
+    this.avatarUrl,
+    this.address,
+  });
+
+  @override
+  List<Object?> get props => [
+        userId,
+        fullName,
+        email,
+        phoneNumber,
+        avatarUrl,
+        address,
+      ];
+}
+
