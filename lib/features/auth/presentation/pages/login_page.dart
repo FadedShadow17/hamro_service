@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/screens/dashboard.dart';
 import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart';
-<<<<<<< HEAD
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/screens/forgot_password.dart';
@@ -23,14 +22,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Clear any error messages when page is shown (but keep loading if user just clicked login)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentState = ref.read(authViewModelProvider);
-      // Only clear error messages, don't reset loading state (that's from user action)
-      if (currentState.errorMessage != null && !currentState.isLoading) {
-        ref.read(authViewModelProvider.notifier).state = const AuthState.initial();
-      }
-    });
+    // Errors will be cleared when user attempts to login again
   }
 
   @override
@@ -56,13 +48,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           password: password,
         );
   }
-=======
-import 'package:hamro_service/screens/forgot_password.dart';
-import 'package:hamro_service/screens/role_screen.dart';
-
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
->>>>>>> 2d66b01 (Clean architecture)
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +203,7 @@ class _LoginCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),

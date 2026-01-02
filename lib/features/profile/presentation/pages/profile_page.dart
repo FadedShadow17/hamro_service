@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/features/auth/presentation/viewmodel/auth_viewmodel.dart';
 import 'package:hamro_service/features/profile/presentation/viewmodel/profile_viewmodel.dart';
-import 'package:hamro_service/features/profile/presentation/state/profile_state.dart';
 import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -23,6 +22,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   void _handleLogout() {
+    final navigator = Navigator.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -38,7 +38,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               Navigator.pop(context);
               await ref.read(authViewModelProvider.notifier).logout();
               if (mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
+                navigator.pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const LoginPage()),
                   (route) => false,
                 );
@@ -82,7 +82,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -179,7 +179,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
