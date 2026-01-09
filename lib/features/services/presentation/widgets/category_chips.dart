@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Category chips widget
 class CategoryChips extends StatelessWidget {
   final List<String> categories;
   final String selectedCategory;

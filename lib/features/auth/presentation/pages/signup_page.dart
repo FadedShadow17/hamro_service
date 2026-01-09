@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
-import 'package:hamro_service/screens/dashboard.dart';
+import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
+import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({super.key});
@@ -22,7 +23,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Errors will be cleared when user attempts to signup again
   }
 
   @override
@@ -69,16 +69,14 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    // Handle navigation on success
     if (authState.isRegistered) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const Dashboard()),
+          MaterialPageRoute(builder: (context) => const RolePage()),
         );
       });
     }
 
-    // Show error if any
     if (authState.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -89,6 +87,8 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -112,7 +112,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                // Back button
                 Align(
                   alignment: Alignment.centerLeft,
                   child: IconButton(
@@ -126,7 +125,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Title Section
                 Column(
                   children: [
                     Text(
@@ -149,7 +147,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   ],
                 ),
                 const SizedBox(height: 40),
-                // Signup Card
                 Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(maxWidth: 400),
@@ -168,14 +165,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Username Field
                       _AppTextField(
                         controller: _usernameController,
                         hintText: 'Username',
                         prefixIcon: Icons.person_outline,
                       ),
                       const SizedBox(height: 20),
-                      // Email Field
                       _AppTextField(
                         controller: _emailController,
                         hintText: 'E-mail',
@@ -183,7 +178,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                         prefixIcon: Icons.email_outlined,
                       ),
                       const SizedBox(height: 20),
-                      // Phone Field
                       _AppTextField(
                         controller: _phoneController,
                         hintText: 'Phone',
@@ -191,7 +185,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                         prefixIcon: Icons.phone_outlined,
                       ),
                       const SizedBox(height: 20),
-                      // Password Field
                       _AppTextField(
                         controller: _passwordController,
                         hintText: 'Password',
@@ -212,7 +205,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // Confirm Password Field
                       _AppTextField(
                         controller: _confirmPasswordController,
                         hintText: 'Confirm password',
@@ -233,11 +225,46 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      // Sign Up Button
                       _AppButton(
                         text: 'SIGN UP',
                         onPressed: _handleSignup,
                         isLoading: authState.isLoading,
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Already have an account? ',
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              fontSize: 14,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginPage(),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'Sign in',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -252,7 +279,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   }
 }
 
-// Reusable Text Field Widget
 class _AppTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -313,7 +339,6 @@ class _AppTextField extends StatelessWidget {
   }
 }
 
-// Reusable Button Widget
 class _AppButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;

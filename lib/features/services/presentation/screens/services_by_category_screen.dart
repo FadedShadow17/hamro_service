@@ -5,7 +5,6 @@ import '../providers/services_list_provider.dart';
 import '../widgets/category_chips.dart';
 import '../widgets/service_item_card.dart';
 
-/// Services by category screen
 class ServicesByCategoryScreen extends ConsumerStatefulWidget {
   final String categoryId;
   final String categoryName;
@@ -81,7 +80,6 @@ class _ServicesByCategoryScreenState extends ConsumerState<ServicesByCategoryScr
   ) {
     return Column(
       children: [
-        // Category chips
         CategoryChips(
           categories: state.categories,
           selectedCategory: state.selectedCategory,
@@ -91,7 +89,6 @@ class _ServicesByCategoryScreenState extends ConsumerState<ServicesByCategoryScr
             });
           },
         ),
-        // Services list
         Expanded(
           child: ListView(
             padding: const EdgeInsets.only(bottom: 16),

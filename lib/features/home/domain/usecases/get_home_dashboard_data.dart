@@ -2,7 +2,6 @@ import '../entities/service_category.dart';
 import '../entities/popular_service.dart';
 import '../repositories/home_repository.dart';
 
-/// Use case to get home dashboard data
 class GetHomeDashboardData {
   final HomeRepository repository;
 
@@ -18,7 +17,6 @@ class GetHomeDashboardData {
   }
 }
 
-/// Home dashboard data model
 class HomeDashboardData {
   final List<ServiceCategory> mostBookedServices;
   final List<PopularService> popularServices;

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Domain entity for authentication
 class AuthEntity extends Equatable {
   final String authId;
   final String fullName;

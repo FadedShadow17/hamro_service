@@ -14,7 +14,6 @@ class AboutDeveloperPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              // Developer Avatar
               Container(
                 width: 120,
                 height: 120,
@@ -35,7 +34,6 @@ class AboutDeveloperPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              // Developer Name
               Text(
                 'Rojit Dahal',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -43,7 +41,6 @@ class AboutDeveloperPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              // Email
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -62,7 +59,6 @@ class AboutDeveloperPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 40),
-              // Description Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),

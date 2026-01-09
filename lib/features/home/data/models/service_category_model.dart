@@ -1,6 +1,5 @@
 import '../../domain/entities/service_category.dart';
 
-/// Service category model (data layer)
 class ServiceCategoryModel extends ServiceCategory {
   const ServiceCategoryModel({
     required super.id,

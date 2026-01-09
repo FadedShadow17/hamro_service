@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
-/// Modern bottom navigation bar widget
 class ModernBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;

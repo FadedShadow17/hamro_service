@@ -56,7 +56,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       if (image != null) {
         setState(() {
           _selectedImage = File(image.path);
-          _currentAvatarUrl = null; // Clear network URL when local image is selected
+          _currentAvatarUrl = null;
         });
       }
     } catch (e) {
@@ -85,11 +85,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         throw Exception('Profile not found');
       }
 
-      // For now, we'll store the local file path as avatarUrl
-      // In a real app, you'd upload the image to a server and get a URL
       String? avatarUrl = _currentAvatarUrl;
       if (_selectedImage != null) {
-        // Store local file path - in production, upload to server
         avatarUrl = _selectedImage!.path;
       }
 
@@ -193,7 +190,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                // Profile Picture Section
                 GestureDetector(
                   onTap: _pickImage,
                   child: Stack(
@@ -255,7 +251,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                // Form Fields
                 _buildTextField(
                   controller: _nameController,
                   label: 'Full Name',
@@ -273,7 +268,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   label: 'Email',
                   icon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
-                  enabled: false, // Email usually can't be changed
+                  enabled: false,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your email';

@@ -3,7 +3,6 @@ import '../../../../core/error/failures.dart';
 import '../entities/auth_entity.dart';
 import '../repositories/auth_repository.dart';
 
-/// Use case for user login
 class LoginUsecase {
   final AuthRepository repository;
 

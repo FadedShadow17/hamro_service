@@ -1,4 +1,3 @@
-/// Service category entity
 class ServiceCategory {
   final String id;
   final String name;

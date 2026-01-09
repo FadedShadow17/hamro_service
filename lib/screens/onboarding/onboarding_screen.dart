@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hamro_service/screens/onboarding/onboarding1.dart';
 import 'package:hamro_service/screens/onboarding/onboarding2.dart';
 import 'package:hamro_service/screens/onboarding/onboarding3.dart';
-// import 'package:hamro_service/screens/login_screen.dart';
-import 'package:hamro_service/screens/role_screen.dart';
+import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -33,7 +32,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _skipToLogin() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const RoleScreen()),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 

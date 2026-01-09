@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// App text style constants
 class AppTextStyles {
   AppTextStyles._();
 
-  // Headings
   static TextStyle headingLarge(BuildContext context) => TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.bold,
@@ -23,7 +21,6 @@ class AppTextStyles {
         color: Theme.of(context).textTheme.bodyLarge?.color,
       );
 
-  // Body text
   static TextStyle bodyLarge(BuildContext context) => TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.normal,
@@ -42,7 +39,6 @@ class AppTextStyles {
         color: Theme.of(context).textTheme.bodySmall?.color,
       );
 
-  // Special styles
   static TextStyle price(BuildContext context) => TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,

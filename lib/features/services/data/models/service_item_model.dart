@@ -1,6 +1,5 @@
 import '../../domain/entities/service_item.dart';
 
-/// Service item data model
 class ServiceItemModel extends ServiceItem {
   const ServiceItemModel({
     required super.id,

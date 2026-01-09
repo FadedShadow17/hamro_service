@@ -1,17 +1,14 @@
 import '../models/service_category_model.dart';
 import '../models/popular_service_model.dart';
 
-/// Abstract local datasource for home data
 abstract class HomeLocalDataSource {
   Future<List<ServiceCategoryModel>> getMostBookedServices();
   Future<List<PopularServiceModel>> getPopularServices();
 }
 
-/// Implementation of HomeLocalDataSource with hardcoded data
 class HomeLocalDataSourceImpl implements HomeLocalDataSource {
   @override
   Future<List<ServiceCategoryModel>> getMostBookedServices() async {
-    // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 300));
     
     return const [
@@ -60,7 +57,6 @@ class HomeLocalDataSourceImpl implements HomeLocalDataSource {
 
   @override
   Future<List<PopularServiceModel>> getPopularServices() async {
-    // Simulate network delay
     await Future.delayed(const Duration(milliseconds: 300));
     
     return const [

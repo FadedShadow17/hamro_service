@@ -7,7 +7,6 @@ import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_datasource.dart';
 import '../models/profile_hive_model.dart';
 
-/// Implementation of domain ProfileRepository using data layer
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileDatasource _datasource;
   final UserSessionService _sessionService;
@@ -18,7 +17,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
   })  : _datasource = datasource,
         _sessionService = sessionService;
 
-  /// Convert ProfileHiveModel to ProfileEntity
   ProfileEntity _modelToEntity(ProfileHiveModel model) {
     return ProfileEntity(
       userId: model.userId,
@@ -30,7 +28,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
     );
   }
 
-  /// Convert ProfileEntity to ProfileHiveModel
   ProfileHiveModel _entityToModel(ProfileEntity entity) {
     return ProfileHiveModel(
       userId: entity.userId,

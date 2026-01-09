@@ -4,24 +4,20 @@ import '../../data/repositories/services_repository_impl.dart';
 import '../../domain/usecases/get_services_by_category.dart';
 import '../../domain/entities/service_item.dart';
 
-/// Local data source provider
 final servicesLocalDataSourceProvider = Provider<ServicesLocalDataSource>((ref) {
   return ServicesLocalDataSourceImpl();
 });
 
-/// Repository provider
 final servicesRepositoryProvider = Provider<ServicesRepositoryImpl>((ref) {
   final datasource = ref.watch(servicesLocalDataSourceProvider);
   return ServicesRepositoryImpl(localDataSource: datasource);
 });
 
-/// Get services by category use case provider
 final getServicesByCategoryProvider = Provider<GetServicesByCategory>((ref) {
   final repository = ref.watch(servicesRepositoryProvider);
   return GetServicesByCategory(repository);
 });
 
-/// Services screen state
 class ServicesScreenState {
   final String selectedCategory;
   final List<String> categories;
@@ -50,13 +46,12 @@ class ServicesScreenState {
   }
 }
 
-/// Services list provider factory
 final servicesListProvider = FutureProvider.family<ServicesScreenState, String>((ref, category) async {
   final getServices = ref.read(getServicesByCategoryProvider);
 
   final services = await getServices(category);
 
-  final categories = ['All', 'Plumbing', 'Cleaning', 'Electrician', 'Carpenter', 'Painter', 'Mason', 'Welder', 'Roofer', 'Pest Controller'];
+  final categories = ['All', 'Plumbing', 'Cleaning', 'Electrician', 'Carpenter', 'Painter', 'Mason', 'Welder', 'Roofer', 'Pest Controller', 'More'];
 
   return ServicesScreenState(
     selectedCategory: category,

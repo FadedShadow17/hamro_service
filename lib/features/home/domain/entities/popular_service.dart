@@ -1,4 +1,3 @@
-/// Popular service entity
 class PopularService {
   final String id;
   final String title;

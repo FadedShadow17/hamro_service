@@ -6,12 +6,10 @@ import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../state/auth_state.dart';
 
-/// Provider for AuthRepository (to be provided in main or app setup)
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   throw UnimplementedError('authRepositoryProvider must be overridden');
 });
 
-/// ViewModel for authentication using NotifierProvider
 class AuthViewModel extends Notifier<AuthState> {
   late final LoginUsecase _loginUsecase;
   late final RegisterUsecase _registerUsecase;
@@ -29,13 +27,10 @@ class AuthViewModel extends Notifier<AuthState> {
     return const AuthState.initial();
   }
 
-  /// Check if user is authenticated
   Future<void> checkAuth() async {
-    // Don't show loading for background auth check
     final result = await _getCurrentUserUsecase();
     result.fold(
       (failure) {
-        // Silently fail - don't show error for background check
         state = const AuthState.initial();
       },
       (user) {
@@ -48,7 +43,6 @@ class AuthViewModel extends Notifier<AuthState> {
     );
   }
 
-  /// Login with email/username and password
   Future<void> login({
     required String emailOrUsername,
     required String password,
@@ -64,7 +58,6 @@ class AuthViewModel extends Notifier<AuthState> {
     );
   }
 
-  /// Register a new user
   Future<void> register({
     required String fullName,
     required String email,
@@ -86,7 +79,6 @@ class AuthViewModel extends Notifier<AuthState> {
     );
   }
 
-  /// Logout
   Future<void> logout() async {
     state = const AuthState.loading();
     final result = await _logoutUsecase();
@@ -97,7 +89,6 @@ class AuthViewModel extends Notifier<AuthState> {
   }
 }
 
-/// Provider for AuthViewModel
 final authViewModelProvider = NotifierProvider<AuthViewModel, AuthState>(
   () => AuthViewModel(),
 );

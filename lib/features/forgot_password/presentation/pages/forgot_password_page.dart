@@ -6,96 +6,68 @@ class ForgotPasswordPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Stack(
-            children: [
-
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFF8F8F8), Color(0xFFF0F0F0)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: Theme.of(context).brightness == Brightness.dark
+                ? [
+                    const Color(0xFF1A1A2E),
+                    const Color(0xFF16213E),
+                    const Color(0xFF0F3460),
+                  ]
+                : [
+                    const Color(0xFFF5F7FA),
+                    const Color(0xFFE8ECF1),
+                    const Color(0xFFDDE4EA),
+                  ],
+          ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                ),
-              ),
-
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: CustomPaint(
-                  size: Size(
-                    constraints.maxWidth,
-                    constraints.maxHeight * 0.35,
-                  ),
-                  painter: _CurvedHeaderPainter(),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16, top: 8),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.arrow_back_ios,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                          Expanded(
+                            child: Center(
+                              child: _ForgotPasswordCard(),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              ),
-              // Main content card
-              Center(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    top: constraints.maxHeight * 0.25,
-                    bottom: 32,
-                    left: 24,
-                    right: 24,
-                  ),
-                  child: _ForgotPasswordCard(),
-                ),
-              ),
-            ],
-          );
-        },
+              );
+            },
+          ),
+        ),
       ),
     );
   }
-}
-
-// Custom painter for the curved header
-class _CurvedHeaderPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF1A4B9F)
-      ..style = PaintingStyle.fill;
-
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width, size.height * 0.6)
-      ..quadraticBezierTo(
-        size.width * 0.7,
-        size.height * 0.8,
-        size.width * 0.3,
-        size.height * 0.9,
-      )
-      ..quadraticBezierTo(size.width * 0.1, size.height, 0, size.height * 0.95)
-      ..lineTo(0, 0)
-      ..close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _ForgotPasswordCard extends StatelessWidget {
@@ -104,13 +76,13 @@ class _ForgotPasswordCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(maxWidth: 400),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -120,59 +92,79 @@ class _ForgotPasswordCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Title
-          const Text(
-            'Forgot Password',
+          Text(
+            'Reset Password',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 32,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Enter your email to receive a reset link',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                  fontSize: 16,
+                ),
+          ),
+          const SizedBox(height: 32),
+          TextFormField(
+            keyboardType: TextInputType.emailAddress,
+            style: Theme.of(context).textTheme.bodyLarge,
+            decoration: InputDecoration(
+              hintText: 'E-mail',
+              hintStyle: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                fontSize: 16,
+              ),
+              prefixIcon: Icon(
+                Icons.email_outlined,
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+              ),
+              filled: true,
+              fillColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[900]?.withValues(alpha: 0.5)
+                  : Colors.grey[100],
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             ),
           ),
           const SizedBox(height: 32),
-          // Email input field
-          Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFEFEF),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const TextField(
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                hintText: 'E-mail',
-                hintStyle: TextStyle(color: Color(0xFF757575), fontSize: 16),
-                border: InputBorder.none,
+          SizedBox(
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () {
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2ECC71),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
               ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Send Reset Link button
-          Container(
-            height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFF2ECC71),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  // Handle send reset link action
-                },
-                child: const Center(
-                  child: Text(
-                    'Send Reset Link',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
+              child: const Text(
+                'Send Reset Link',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
                 ),
               ),
             ),

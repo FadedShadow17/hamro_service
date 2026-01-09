@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// Reusable avatar widget
 class KAvatar extends StatelessWidget {
   final String? imageUrl;
   final double size;
@@ -21,17 +20,14 @@ class KAvatar extends StatelessWidget {
     if (imageUrl != null) {
       final url = imageUrl!;
       if (url.startsWith('http://') || url.startsWith('https://')) {
-        // Network image
         imageProvider = NetworkImage(url);
       } else {
-        // Local file path
         final file = File(url);
         try {
           if (file.existsSync()) {
             imageProvider = FileImage(file);
           }
         } catch (e) {
-          // File doesn't exist or can't be read
         }
       }
     }
@@ -48,7 +44,6 @@ class KAvatar extends StatelessWidget {
                 image: provider,
                 fit: BoxFit.cover,
                 onError: (exception, stackTrace) {
-                  // Handle image loading error
                 },
               )
             : null,

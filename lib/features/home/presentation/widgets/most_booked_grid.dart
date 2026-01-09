@@ -3,7 +3,6 @@ import '../../domain/entities/service_category.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../services/presentation/screens/services_by_category_screen.dart';
 
-/// Most booked services grid widget
 class MostBookedGrid extends StatelessWidget {
   final List<ServiceCategory> categories;
 

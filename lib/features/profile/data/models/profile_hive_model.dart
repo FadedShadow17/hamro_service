@@ -32,7 +32,6 @@ class ProfileHiveModel {
     this.address,
   });
 
-  /// Create a copy with updated fields
   ProfileHiveModel copyWith({
     String? userId,
     String? fullName,

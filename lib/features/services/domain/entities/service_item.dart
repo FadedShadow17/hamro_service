@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Service item entity
 class ServiceItem extends Equatable {
   final String id;
   final String title;

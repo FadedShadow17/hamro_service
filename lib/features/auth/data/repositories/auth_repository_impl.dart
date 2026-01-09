@@ -8,7 +8,6 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_datasource.dart';
 import '../models/auth_hive_model.dart';
 
-/// Implementation of domain AuthRepository using data layer
 class AuthRepositoryImpl implements AuthRepository {
   final AuthDatasource _datasource;
   final UserSessionService _sessionService;
@@ -20,7 +19,6 @@ class AuthRepositoryImpl implements AuthRepository {
   })  : _datasource = datasource,
         _sessionService = sessionService;
 
-  /// Convert AuthHiveModel to AuthEntity
   AuthEntity _modelToEntity(AuthHiveModel model) {
     return AuthEntity(
       authId: model.authId,
@@ -46,7 +44,7 @@ class AuthRepositoryImpl implements AuthRepository {
         fullName: fullName,
         email: email,
         username: username,
-        password: password, // In production, hash this
+        password: password,
         phoneNumber: phoneNumber,
       );
 

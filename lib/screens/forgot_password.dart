@@ -17,7 +17,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _handleSendResetLink() {
-    // Handle send reset link action
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your email address')),
@@ -52,86 +51,102 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                // Back button
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.arrow_back_ios,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                ),
-                const SizedBox(height: 20),
-                // Title Section
-                Column(
-                  children: [
-                    Text(
-                      'Reset Password',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 32,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.arrow_back_ios,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                              ),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                            ),
                           ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Enter your email to receive a reset link',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                            fontSize: 16,
+                          Expanded(
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text(
+                                        'Reset Password',
+                                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 32,
+                                            ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Enter your email to receive a reset link',
+                                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                                              fontSize: 16,
+                                            ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 48),
+                                  Container(
+                                    width: double.infinity,
+                                    constraints: const BoxConstraints(maxWidth: 400),
+                                    padding: const EdgeInsets.all(32),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).cardColor,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.1),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 10),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        _AppTextField(
+                                          controller: _emailController,
+                                          hintText: 'E-mail',
+                                          keyboardType: TextInputType.emailAddress,
+                                          prefixIcon: Icons.email_outlined,
+                                        ),
+                                        const SizedBox(height: 32),
+                                        _AppButton(
+                                          text: 'Send Reset Link',
+                                          onPressed: _handleSendResetLink,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                      textAlign: TextAlign.center,
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-                // Reset Password Card
-                Container(
-                  width: double.infinity,
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Email Field
-                      _AppTextField(
-                        controller: _emailController,
-                        hintText: 'E-mail',
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: Icons.email_outlined,
-                      ),
-                      const SizedBox(height: 32),
-                      // Send Reset Link Button
-                      _AppButton(
-                        text: 'Send Reset Link',
-                        onPressed: _handleSendResetLink,
-                      ),
-                    ],
                   ),
                 ),
-                const SizedBox(height: 40),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
@@ -139,7 +154,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 }
 
-// Reusable Text Field Widget
 class _AppTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -200,7 +214,6 @@ class _AppTextField extends StatelessWidget {
   }
 }
 
-// Reusable Button Widget
 class _AppButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;

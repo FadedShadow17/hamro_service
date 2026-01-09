@@ -38,21 +38,17 @@ class HomeDashboardScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Section
           _buildHeader(ref, context),
           const SizedBox(height: 16),
 
-          // Search Section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: const KSearchField(),
           ),
           const SizedBox(height: 16),
 
-          // Promo Banner
           const PromoBanner(),
 
-          // Most Booked Services
           KSectionHeader(
             title: 'Most Booked Services',
             actionText: 'View all',
@@ -71,7 +67,6 @@ class HomeDashboardScreen extends ConsumerWidget {
           MostBookedGrid(categories: data.mostBookedServices),
           const SizedBox(height: 24),
 
-          // Popular Near You
           KSectionHeader(
             title: 'Popular Near You',
             actionText: 'View all',

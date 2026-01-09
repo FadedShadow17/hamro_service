@@ -18,7 +18,7 @@ class AuthHiveModel {
   final String? username;
 
   @HiveField(4)
-  final String password; // Should be hashed before storing
+  final String password;
 
   @HiveField(5)
   final String? phoneNumber;
@@ -32,7 +32,6 @@ class AuthHiveModel {
     this.phoneNumber,
   });
 
-  /// Create a copy with updated fields
   AuthHiveModel copyWith({
     String? authId,
     String? fullName,

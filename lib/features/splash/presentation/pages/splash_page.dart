@@ -37,30 +37,25 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
     _animationController.forward();
 
-    // Check authentication status
     _checkAuthAndNavigate();
   }
 
   Future<void> _checkAuthAndNavigate() async {
     try {
-      // Wait for animation
       await Future.delayed(const Duration(milliseconds: 2500));
 
       if (!mounted) return;
 
-      // Check auth status
       await ref.read(authViewModelProvider.notifier).checkAuth();
 
       if (!mounted) return;
 
-      // Wait a bit for state to update
       await Future.delayed(const Duration(milliseconds: 300));
 
       if (!mounted) return;
 
       final authState = ref.read(authViewModelProvider);
 
-      // Navigate based on auth status
       if (authState.isAuthenticated && authState.user != null) {
         if (mounted) {
           Navigator.of(context).pushReplacement(
@@ -68,7 +63,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
           );
         }
       } else {
-        // Not logged in, go to icon screen (which leads to onboarding/login)
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const IconPage()),
@@ -76,7 +70,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
         }
       }
     } catch (e) {
-      // If there's any error, navigate to icon screen (login flow)
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const IconPage()),
@@ -117,7 +110,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Animated Logo
                 AnimatedBuilder(
                   animation: _animationController,
                   builder: (context, child) {

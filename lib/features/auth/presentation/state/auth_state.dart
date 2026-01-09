@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/auth_entity.dart';
 
-/// Authentication state
 class AuthState extends Equatable {
   final bool isAuthenticated;
   final bool isLoading;
@@ -17,7 +16,6 @@ class AuthState extends Equatable {
     this.isRegistered = false,
   });
 
-  /// Initial unauthenticated state
   const AuthState.initial()
       : isAuthenticated = false,
         isLoading = false,
@@ -25,7 +23,6 @@ class AuthState extends Equatable {
         errorMessage = null,
         isRegistered = false;
 
-  /// Loading state
   const AuthState.loading()
       : isAuthenticated = false,
         isLoading = true,
@@ -33,14 +30,12 @@ class AuthState extends Equatable {
         errorMessage = null,
         isRegistered = false;
 
-  /// Authenticated state
   const AuthState.authenticated(this.user)
       : isAuthenticated = true,
         isLoading = false,
         errorMessage = null,
         isRegistered = false;
 
-  /// Registered state
   const AuthState.registered()
       : isAuthenticated = false,
         isLoading = false,
@@ -48,14 +43,12 @@ class AuthState extends Equatable {
         errorMessage = null,
         isRegistered = true;
 
-  /// Error state
   const AuthState.error(this.errorMessage)
       : isAuthenticated = false,
         isLoading = false,
         user = null,
         isRegistered = false;
 
-  /// Create a copy with updated fields
   AuthState copyWith({
     bool? isAuthenticated,
     bool? isLoading,

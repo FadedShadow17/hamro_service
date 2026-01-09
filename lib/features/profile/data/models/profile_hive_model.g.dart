@@ -1,10 +1,5 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'profile_hive_model.dart';
-
-// **************************************************************************
-// TypeAdapterGenerator
-// **************************************************************************
 
 class ProfileHiveModelAdapter extends TypeAdapter<ProfileHiveModel> {
   @override

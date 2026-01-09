@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Reusable section header widget
 class KSectionHeader extends StatelessWidget {
   final String title;
   final String? actionText;

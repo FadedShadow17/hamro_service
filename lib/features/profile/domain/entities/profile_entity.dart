@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Domain entity for user profile
 class ProfileEntity extends Equatable {
   final String userId;
   final String fullName;

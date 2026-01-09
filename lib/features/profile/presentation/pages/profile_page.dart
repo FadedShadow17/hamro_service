@@ -20,7 +20,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    // Profile will be loaded automatically by ProfileViewModel.build()
   }
 
   void _handleLogout() {
@@ -58,7 +57,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final profileState = ref.watch(profileViewModelProvider);
     final authState = ref.watch(authViewModelProvider);
 
-    // Get profile data from profile state, fallback to auth state if profile not loaded
     final profile = profileState.profile;
     final name = profile?.fullName ?? authState.user?.fullName ?? 'User';
     final email = profile?.email ?? authState.user?.email ?? '';
@@ -73,7 +71,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              // Profile Picture Section
               Stack(
                 children: [
                   KAvatar(
@@ -111,7 +108,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
               const SizedBox(height: 24),
 
-              // Name
               Text(
                 name,
                 style: TextStyle(
@@ -123,7 +119,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
               const SizedBox(height: 8),
 
-              // Email Box
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -159,7 +154,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
               const SizedBox(height: 40),
 
-              // Menu Card
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(

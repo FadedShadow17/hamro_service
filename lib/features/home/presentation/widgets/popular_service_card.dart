@@ -3,7 +3,6 @@ import '../../domain/entities/popular_service.dart';
 import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Popular service card widget
 class PopularServiceCard extends StatelessWidget {
   final PopularService service;
 

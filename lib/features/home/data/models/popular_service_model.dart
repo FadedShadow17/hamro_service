@@ -1,6 +1,5 @@
 import '../../domain/entities/popular_service.dart';
 
-/// Popular service model (data layer)
 class PopularServiceModel extends PopularService {
   const PopularServiceModel({
     required super.id,

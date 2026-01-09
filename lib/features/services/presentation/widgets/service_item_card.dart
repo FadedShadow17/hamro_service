@@ -3,7 +3,6 @@ import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/service_item.dart';
 
-/// Service item card widget
 class ServiceItemCard extends StatelessWidget {
   final ServiceItem service;
   final VoidCallback? onViewProfile;
@@ -38,7 +37,6 @@ class ServiceItemCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row: Avatar + Title + Price + Tag
           Row(
             children: [
               KAvatar(
@@ -89,7 +87,6 @@ class ServiceItemCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // Rating row
           Row(
             children: [
               Icon(
@@ -108,7 +105,6 @@ class ServiceItemCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          // Bottom buttons row
           Row(
             children: [
               Expanded(

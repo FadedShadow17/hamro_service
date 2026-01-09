@@ -16,10 +16,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive before runApp
   await HiveService.init();
 
-  // Initialize SharedPreferences
   final sharedPreferences = await SharedPreferences.getInstance();
 
   SystemChrome.setPreferredOrientations([
@@ -28,14 +26,11 @@ void main() async {
     runApp(
       ProviderScope(
         overrides: [
-          // Override SharedPreferences provider
           sharedPrefsProvider.overrideWith(
             (ref) => Future.value(sharedPreferences),
           ),
-          // Override AuthRepository provider
           authRepositoryProvider.overrideWith(
             (ref) {
-              // Use the already-initialized SharedPreferences directly
               final sessionService = UserSessionService(prefs: sharedPreferences);
               final datasource = AuthLocalDatasource(
                 sessionService: sessionService,
@@ -46,10 +41,8 @@ void main() async {
               );
             },
           ),
-          // Override ProfileRepository provider
           profileRepositoryProvider.overrideWith(
             (ref) {
-              // Use the already-initialized SharedPreferences directly
               final sessionService = UserSessionService(prefs: sharedPreferences);
               final datasource = ProfileLocalDatasource();
               return ProfileRepositoryImpl(

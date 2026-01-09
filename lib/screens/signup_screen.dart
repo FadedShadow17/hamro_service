@@ -31,7 +31,6 @@ class SignupScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const SizedBox(height: 40),
-                      // Header with back button and title
                       Row(
                         children: [
                           IconButton(
@@ -60,7 +59,6 @@ class SignupScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 40),
-                      // Input Fields
                       _InputField(hintText: 'Username'),
                       const SizedBox(height: 16),
                       _InputField(hintText: 'E-mail'),
@@ -71,7 +69,6 @@ class SignupScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       _InputField(hintText: 'Confirm password', isPassword: true, showEyeIcon: true),
                       const SizedBox(height: 40),
-                      // Sign Up Button
                       Container(
                         width: double.infinity,
                         height: 50,

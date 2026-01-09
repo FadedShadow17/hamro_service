@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Promo banner widget
 class PromoBanner extends StatelessWidget {
   const PromoBanner({super.key});
 

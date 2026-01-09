@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
-import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
+import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
 
 class Onboarding3 extends StatelessWidget {
   const Onboarding3({super.key});
@@ -79,7 +78,7 @@ class Onboarding3 extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (context) => const RolePage(),
+                      builder: (context) => const LoginPage(),
                     ),
                   );
                 },

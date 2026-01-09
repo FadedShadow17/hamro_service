@@ -3,7 +3,6 @@ import '../../../../core/error/failures.dart';
 import '../entities/profile_entity.dart';
 import '../repositories/profile_repository.dart';
 
-/// Use case for updating user profile
 class UpdateProfileUsecase {
   final ProfileRepository repository;
 

@@ -4,7 +4,7 @@ import 'package:hamro_service/screens/dashboard.dart';
 import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/screens/forgot_password.dart';
-import 'package:hamro_service/screens/role_screen.dart';
+import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -21,7 +21,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Errors will be cleared when user attempts to login again
   }
 
   @override
@@ -51,16 +50,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    // Handle navigation on success
     if (authState.isAuthenticated && authState.user != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const Dashboard()),
+          MaterialPageRoute(builder: (context) => const RolePage()),
         );
       });
     }
 
-    // Show error if any
     if (authState.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(
@@ -71,6 +68,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -89,221 +88,205 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
-                // Back button
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.arrow_back_ios,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RoleScreen(),
-                        ),
-                      );
-                    },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
                   ),
-                ),
-                const SizedBox(height: 20),
-                // Title Section
-                Column(
-                  children: [
-                    Text(
-                      'Welcome Back',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 32,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Sign in to continue',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                            fontSize: 16,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-                // Login Card
-                Container(
-                  width: double.infinity,
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Email Field
-                      _AppTextField(
-                        controller: _emailController,
-                        hintText: 'E-mail',
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: Icons.email_outlined,
-                      ),
-                      const SizedBox(height: 20),
-                      // Password Field
-                      _AppTextField(
-                        controller: _passwordController,
-                        hintText: 'Password',
-                        obscureText: _obscurePassword,
-                        prefixIcon: Icons.lock_outline,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Forgot Password Link
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ForgotPasswordScreen(),
-                              ),
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            'Forgot password?',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      // Login Button
-                      _AppButton(
-                        text: 'LOGIN',
-                        onPressed: _handleLogin,
-                        isLoading: authState.isLoading,
-                      ),
-                      const SizedBox(height: 32),
-                      // Divider
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Divider(
-                              color: Theme.of(context).dividerColor,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'OR',
-                              style: TextStyle(
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              color: Theme.of(context).dividerColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      // Social Login Icons
-                      Row(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _SocialIcon(
-                            icon: Icons.facebook,
-                            onTap: () {},
+                          Column(
+                            children: [
+                              Text(
+                                'Welcome Back',
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 32,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Sign in to continue',
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                                      fontSize: 16,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 24),
-                          _SocialIcon(
-                            icon: Icons.g_mobiledata,
-                            onTap: () {},
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      // Sign Up Link
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Don\'t have an account? ',
-                            style: TextStyle(
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
-                              fontSize: 14,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SignupPage(),
+                          const SizedBox(height: 48),
+                          Container(
+                            width: double.infinity,
+                            constraints: const BoxConstraints(maxWidth: 400),
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
                                 ),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ],
                             ),
-                            child: Text(
-                              'Sign up',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _AppTextField(
+                                  controller: _emailController,
+                                  hintText: 'E-mail',
+                                  keyboardType: TextInputType.emailAddress,
+                                  prefixIcon: Icons.email_outlined,
+                                ),
+                                const SizedBox(height: 20),
+                                _AppTextField(
+                                  controller: _passwordController,
+                                  hintText: 'Password',
+                                  obscureText: _obscurePassword,
+                                  prefixIcon: Icons.lock_outline,
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const ForgotPasswordScreen(),
+                                        ),
+                                      );
+                                    },
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: Text(
+                                      'Forgot password?',
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.primary,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+                                _AppButton(
+                                  text: 'LOGIN',
+                                  onPressed: _handleLogin,
+                                  isLoading: authState.isLoading,
+                                ),
+                                const SizedBox(height: 32),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Divider(
+                                        color: Theme.of(context).dividerColor,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Text(
+                                        'OR',
+                                        style: TextStyle(
+                                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Divider(
+                                        color: Theme.of(context).dividerColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 32),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _SocialIcon(
+                                      icon: Icons.facebook,
+                                      onTap: () {},
+                                    ),
+                                    const SizedBox(width: 24),
+                                    _SocialIcon(
+                                      icon: Icons.g_mobiledata,
+                                      onTap: () {},
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 32),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Don\'t have an account? ',
+                                      style: TextStyle(
+                                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const SignupPage(),
+                                          ),
+                                        );
+                                      },
+                                      style: TextButton.styleFrom(
+                                        padding: EdgeInsets.zero,
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: Text(
+                                        'Sign up',
+                                        style: TextStyle(
+                                          color: Theme.of(context).colorScheme.primary,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 40),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
@@ -311,7 +294,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 }
 
-// Reusable Text Field Widget
 class _AppTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -372,7 +354,6 @@ class _AppTextField extends StatelessWidget {
   }
 }
 
-// Reusable Button Widget
 class _AppButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
@@ -420,7 +401,6 @@ class _AppButton extends StatelessWidget {
   }
 }
 
-// Social Icon Widget
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;

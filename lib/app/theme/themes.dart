@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Light theme
 ThemeData getLightTheme() {
   return ThemeData(
     fontFamily: 'OpenSans Regular',
@@ -25,7 +24,6 @@ ThemeData getLightTheme() {
   );
 }
 
-/// Dark theme
 ThemeData getDarkTheme() {
   return ThemeData(
     fontFamily: 'OpenSans Regular',
@@ -52,7 +50,6 @@ ThemeData getDarkTheme() {
   );
 }
 
-/// Legacy method for backward compatibility
 ThemeData getApplicationTheme() {
   return getLightTheme();
 }

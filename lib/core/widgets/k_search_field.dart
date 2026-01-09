@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Reusable search field widget
 class KSearchField extends StatelessWidget {
   final String hintText;
   final VoidCallback? onFilterTap;
