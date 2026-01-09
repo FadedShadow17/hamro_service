@@ -36,6 +36,7 @@ ThemeData getDarkTheme() {
     ),
     scaffoldBackgroundColor: const Color(0xFF121212),
     cardColor: const Color(0xFF1E1E1E),
+    dividerColor: Colors.white.withValues(alpha: 0.1),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         textStyle: const TextStyle(

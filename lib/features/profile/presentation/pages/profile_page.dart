@@ -5,6 +5,9 @@ import 'package:hamro_service/features/profile/presentation/viewmodel/profile_vi
 import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
 import 'package:hamro_service/features/profile/presentation/pages/about_developer_page.dart';
 import 'package:hamro_service/core/providers/theme_provider.dart';
+import '../../../../core/widgets/k_avatar.dart';
+import '../../../../core/theme/app_colors.dart';
+import 'edit_profile_page.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -60,72 +63,46 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final name = profile?.fullName ?? authState.user?.fullName ?? 'User';
     final email = profile?.email ?? authState.user?.email ?? '';
 
+    final avatarUrl = profile?.avatarUrl;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: isDark ? const Color(0xFF121212) : AppColors.backgroundLight,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
               const SizedBox(height: 20),
-              // Profile Screen Title
-              Text(
-                'Profile Screen',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
               // Profile Picture Section
               Stack(
                 children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 4,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: CircleAvatar(
-                      radius: 58,
-                      backgroundColor: Colors.grey[300],
-                      backgroundImage: profile?.avatarUrl != null
-                          ? NetworkImage(profile!.avatarUrl!)
-                          : null,
-                      child: profile?.avatarUrl == null
-                          ? const Icon(
-                              Icons.person,
-                              size: 60,
-                              color: Colors.grey,
-                            )
-                          : null,
-                    ),
+                  KAvatar(
+                    size: 120,
+                    imageUrl: avatarUrl,
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF4285F4),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.edit,
-                        color: Colors.white,
-                        size: 20,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const EditProfilePage(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryBlue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ),
@@ -137,38 +114,40 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               // Name
               Text(
                 name,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
               // Email Box
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
-                      : const Color(0xFFE3F2FD),
+                  color: isDark
+                      ? AppColors.primaryBlue.withValues(alpha: 0.2)
+                      : AppColors.primaryBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.email,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: AppColors.primaryBlue,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         email,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: AppColors.primaryBlue,
                         ),
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
@@ -182,15 +161,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
               // Menu Card
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                       blurRadius: 10,
-                      offset: const Offset(0, 5),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -200,14 +179,24 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       icon: Icons.edit,
                       title: 'Edit Profile',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Edit Profile coming soon')),
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const EditProfilePage(),
+                          ),
                         );
                       },
                     ),
-                    const Divider(height: 1, indent: 60),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      color: isDark ? Colors.grey[800] : Colors.grey[300],
+                    ),
                     _DarkModeMenuItem(),
-                    const Divider(height: 1, indent: 60),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      color: isDark ? Colors.grey[800] : Colors.grey[300],
+                    ),
                     _MenuItem(
                       icon: Icons.settings,
                       title: 'Settings',
@@ -217,7 +206,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         );
                       },
                     ),
-                    const Divider(height: 1, indent: 60),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      color: isDark ? Colors.grey[800] : Colors.grey[300],
+                    ),
                     _MenuItem(
                       icon: Icons.info,
                       title: 'About Developer',
@@ -229,7 +222,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         );
                       },
                     ),
-                    const Divider(height: 1, indent: 60),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      color: isDark ? Colors.grey[800] : Colors.grey[300],
+                    ),
                     _MenuItem(
                       icon: Icons.logout,
                       title: 'Logout',
@@ -284,7 +281,7 @@ class _MenuItem extends StatelessWidget {
                 ),
                 child: Icon(
                   icon,
-                  color: titleColor ?? Theme.of(context).textTheme.bodyLarge?.color,
+                  color: titleColor ?? AppColors.primaryBlue,
                   size: 22,
                 ),
               ),
@@ -295,13 +292,18 @@ class _MenuItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: titleColor ?? Theme.of(context).textTheme.bodyLarge?.color,
+                    color: titleColor ??
+                        (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black87),
                   ),
                 ),
               ),
               Icon(
                 Icons.chevron_right,
-                color: Colors.grey[400],
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[600]
+                    : Colors.grey[400],
                 size: 24,
               ),
             ],
@@ -335,14 +337,12 @@ class _DarkModeMenuItem extends ConsumerWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey[800]
-                      : Colors.grey[100],
+                  color: isDark ? Colors.grey[800] : Colors.grey[100],
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   isDark ? Icons.dark_mode : Icons.light_mode,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  color: AppColors.primaryBlue,
                   size: 22,
                 ),
               ),
@@ -353,7 +353,7 @@ class _DarkModeMenuItem extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ),
@@ -362,6 +362,8 @@ class _DarkModeMenuItem extends ConsumerWidget {
                 onChanged: (value) {
                   ref.read(themeProvider.notifier).toggleTheme();
                 },
+                activeTrackColor: AppColors.primaryBlue.withValues(alpha: 0.5),
+                activeThumbColor: AppColors.primaryBlue,
               ),
             ],
           ),

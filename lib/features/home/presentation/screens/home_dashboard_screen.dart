@@ -17,11 +17,12 @@ class HomeDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardDataAsync = ref.watch(homeDashboardDataProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: isDark ? const Color(0xFF121212) : AppColors.backgroundLight,
       body: SafeArea(
         child: dashboardDataAsync.when(
-          data: (data) => _buildContent(data, ref),
+          data: (data) => _buildContent(data, ref, context),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => Center(
             child: Text('Error: $error'),
@@ -31,13 +32,13 @@ class HomeDashboardScreen extends ConsumerWidget {
     );
   }
 
-  static Widget _buildContent(dynamic data, WidgetRef ref) {
+  static Widget _buildContent(dynamic data, WidgetRef ref, BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header Section
-          _buildHeader(ref),
+          _buildHeader(ref, context),
           const SizedBox(height: 16),
 
           // Search Section
@@ -76,7 +77,7 @@ class HomeDashboardScreen extends ConsumerWidget {
     );
   }
 
-  static Widget _buildHeader(WidgetRef ref) {
+  static Widget _buildHeader(WidgetRef ref, BuildContext context) {
     final profileState = ref.watch(profileViewModelProvider);
     final userName = profileState.profile?.fullName ?? 'Alex Carter';
     final avatarUrl = profileState.profile?.avatarUrl;
@@ -95,7 +96,9 @@ class HomeDashboardScreen extends ConsumerWidget {
                   'Hello 👋',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[400]
+                        : Colors.grey[600],
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -104,7 +107,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[900],
+                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87,
                   ),
                 ),
               ],

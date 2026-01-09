@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/service_category.dart';
+import '../../../../core/theme/app_colors.dart';
 
 /// Most booked services grid widget
 class MostBookedGrid extends StatelessWidget {
@@ -66,13 +67,16 @@ class _ServiceCategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -84,13 +88,15 @@ class _ServiceCategoryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue[50],
+              color: isDark
+                  ? AppColors.primaryBlue.withValues(alpha: 0.2)
+                  : Colors.blue[50],
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
               size: 28,
-              color: Colors.blue[700],
+              color: isDark ? AppColors.primaryBlue : Colors.blue[700],
             ),
           ),
           const SizedBox(height: 8),
@@ -100,7 +106,7 @@ class _ServiceCategoryCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
+              color: isDark ? Colors.grey[300] : Colors.grey[800],
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
