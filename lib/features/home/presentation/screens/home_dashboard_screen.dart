@@ -9,6 +9,7 @@ import '../widgets/most_booked_grid.dart';
 import '../widgets/popular_service_card.dart';
 import '../providers/home_dashboard_provider.dart';
 import '../../../profile/presentation/viewmodel/profile_viewmodel.dart';
+import '../../../services/presentation/screens/services_by_category_screen.dart';
 
 class HomeDashboardScreen extends ConsumerWidget {
   const HomeDashboardScreen({super.key});
@@ -55,7 +56,16 @@ class HomeDashboardScreen extends ConsumerWidget {
           KSectionHeader(
             title: 'Most Booked Services',
             actionText: 'View all',
-            onActionTap: () {},
+            onActionTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ServicesByCategoryScreen(
+                    categoryId: 'all',
+                    categoryName: 'All',
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 8),
           MostBookedGrid(categories: data.mostBookedServices),
