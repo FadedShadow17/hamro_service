@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:hamro_service/bottom_navigation/favorites.dart';
-import 'package:hamro_service/bottom_navigation/payment.dart';
-import 'package:hamro_service/bottom_navigation/home.dart';
+import 'package:hamro_service/features/favorites/presentation/pages/favorites_page.dart';
+import 'package:hamro_service/features/payment/presentation/pages/payment_page.dart';
+import 'package:hamro_service/features/home/presentation/pages/home_page.dart';
+import 'package:hamro_service/features/cart/presentation/pages/cart_page.dart';
 import 'package:hamro_service/features/profile/presentation/pages/profile_page.dart';
 import 'package:hamro_service/core/widgets/modern_bottom_nav.dart';
 
@@ -16,9 +17,10 @@ class _BottomNavigationScreenState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
   final List<Widget> lstBottomScreen = [
-    const HomeScreen(),
-    const FavoritesScreen(),
-    const PaymentScreen(),
+    const HomePage(),
+    const FavoritesPage(),
+    const CartPage(),
+    const PaymentPage(),
     const ProfilePage(),
   ];
 

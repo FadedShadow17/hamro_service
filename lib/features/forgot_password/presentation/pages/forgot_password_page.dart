@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:hamro_service/core/widgets/animated_text_field.dart';
 
-class ForgotPasswordPage extends StatelessWidget {
+class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
+
+  @override
+  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
+}
+
+class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +66,7 @@ class ForgotPasswordPage extends StatelessWidget {
                           ),
                           Expanded(
                             child: Center(
-                              child: _ForgotPasswordCard(),
+                              child: _ForgotPasswordCard(emailController: _emailController),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -71,6 +85,10 @@ class ForgotPasswordPage extends StatelessWidget {
 }
 
 class _ForgotPasswordCard extends StatelessWidget {
+  final TextEditingController emailController;
+
+  const _ForgotPasswordCard({required this.emailController});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -110,40 +128,11 @@ class _ForgotPasswordCard extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 32),
-          TextFormField(
+          AnimatedTextField(
+            controller: emailController,
+            label: 'E-mail',
+            icon: Icons.email,
             keyboardType: TextInputType.emailAddress,
-            style: Theme.of(context).textTheme.bodyLarge,
-            decoration: InputDecoration(
-              hintText: 'E-mail',
-              hintStyle: TextStyle(
-                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                fontSize: 16,
-              ),
-              prefixIcon: Icon(
-                Icons.email_outlined,
-                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-              ),
-              filled: true,
-              fillColor: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[900]?.withValues(alpha: 0.5)
-                  : Colors.grey[100],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
-                ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-            ),
           ),
           const SizedBox(height: 32),
           SizedBox(

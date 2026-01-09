@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../providers/services_list_provider.dart';
 import '../widgets/category_chips.dart';
 import '../widgets/service_item_card.dart';
+import '../../../booking/presentation/screens/booking_screen.dart';
 
 class ServicesByCategoryScreen extends ConsumerStatefulWidget {
   final String categoryId;
@@ -102,8 +103,12 @@ class _ServicesByCategoryScreenState extends ConsumerState<ServicesByCategoryScr
                     );
                   },
                   onBookNow: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Book Now - Coming soon')),
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => BookingScreen(
+                          service: state.services.first,
+                        ),
+                      ),
                     );
                   },
                 ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
 import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
+import 'package:hamro_service/core/widgets/animated_text_field.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({super.key});
@@ -19,6 +21,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _hasNavigated = false;
 
   @override
   void didChangeDependencies() {
@@ -69,21 +72,29 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    if (authState.isRegistered) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const RolePage()),
-        );
-      });
-    }
+    // Listen to auth state changes and navigate only once
+    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+      if (next.isRegistered && !_hasNavigated) {
+        _hasNavigated = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && Navigator.of(context).canPop() == false) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const RolePage()),
+            );
+          }
+        });
+      }
 
-    if (authState.errorMessage != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authState.errorMessage!)),
-        );
-      });
-    }
+      if (next.errorMessage != null && previous?.errorMessage != next.errorMessage) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(next.errorMessage!)),
+            );
+          }
+        });
+      }
+    });
     
     return Scaffold(
       body: Container(
@@ -165,36 +176,36 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _AppTextField(
+                      AnimatedTextField(
                         controller: _usernameController,
-                        hintText: 'Username',
-                        prefixIcon: Icons.person_outline,
+                        label: 'Username',
+                        icon: Icons.person,
                       ),
                       const SizedBox(height: 20),
-                      _AppTextField(
+                      AnimatedTextField(
                         controller: _emailController,
-                        hintText: 'E-mail',
+                        label: 'E-mail',
+                        icon: Icons.email,
                         keyboardType: TextInputType.emailAddress,
-                        prefixIcon: Icons.email_outlined,
                       ),
                       const SizedBox(height: 20),
-                      _AppTextField(
+                      AnimatedTextField(
                         controller: _phoneController,
-                        hintText: 'Phone',
+                        label: 'Phone',
+                        icon: Icons.phone,
                         keyboardType: TextInputType.phone,
-                        prefixIcon: Icons.phone_outlined,
                       ),
                       const SizedBox(height: 20),
-                      _AppTextField(
+                      AnimatedTextField(
                         controller: _passwordController,
-                        hintText: 'Password',
+                        label: 'Password',
+                        icon: Icons.lock,
                         obscureText: _obscurePassword,
-                        prefixIcon: Icons.lock_outline,
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                           onPressed: () {
@@ -205,16 +216,16 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      _AppTextField(
+                      AnimatedTextField(
                         controller: _confirmPasswordController,
-                        hintText: 'Confirm password',
+                        label: 'Confirm password',
+                        icon: Icons.lock,
                         obscureText: _obscureConfirmPassword,
-                        prefixIcon: Icons.lock_outline,
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureConfirmPassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                           onPressed: () {
@@ -279,65 +290,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   }
 }
 
-class _AppTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hintText;
-  final TextInputType? keyboardType;
-  final bool obscureText;
-  final IconData prefixIcon;
-  final Widget? suffixIcon;
-
-  const _AppTextField({
-    required this.controller,
-    required this.hintText,
-    this.keyboardType,
-    this.obscureText = false,
-    required this.prefixIcon,
-    this.suffixIcon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      style: Theme.of(context).textTheme.bodyLarge,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(
-          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-          fontSize: 16,
-        ),
-        prefixIcon: Icon(
-          prefixIcon,
-          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-        ),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[900]?.withValues(alpha: 0.5)
-            : Colors.grey[100],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
-            width: 2,
-          ),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      ),
-    );
-  }
-}
 
 class _AppButton extends StatelessWidget {
   final String text;

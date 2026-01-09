@@ -1,72 +1,62 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import 'package:hamro_service/features/provider/presentation/pages/provider_page.dart';
+import 'package:hamro_service/features/provider/presentation/pages/provider_profile_page.dart';
+import 'package:hamro_service/core/theme/app_colors.dart';
 
-class ModernBottomNav extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTap;
+class ProviderDashboardPage extends StatefulWidget {
+  const ProviderDashboardPage({super.key});
 
-  const ModernBottomNav({
-    super.key,
-    required this.currentIndex,
-    required this.onTap,
-  });
+  @override
+  State<ProviderDashboardPage> createState() => _ProviderDashboardPageState();
+}
+
+class _ProviderDashboardPageState extends State<ProviderDashboardPage> {
+  int _selectedIndex = 0;
+
+  final List<Widget> lstBottomScreen = [
+    const ProviderPage(),
+    const ProviderProfilePage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(
-                icon: Icons.home_rounded,
-                activeIcon: Icons.home_rounded,
-                label: 'Home',
-                isActive: currentIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              _NavItem(
-                icon: Icons.favorite_border_rounded,
-                activeIcon: Icons.favorite_rounded,
-                label: 'Favorites',
-                isActive: currentIndex == 1,
-                onTap: () => onTap(1),
-              ),
-              _NavItem(
-                icon: Icons.shopping_cart_outlined,
-                activeIcon: Icons.shopping_cart,
-                label: 'Cart',
-                isActive: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              _NavItem(
-                icon: Icons.payment_outlined,
-                activeIcon: Icons.payment,
-                label: 'Payment',
-                isActive: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
-              _NavItem(
-                icon: Icons.person_outline_rounded,
-                activeIcon: Icons.person_rounded,
-                label: 'Profile',
-                isActive: currentIndex == 4,
-                onTap: () => onTap(4),
-              ),
-            ],
+    
+    return Scaffold(
+      body: lstBottomScreen[_selectedIndex],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _NavItem(
+                  icon: Icons.dashboard_outlined,
+                  activeIcon: Icons.dashboard,
+                  label: 'Dashboard',
+                  isActive: _selectedIndex == 0,
+                  onTap: () => setState(() => _selectedIndex = 0),
+                ),
+                _NavItem(
+                  icon: Icons.person_outline_rounded,
+                  activeIcon: Icons.person_rounded,
+                  label: 'Profile',
+                  isActive: _selectedIndex == 1,
+                  onTap: () => setState(() => _selectedIndex = 1),
+                ),
+              ],
+            ),
           ),
         ),
       ),

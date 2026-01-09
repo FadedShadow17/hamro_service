@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hamro_service/screens/dashboard.dart';
 import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
-import 'package:hamro_service/screens/forgot_password.dart';
+import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
+import 'package:hamro_service/features/forgot_password/presentation/pages/forgot_password_page.dart';
 import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
+import 'package:hamro_service/core/widgets/animated_text_field.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -17,6 +18,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _hasNavigated = false;
 
   @override
   void didChangeDependencies() {
@@ -50,21 +52,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    if (authState.isAuthenticated && authState.user != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const RolePage()),
-        );
-      });
-    }
+    // Listen to auth state changes and navigate only once
+    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+      if (next.isAuthenticated && next.user != null && !_hasNavigated) {
+        _hasNavigated = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && Navigator.of(context).canPop() == false) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const RolePage()),
+            );
+          }
+        });
+      }
 
-    if (authState.errorMessage != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(authState.errorMessage!)));
-      });
-    }
+      if (next.errorMessage != null && previous?.errorMessage != next.errorMessage) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(next.errorMessage!)),
+            );
+          }
+        });
+      }
+    });
     
     return Scaffold(
       body: Container(
@@ -141,23 +151,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _AppTextField(
+                                AnimatedTextField(
                                   controller: _emailController,
-                                  hintText: 'E-mail',
+                                  label: 'E-mail',
+                                  icon: Icons.email,
                                   keyboardType: TextInputType.emailAddress,
-                                  prefixIcon: Icons.email_outlined,
                                 ),
                                 const SizedBox(height: 20),
-                                _AppTextField(
+                                AnimatedTextField(
                                   controller: _passwordController,
-                                  hintText: 'Password',
+                                  label: 'Password',
+                                  icon: Icons.lock,
                                   obscureText: _obscurePassword,
-                                  prefixIcon: Icons.lock_outline,
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscurePassword
-                                          ? Icons.visibility_off_outlined
-                                          : Icons.visibility_outlined,
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
                                       color: Theme.of(context).textTheme.bodyMedium?.color,
                                     ),
                                     onPressed: () {
@@ -175,7 +185,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const ForgotPasswordScreen(),
+                                          builder: (context) => const ForgotPasswordPage(),
                                         ),
                                       );
                                     },
@@ -230,13 +240,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    _SocialIcon(
+                                    _PremiumSocialButton(
                                       icon: Icons.facebook,
+                                      label: 'Facebook',
+                                      iconColor: Colors.white,
+                                      backgroundColor: const Color(0xFF1877F2),
                                       onTap: () {},
                                     ),
-                                    const SizedBox(width: 24),
-                                    _SocialIcon(
+                                    const SizedBox(width: 16),
+                                    _PremiumSocialButton(
                                       icon: Icons.g_mobiledata,
+                                      label: 'Google',
+                                      iconColor: const Color(0xFF4285F4),
+                                      backgroundColor: Colors.white,
+                                      borderColor: Colors.grey[300]!,
+                                      textColor: Colors.black87,
                                       onTap: () {},
                                     ),
                                   ],
@@ -294,65 +312,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 }
 
-class _AppTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hintText;
-  final TextInputType? keyboardType;
-  final bool obscureText;
-  final IconData prefixIcon;
-  final Widget? suffixIcon;
-
-  const _AppTextField({
-    required this.controller,
-    required this.hintText,
-    this.keyboardType,
-    this.obscureText = false,
-    required this.prefixIcon,
-    this.suffixIcon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      style: Theme.of(context).textTheme.bodyLarge,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(
-          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-          fontSize: 16,
-        ),
-        prefixIcon: Icon(
-          prefixIcon,
-          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-        ),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[900]?.withValues(alpha: 0.5)
-            : Colors.grey[100],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
-            width: 2,
-          ),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      ),
-    );
-  }
-}
 
 class _AppButton extends StatelessWidget {
   final String text;
@@ -401,35 +360,75 @@ class _AppButton extends StatelessWidget {
   }
 }
 
-class _SocialIcon extends StatelessWidget {
+class _PremiumSocialButton extends StatelessWidget {
   final IconData icon;
+  final String label;
+  final Color iconColor;
+  final Color backgroundColor;
+  final Color? borderColor;
+  final Color? textColor;
   final VoidCallback onTap;
 
-  const _SocialIcon({
+  const _PremiumSocialButton({
     required this.icon,
+    required this.label,
+    required this.iconColor,
+    required this.backgroundColor,
+    this.borderColor,
+    this.textColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(30),
-        child: Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey[800]
-                : Colors.grey[200],
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            color: Theme.of(context).textTheme.bodyLarge?.color,
-            size: 28,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveTextColor = textColor ?? 
+        (isDark ? Colors.white : Colors.black87);
+
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            height: 56,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(16),
+              border: borderColor != null
+                  ? Border.all(
+                      color: borderColor!,
+                      width: 1.5,
+                    )
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: iconColor,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: effectiveTextColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

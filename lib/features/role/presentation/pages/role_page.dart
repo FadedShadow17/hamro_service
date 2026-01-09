@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hamro_service/screens/dashboard.dart';
+import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class RolePage extends StatelessWidget {
   const RolePage({super.key});
@@ -56,14 +58,17 @@ class RolePage extends StatelessWidget {
 
                         _RoleCard(
                           title: 'User',
-                          description:
-                              'To place any type of order to search for a performer',
-                          imagePath: 'assets/images/user.png',
-                          icon: Icons.person,
+                          description: 'Book services and find professionals',
+                          icon: Icons.person_rounded,
+                          iconColor: AppColors.primaryBlue,
+                          gradientColors: [
+                            AppColors.primaryBlue.withValues(alpha: 0.1),
+                            AppColors.primaryBlue.withValues(alpha: 0.05),
+                          ],
                           onTap: () {
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
-                                builder: (context) => const Dashboard(),
+                                builder: (context) => const DashboardPage(),
                               ),
                             );
                           },
@@ -73,15 +78,17 @@ class RolePage extends StatelessWidget {
 
                         _RoleCard(
                           title: 'Service Provider',
-                          description:
-                              'Search and execute orders in your field of activity',
-                          imagePath: 'assets/images/service_provider.png',
-                          icon: Icons.business_center,
+                          description: 'Offer your services and manage orders',
+                          icon: Icons.work_rounded,
+                          iconColor: AppColors.accentOrange,
+                          gradientColors: [
+                            AppColors.accentOrange.withValues(alpha: 0.1),
+                            AppColors.accentOrange.withValues(alpha: 0.05),
+                          ],
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Service provider option coming soon'),
-                                duration: Duration(seconds: 2),
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => const ProviderDashboardPage(),
                               ),
                             );
                           },
@@ -104,15 +111,17 @@ class RolePage extends StatelessWidget {
 class _RoleCard extends StatefulWidget {
   final String title;
   final String description;
-  final String imagePath;
   final IconData icon;
+  final Color iconColor;
+  final List<Color> gradientColors;
   final VoidCallback onTap;
 
   const _RoleCard({
     required this.title,
     required this.description,
-    required this.imagePath,
     required this.icon,
+    required this.iconColor,
+    required this.gradientColors,
     required this.onTap,
   });
 
@@ -141,7 +150,7 @@ class _RoleCardState extends State<_RoleCard> {
             onTap: widget.onTap,
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              height: 140,
+              height: 128,
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
@@ -153,74 +162,73 @@ class _RoleCardState extends State<_RoleCard> {
                   ),
                 ],
               ),
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 24, top: 24, right: 100),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              widget.icon,
-                              size: 24,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              widget.title,
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 22,
-                                  ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          widget.description,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontSize: 14,
-                                height: 1.4,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  Positioned(
-                    right: -20,
-                    top: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 140,
-                      height: 140,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Row(
+                  children: [
+                    // Premium Icon Container
+                    Container(
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.asset(
-                          widget.imagePath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Theme.of(context).dividerColor,
-                              child: Center(
-                                child: Icon(
-                                  widget.icon,
-                                  size: 60,
-                                  color: Theme.of(context).textTheme.bodyMedium?.color,
-                                ),
-                              ),
-                            );
-                          },
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: widget.gradientColors,
                         ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.iconColor.withValues(alpha: 0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        widget.icon,
+                        size: 40,
+                        color: widget.iconColor,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 20),
+                    // Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            widget.description,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontSize: 14,
+                                  height: 1.4,
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey[400]
+                                      : Colors.grey[600],
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Arrow Icon
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 20,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[600]
+                          : Colors.grey[400],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

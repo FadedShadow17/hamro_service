@@ -23,6 +23,9 @@ class ProfileHiveModel {
   @HiveField(5)
   final String? address;
 
+  @HiveField(6)
+  final String? description;
+
   ProfileHiveModel({
     required this.userId,
     required this.fullName,
@@ -30,6 +33,7 @@ class ProfileHiveModel {
     this.phoneNumber,
     this.avatarUrl,
     this.address,
+    this.description,
   });
 
   ProfileHiveModel copyWith({
@@ -39,6 +43,7 @@ class ProfileHiveModel {
     String? phoneNumber,
     String? avatarUrl,
     String? address,
+    String? description,
   }) {
     return ProfileHiveModel(
       userId: userId ?? this.userId,
@@ -47,6 +52,7 @@ class ProfileHiveModel {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       address: address ?? this.address,
+      description: description ?? this.description,
     );
   }
 }

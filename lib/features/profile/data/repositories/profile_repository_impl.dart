@@ -25,6 +25,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       phoneNumber: model.phoneNumber,
       avatarUrl: model.avatarUrl,
       address: model.address,
+      description: model.description,
     );
   }
 
@@ -36,6 +37,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       phoneNumber: entity.phoneNumber,
       avatarUrl: entity.avatarUrl,
       address: entity.address,
+      description: entity.description,
     );
   }
 

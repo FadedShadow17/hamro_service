@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hamro_service/screens/splash_screen.dart';
+import 'package:hamro_service/features/splash/presentation/pages/splash_page.dart';
 import 'package:hamro_service/app/theme/themes.dart';
 import 'package:hamro_service/core/providers/theme_provider.dart';
 
@@ -18,7 +18,7 @@ class App extends ConsumerWidget {
       themeMode: themeMode == AppThemeMode.dark 
           ? ThemeMode.dark 
           : ThemeMode.light,
-      home: const SplashScreen(),
+      home: const SplashPage(),
     );
   }
 }
