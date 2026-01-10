@@ -10,6 +10,7 @@ import '../widgets/popular_service_card.dart';
 import '../providers/home_dashboard_provider.dart';
 import '../../../profile/presentation/viewmodel/profile_viewmodel.dart';
 import '../../../services/presentation/screens/services_by_category_screen.dart';
+import 'popular_near_you_screen.dart';
 
 class UserDashboardScreen extends ConsumerWidget {
   const UserDashboardScreen({super.key});
@@ -70,7 +71,13 @@ class UserDashboardScreen extends ConsumerWidget {
           KSectionHeader(
             title: 'Popular Near You',
             actionText: 'View all',
-            onActionTap: () {},
+            onActionTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const PopularNearYouScreen(),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 8),
           ...data.popularServices.map(

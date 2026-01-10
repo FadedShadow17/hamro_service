@@ -7,6 +7,8 @@ import '../widgets/service_option_selector.dart';
 import '../widgets/booking_calendar.dart';
 import '../widgets/time_slot_selector.dart';
 import '../widgets/service_summary_card.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../../cart/domain/entities/cart_item.dart';
 
 class BookingScreen extends ConsumerStatefulWidget {
   final ServiceItem service;
@@ -75,18 +77,38 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     ref.read(bookingProvider.notifier).updateAddress(_addressController.text.trim());
     ref.read(bookingProvider.notifier).updateNotes(_notesController.text.trim());
 
+    // Create cart item from booking
+    final cartItem = CartItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      serviceId: bookingState.service!.id,
+      serviceName: bookingState.service!.title,
+      servicePrice: bookingState.service!.priceRs,
+      serviceOptionId: bookingState.selectedServiceOption!.id,
+      serviceOptionName: bookingState.selectedServiceOption!.name,
+      serviceOptionPrice: bookingState.selectedServiceOption!.price,
+      serviceOptionDuration: bookingState.selectedServiceOption!.duration,
+      selectedDate: bookingState.selectedDate!,
+      selectedTimeSlot: bookingState.selectedTimeSlot!.time,
+      address: _addressController.text.trim(),
+      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      totalPrice: bookingState.selectedServiceOption!.price,
+    );
+
+    // Add to cart
+    ref.read(cartProvider.notifier).addToCart(cartItem);
+
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Booking confirmed successfully!'),
+        content: Text('Booking added to cart successfully!'),
         backgroundColor: Colors.green,
       ),
     );
 
-    // Navigate back after a short delay
-    Future.delayed(const Duration(seconds: 1), () {
+    // Navigate back to dashboard, cart will be accessible via bottom nav
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
-        Navigator.of(context).pop();
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     });
   }

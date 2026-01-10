@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../services/presentation/screens/services_by_category_screen.dart';
 
 class PromoBanner extends StatelessWidget {
   const PromoBanner({super.key});
@@ -47,7 +48,16 @@ class PromoBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ServicesByCategoryScreen(
+                          categoryId: 'all',
+                          categoryName: 'All',
+                        ),
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.calendar_today, size: 18),
                   label: const Text('Book Now'),
                   style: ElevatedButton.styleFrom(
