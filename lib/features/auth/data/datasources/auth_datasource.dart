@@ -8,5 +8,7 @@ abstract class AuthDatasource {
   Future<AuthHiveModel?> getCurrentUser(String userId);
 
   Future<void> logout();
+
+  Future<void> saveUser(AuthHiveModel user);
 }
 

@@ -47,6 +47,10 @@ dependencies:
   # Session Management
   shared_preferences: ^2.5.4
 
+  # Network
+  dio: ^5.7.0
+  connectivity_plus: ^6.1.1
+
   # Utilities
   uuid: ^4.3.3
   dartz: ^0.10.1

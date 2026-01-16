@@ -84,5 +84,11 @@ class AuthLocalDatasource implements AuthDatasource {
   Future<void> logout() async {
     await _sessionService.clearSession();
   }
+
+  @override
+  Future<void> saveUser(AuthHiveModel user) async {
+    final box = _getUsersBox();
+    await box.put(user.authId, user);
+  }
 }
 
