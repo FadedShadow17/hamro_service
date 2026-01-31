@@ -85,14 +85,14 @@ class AuthRepositoryImpl implements AuthRepository {
         if (authEntity.authId.isNotEmpty) {
           await _sessionService.saveSession(authEntity.authId);
           
-          // Save user data to local storage for persistence
+          
           if (_localDatasource != null) {
             final userModel = AuthHiveModel(
               authId: authEntity.authId,
               fullName: authEntity.fullName,
               email: authEntity.email,
               username: authEntity.username,
-              password: '', // Don't store password for online logins
+              password: '', 
               phoneNumber: authEntity.phoneNumber,
             );
             await _localDatasource!.saveUser(userModel);
@@ -111,7 +111,7 @@ class AuthRepositoryImpl implements AuthRepository {
         return Left(CacheFailure(e.toString()));
       }
     } else {
-      // If offline, use local datasource
+      
       if (_localDatasource == null) {
         return const Left(CacheFailure('No internet connection and local storage not available'));
       }
@@ -146,7 +146,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }) async {
     final hasInternet = await _connectivityService.hasInternetConnection();
     
-    // If online, use remote datasource
+ 
     if (hasInternet) {
       try {
         final response = await _remoteDatasource.login(
@@ -157,7 +157,7 @@ class AuthRepositoryImpl implements AuthRepository {
         if (response.token.isNotEmpty) {
           await _sessionService.saveToken(response.token);
           final tokenPreview = response.token.substring(0, min(12, response.token.length));
-          print("✅ Saved token: ${tokenPreview}...");
+          print(" Saved token: ${tokenPreview}...");
         }
 
         final email = response.user["email"] ?? emailOrUsername;
@@ -166,14 +166,14 @@ class AuthRepositoryImpl implements AuthRepository {
         if (authEntity.authId.isNotEmpty) {
           await _sessionService.saveSession(authEntity.authId);
           
-          // Save user data to local storage for persistence
+          
           if (_localDatasource != null) {
             final userModel = AuthHiveModel(
               authId: authEntity.authId,
               fullName: authEntity.fullName,
               email: authEntity.email,
               username: authEntity.username,
-              password: '', // Don't store password for online logins
+              password: '', 
               phoneNumber: authEntity.phoneNumber,
             );
             await _localDatasource!.saveUser(userModel);
@@ -197,7 +197,7 @@ class AuthRepositoryImpl implements AuthRepository {
         return Left(AuthenticationFailure(e.toString()));
       }
     } else {
-      // If offline, use local datasource
+      
       if (_localDatasource == null) {
         return const Left(CacheFailure('No internet connection and local storage not available'));
       }
@@ -225,12 +225,12 @@ class AuthRepositoryImpl implements AuthRepository {
         return const Right(null);
       }
 
-      // Check if user is logged in
+      
       if (!_sessionService.isLoggedIn()) {
         return const Right(null);
       }
 
-      // Try to get user from local storage first
+      
       if (_localDatasource != null) {
         final user = await _localDatasource!.getCurrentUser(userId);
         if (user != null) {
@@ -238,9 +238,6 @@ class AuthRepositoryImpl implements AuthRepository {
         }
       }
 
-      // If local storage doesn't have user but we have a session and token,
-      // it means user logged in online but data wasn't saved (shouldn't happen after fix, but handle it)
-      // For now, return null - user will need to login again if this edge case occurs
       return const Right(null);
     } on CacheException catch (e) {
       return Left(CacheFailure(e.message));

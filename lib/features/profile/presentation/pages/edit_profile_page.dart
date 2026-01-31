@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../providers/image_upload_provider.dart';
 import '../viewmodel/profile_viewmodel.dart';
 import '../../domain/entities/profile_entity.dart';
 
@@ -23,11 +24,33 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   File? _selectedImage;
   String? _currentAvatarUrl;
   bool _isLoading = false;
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
     super.initState();
     _loadProfileData();
+
+    ref.listen<ImageUploadState>(imageUploadNotifierProvider, (previous, next) {
+      if (!mounted) return;
+
+      setState(() {
+        _isUploadingImage = next.isLoading;
+      });
+
+      if (next.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage!)),
+        );
+      }
+
+      if (next.url != null && next.url!.isNotEmpty) {
+        setState(() {
+          _currentAvatarUrl = next.url;
+          _selectedImage = null;
+        });
+      }
+    });
   }
 
   void _loadProfileData() {
@@ -43,22 +66,23 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(ImageSource source) async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         maxWidth: 512,
         maxHeight: 512,
         imageQuality: 85,
       );
 
-      if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-          _currentAvatarUrl = null;
-        });
-      }
+      if (image == null) return;
+
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+
+      await ref.read(imageUploadNotifierProvider.notifier).uploadImage(_selectedImage!);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -68,8 +92,54 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
   }
 
+  Future<void> _showImageSourcePicker() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+        return SafeArea(
+          child: Container(
+            color: cardColor,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_camera),
+                  title: const Text('Camera'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_isUploadingImage) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please wait for image upload to finish')),
+        );
+      }
       return;
     }
 
@@ -85,10 +155,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         throw Exception('Profile not found');
       }
 
-      String? avatarUrl = _currentAvatarUrl;
-      if (_selectedImage != null) {
-        avatarUrl = _selectedImage!.path;
-      }
+      final String? avatarUrl = _currentAvatarUrl;
 
       final updatedProfile = ProfileEntity(
         userId: currentProfile.userId,
@@ -191,7 +258,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               children: [
                 const SizedBox(height: 20),
                 GestureDetector(
-                  onTap: _pickImage,
+                  onTap: _showImageSourcePicker,
                   child: Stack(
                     children: [
                       Container(
@@ -211,25 +278,59 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                             ),
                           ],
                         ),
-                        child: CircleAvatar(
-                          radius: 58,
-                          backgroundColor: isDark ? Colors.grey[800] : Colors.grey[300],
-                          backgroundImage: _selectedImage != null
-                              ? FileImage(_selectedImage!)
-                              : (_currentAvatarUrl != null && _currentAvatarUrl!.startsWith('http'))
-                                  ? NetworkImage(_currentAvatarUrl!)
-                                  : (_currentAvatarUrl != null && File(_currentAvatarUrl!).existsSync())
-                                      ? FileImage(File(_currentAvatarUrl!))
-                                      : null,
-                          child: (_selectedImage == null && _currentAvatarUrl == null)
-                              ? Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: isDark ? Colors.grey[600] : Colors.grey,
-                                )
-                              : null,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(60),
+                          child: Container(
+                            color: isDark ? Colors.grey[800] : Colors.grey[300],
+                            child: (_currentAvatarUrl != null && _currentAvatarUrl!.startsWith('http'))
+                                ? Image.network(
+                                    _currentAvatarUrl!,
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: isDark ? Colors.grey[600] : Colors.grey,
+                                    ),
+                                  )
+                                : (_selectedImage != null)
+                                    ? Image.file(
+                                        _selectedImage!,
+                                        width: 120,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : (_currentAvatarUrl != null && File(_currentAvatarUrl!).existsSync())
+                                        ? Image.file(
+                                            File(_currentAvatarUrl!),
+                                            width: 120,
+                                            height: 120,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Icon(
+                                            Icons.person,
+                                            size: 60,
+                                            color: isDark ? Colors.grey[600] : Colors.grey,
+                                          ),
+                          ),
                         ),
                       ),
+                      if (_isUploadingImage)
+                        Positioned.fill(
+                          child: ClipOval(
+                            child: Container(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(strokeWidth: 3),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       Positioned(
                         bottom: 0,
                         right: 0,
