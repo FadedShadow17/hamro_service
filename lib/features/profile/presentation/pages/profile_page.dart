@@ -8,6 +8,8 @@ import 'package:hamro_service/core/providers/theme_provider.dart';
 import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'edit_profile_page.dart';
+import '../../../contact/presentation/pages/contact_page.dart';
+import '../../../contact/presentation/pages/testimonials_page.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -197,6 +199,38 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Settings coming soon')),
+                        );
+                      },
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      color: isDark ? Colors.grey[800] : Colors.grey[300],
+                    ),
+                    _MenuItem(
+                      icon: Icons.contact_support,
+                      title: 'Contact Us',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ContactPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      color: isDark ? Colors.grey[800] : Colors.grey[300],
+                    ),
+                    _MenuItem(
+                      icon: Icons.rate_review,
+                      title: 'Testimonials',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const TestimonialsPage(),
+                          ),
                         );
                       },
                     ),

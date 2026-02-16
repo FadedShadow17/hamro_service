@@ -30,27 +30,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   void initState() {
     super.initState();
     _loadProfileData();
-
-    ref.listen<ImageUploadState>(imageUploadNotifierProvider, (previous, next) {
-      if (!mounted) return;
-
-      setState(() {
-        _isUploadingImage = next.isLoading;
-      });
-
-      if (next.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.errorMessage!)),
-        );
-      }
-
-      if (next.url != null && next.url!.isNotEmpty) {
-        setState(() {
-          _currentAvatarUrl = next.url;
-          _selectedImage = null;
-        });
-      }
-    });
   }
 
   void _loadProfileData() {
@@ -206,6 +185,27 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+    ref.listen<ImageUploadState>(imageUploadNotifierProvider, (previous, next) {
+      if (!mounted) return;
+
+      setState(() {
+        _isUploadingImage = next.isLoading;
+      });
+
+      if (next.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage!)),
+        );
+      }
+
+      if (next.url != null && next.url!.isNotEmpty) {
+        setState(() {
+          _currentAvatarUrl = next.url;
+          _selectedImage = null;
+        });
+      }
+    });
     
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : AppColors.backgroundLight,

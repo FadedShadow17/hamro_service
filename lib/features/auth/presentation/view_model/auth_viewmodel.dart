@@ -28,7 +28,9 @@ class AuthViewModel extends Notifier<AuthState> {
   }
 
   Future<void> checkAuth() async {
-    final result = await _getCurrentUserUsecase();
+    state = const AuthState.loading();
+    final repository = ref.read(authRepositoryProvider);
+    final result = await repository.getMe();
     result.fold(
       (failure) {
         state = const AuthState.initial();

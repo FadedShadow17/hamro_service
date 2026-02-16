@@ -39,6 +39,13 @@ class DioClient {
           }
           handler.next(options);
         },
+        onError: (error, handler) {
+          if (error.response?.statusCode == 401) {
+            _sessionService.clearToken();
+            _sessionService.clearSession();
+          }
+          handler.next(error);
+        },
       ),
     );
   }

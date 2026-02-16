@@ -76,8 +76,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
         if (response.token.isNotEmpty) {
           await _sessionService.saveToken(response.token);
-          final tokenPreview = response.token.substring(0, min(12, response.token.length));
-          print("✅ Saved token: ${tokenPreview}...");
         }
 
         final authEntity = _mapUserToEntity(response.user, email);
@@ -156,8 +154,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
         if (response.token.isNotEmpty) {
           await _sessionService.saveToken(response.token);
-          final tokenPreview = response.token.substring(0, min(12, response.token.length));
-          print(" Saved token: ${tokenPreview}...");
         }
 
         final email = response.user["email"] ?? emailOrUsername;
@@ -243,6 +239,49 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(CacheFailure(e.message));
     } catch (e) {
       return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity?>> getMe() async {
+    final hasInternet = await _connectivityService.hasInternetConnection();
+    
+    if (hasInternet) {
+      try {
+        final userData = await _remoteDatasource.getMe();
+        final email = userData["email"] ?? "";
+        final authEntity = _mapUserToEntity(userData, email);
+        
+        if (authEntity.authId.isNotEmpty) {
+          await _sessionService.saveSession(authEntity.authId);
+          
+          if (_localDatasource != null) {
+            final userModel = AuthHiveModel(
+              authId: authEntity.authId,
+              fullName: authEntity.fullName,
+              email: authEntity.email,
+              username: authEntity.username,
+              password: '',
+              phoneNumber: authEntity.phoneNumber,
+            );
+            await _localDatasource!.saveUser(userModel);
+          }
+        }
+        
+        return Right(authEntity);
+      } on Exception catch (e) {
+        final message = e.toString().replaceFirst('Exception: ', '');
+        if (message.toLowerCase().contains('unauthorized') ||
+            message.toLowerCase().contains('invalid token')) {
+          await _sessionService.clearSession();
+          return const Right(null);
+        }
+        return Left(AuthenticationFailure(message));
+      } catch (e) {
+        return Left(AuthenticationFailure(e.toString()));
+      }
+    } else {
+      return getCurrentUser();
     }
   }
 

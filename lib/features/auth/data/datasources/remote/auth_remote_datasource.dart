@@ -12,13 +12,18 @@ class AuthRemoteDatasource {
     required String password,
     String? phoneNumber,
     String? username,
+    String? role,
   }) async {
     try {
       final body = <String, dynamic>{
-        'fullName': fullName,
+        'name': fullName,
         'email': email,
         'password': password,
       };
+      
+      if (role != null && role.isNotEmpty) {
+        body['role'] = role;
+      }
 
       if (phoneNumber != null && phoneNumber.isNotEmpty) {
         body['phoneNumber'] = phoneNumber;
@@ -49,33 +54,22 @@ class AuthRemoteDatasource {
     required String password,
   }) async {
     try {
-      // Trim the input to remove any whitespace
       final trimmedEmailOrUsername = emailOrUsername.trim();
       final trimmedPassword = password.trim();
       
-      print('🔍 Login request: emailOrUsername=$trimmedEmailOrUsername, password length=${trimmedPassword.length}');
-      
-      // Backend validation expects "email" field (not "emailOrUsername")
       final requestBody = {
-        'email': trimmedEmailOrUsername, // Backend expects "email" field
+        'email': trimmedEmailOrUsername,
         'password': trimmedPassword,
       };
-      
-      print('📤 Sending request body: $requestBody');
       
       final response = await _dio.post(
         '/api/auth/login',
         data: requestBody,
       );
-
-      print('✅ Login response received: ${response.statusCode}');
-      print('📥 Response data: ${response.data}');
       return AuthResponseModel.fromJson(response.data);
     } on DioException catch (e) {
-      // Extract error message from response
       String? message;
       if (e.response?.data != null) {
-        print('❌ Login error: ${e.response?.statusCode} - ${e.response?.data}');
         if (e.response!.data is Map) {
           message = e.response!.data['message'] as String? ??
               e.response!.data['error'] as String?;
@@ -94,14 +88,30 @@ class AuthRemoteDatasource {
         } else if (e.response!.data is String) {
           message = e.response!.data as String;
         }
-      } else {
-        print('❌ Login error (no response): ${e.message}');
       }
       message ??= e.message ?? 'Login failed';
       throw Exception(message);
     } catch (e) {
-      print('❌ Login exception: $e');
       throw Exception('Login failed: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, dynamic>> getMe() async {
+    try {
+      final response = await _dio.get('/api/auth/me');
+      final data = response.data;
+      if (data is Map && data.containsKey('user')) {
+        return data['user'] as Map<String, dynamic>;
+      }
+      return data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      final message = e.response?.data?['message'] ??
+          e.response?.data?['error'] ??
+          e.message ??
+          'Failed to fetch user';
+      throw Exception(message);
+    } catch (e) {
+      throw Exception('Failed to fetch user: ${e.toString()}');
     }
   }
 }

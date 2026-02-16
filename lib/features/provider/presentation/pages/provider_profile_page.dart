@@ -8,6 +8,8 @@ import 'package:hamro_service/core/providers/theme_provider.dart';
 import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'provider_edit_profile_page.dart';
+import 'provider_verification_page.dart';
+import 'provider_availability_page.dart';
 
 class ProviderProfilePage extends ConsumerStatefulWidget {
   const ProviderProfilePage({super.key});
@@ -229,6 +231,22 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => const ProviderEditProfilePage(),
+                          ),
+                        );
+                      },
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      color: isDark ? Colors.grey[800] : Colors.grey[300],
+                    ),
+                    _MenuItem(
+                      icon: Icons.verified_user,
+                      title: 'Verification',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ProviderVerificationPage(),
                           ),
                         );
                       },

@@ -26,4 +26,34 @@ class ServiceItemModel extends ServiceItem {
       providerAvatarUrl: entity.providerAvatarUrl,
     );
   }
+
+  factory ServiceItemModel.fromJson(Map<String, dynamic> json) {
+    return ServiceItemModel(
+      id: json['_id'] ?? json['id'] ?? '',
+      title: json['title'] ?? json['name'] ?? '',
+      priceRs: (json['price'] ?? json['priceRs'] ?? 0.0).toDouble(),
+      rating: (json['rating'] ?? 0.0).toDouble(),
+      reviewsCount: json['reviewsCount'] ?? json['reviews'] ?? 0,
+      categoryTag: json['category']?['name'] ?? 
+                  json['categoryName'] ?? 
+                  json['category'] ?? '',
+      providerId: json['providerId'] ?? json['provider']?['_id'],
+      providerName: json['provider']?['name'] ?? json['providerName'],
+      providerAvatarUrl: json['provider']?['avatar'] ?? json['providerAvatarUrl'],
+    );
+  }
+
+  ServiceItem toEntity() {
+    return ServiceItem(
+      id: id,
+      title: title,
+      priceRs: priceRs,
+      rating: rating,
+      reviewsCount: reviewsCount,
+      categoryTag: categoryTag,
+      providerId: providerId,
+      providerName: providerName,
+      providerAvatarUrl: providerAvatarUrl,
+    );
+  }
 }

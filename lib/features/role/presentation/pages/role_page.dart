@@ -8,8 +8,13 @@ class RolePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 700;
+    
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -28,79 +33,74 @@ class RolePage extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight:
-                        constraints.maxHeight -
-                        MediaQuery.of(context).padding.top -
-                        MediaQuery.of(context).padding.bottom,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: isSmallScreen ? 16.0 : 24.0,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: screenHeight - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(height: isSmallScreen ? 20.0 : 40.0),
+                  
+                  Text(
+                    'Select a Role',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: isSmallScreen ? 24 : 28,
+                        ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 60),
 
-                        Text(
-                          'Select a Role',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 28,
-                              ),
+                  SizedBox(height: isSmallScreen ? 32.0 : 48.0),
+
+                  _RoleCard(
+                    title: 'User',
+                    description: 'Book services and find professionals',
+                    icon: Icons.person_rounded,
+                    iconColor: AppColors.primaryBlue,
+                    gradientColors: [
+                      AppColors.primaryBlue.withValues(alpha: 0.1),
+                      AppColors.primaryBlue.withValues(alpha: 0.05),
+                    ],
+                    onTap: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const DashboardPage(),
                         ),
-
-                        const SizedBox(height: 60),
-
-                        _RoleCard(
-                          title: 'User',
-                          description: 'Book services and find professionals',
-                          icon: Icons.person_rounded,
-                          iconColor: AppColors.primaryBlue,
-                          gradientColors: [
-                            AppColors.primaryBlue.withValues(alpha: 0.1),
-                            AppColors.primaryBlue.withValues(alpha: 0.05),
-                          ],
-                          onTap: () {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => const DashboardPage(),
-                              ),
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        _RoleCard(
-                          title: 'Service Provider',
-                          description: 'Offer your services and manage orders',
-                          icon: Icons.work_rounded,
-                          iconColor: AppColors.accentOrange,
-                          gradientColors: [
-                            AppColors.accentOrange.withValues(alpha: 0.1),
-                            AppColors.accentOrange.withValues(alpha: 0.05),
-                          ],
-                          onTap: () {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (context) => const ProviderDashboardPage(),
-                              ),
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 40),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                ),
-              );
-            },
+
+                  SizedBox(height: isSmallScreen ? 16.0 : 24.0),
+
+                  _RoleCard(
+                    title: 'Service Provider',
+                    description: 'Offer your services and manage orders',
+                    icon: Icons.work_rounded,
+                    iconColor: AppColors.accentOrange,
+                    gradientColors: [
+                      AppColors.accentOrange.withValues(alpha: 0.1),
+                      AppColors.accentOrange.withValues(alpha: 0.05),
+                    ],
+                    onTap: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const ProviderDashboardPage(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  SizedBox(height: isSmallScreen ? 16.0 : 32.0),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -149,87 +149,92 @@ class _RoleCardState extends State<_RoleCard> {
           child: InkWell(
             onTap: widget.onTap,
             borderRadius: BorderRadius.circular(20),
-            child: Container(
-              height: 128,
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+            child: Builder(
+              builder: (context) {
+                final isSmallScreen = MediaQuery.of(context).size.height < 700;
+                return Container(
+                  constraints: BoxConstraints(
+                    minHeight: isSmallScreen ? 100 : 128,
                   ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    // Premium Icon Container
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: widget.gradientColors,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: isSmallScreen ? 64 : 80,
+                          height: isSmallScreen ? 64 : 80,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: widget.gradientColors,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: widget.iconColor.withValues(alpha: 0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            widget.icon,
+                            size: isSmallScreen ? 32 : 40,
+                            color: widget.iconColor,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: widget.iconColor.withValues(alpha: 0.3),
-                            blurRadius: 15,
-                            offset: const Offset(0, 5),
+                        SizedBox(width: isSmallScreen ? 16 : 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.title,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: isSmallScreen ? 18 : 22,
+                                    ),
+                              ),
+                              SizedBox(height: isSmallScreen ? 4 : 8),
+                              Text(
+                                widget.description,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      fontSize: isSmallScreen ? 12 : 14,
+                                      height: 1.4,
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.grey[400]
+                                          : Colors.grey[600],
+                                    ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Icon(
-                        widget.icon,
-                        size: 40,
-                        color: widget.iconColor,
-                      ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: isSmallScreen ? 18 : 20,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[600]
+                              : Colors.grey[400],
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 20),
-                    // Content
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            widget.title,
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            widget.description,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontSize: 14,
-                                  height: 1.4,
-                                  color: Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.grey[400]
-                                      : Colors.grey[600],
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Arrow Icon
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 20,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey[600]
-                          : Colors.grey[400],
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
           ),
         ),

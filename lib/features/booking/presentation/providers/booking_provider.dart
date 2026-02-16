@@ -3,12 +3,9 @@ import '../../domain/entities/service_option.dart';
 import '../../domain/entities/time_slot.dart';
 import '../../domain/repositories/booking_repository.dart';
 import '../../../services/domain/entities/service_item.dart';
-import '../../data/datasources/booking_local_datasource.dart';
-import '../../data/repositories/booking_repository_impl.dart';
 
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
-  final datasource = BookingLocalDataSourceImpl();
-  return BookingRepositoryImpl(datasource: datasource);
+  throw UnimplementedError('bookingRepositoryProvider must be overridden');
 });
 
 class BookingState {
@@ -19,7 +16,9 @@ class BookingState {
   final List<TimeSlot> availableTimeSlots;
   final TimeSlot? selectedTimeSlot;
   final String? address;
+  final String? area;
   final String? notes;
+  final bool isLoadingTimeSlots;
 
   BookingState({
     this.service,
@@ -29,7 +28,9 @@ class BookingState {
     this.availableTimeSlots = const [],
     this.selectedTimeSlot,
     this.address,
+    this.area,
     this.notes,
+    this.isLoadingTimeSlots = false,
   });
 
   BookingState copyWith({
@@ -40,7 +41,9 @@ class BookingState {
     List<TimeSlot>? availableTimeSlots,
     TimeSlot? selectedTimeSlot,
     String? address,
+    String? area,
     String? notes,
+    bool? isLoadingTimeSlots,
   }) {
     return BookingState(
       service: service ?? this.service,
@@ -50,7 +53,9 @@ class BookingState {
       availableTimeSlots: availableTimeSlots ?? this.availableTimeSlots,
       selectedTimeSlot: selectedTimeSlot ?? this.selectedTimeSlot,
       address: address ?? this.address,
+      area: area ?? this.area,
       notes: notes ?? this.notes,
+      isLoadingTimeSlots: isLoadingTimeSlots ?? this.isLoadingTimeSlots,
     );
   }
 }
@@ -80,12 +85,55 @@ class BookingNotifier extends Notifier<BookingState> {
 
   Future<void> selectDate(DateTime date) async {
     state = state.copyWith(selectedDate: date);
-    await loadTimeSlots(date);
+    if (state.service != null && state.area != null && state.area!.isNotEmpty) {
+      await loadTimeSlotsFromAPI(date, state.area!);
+    } else {
+      await loadTimeSlots(date);
+    }
   }
 
   Future<void> loadTimeSlots(DateTime date) async {
     final timeSlots = await repository.getAvailableTimeSlots(date);
     state = state.copyWith(availableTimeSlots: timeSlots);
+  }
+
+  Future<void> loadTimeSlotsFromAPI(DateTime date, String area) async {
+    if (state.service == null) return;
+
+    state = state.copyWith(isLoadingTimeSlots: true);
+    
+    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    
+    final result = await repository.getAvailableTimeSlotsFromAPI(
+      serviceId: state.service!.id,
+      date: dateStr,
+      area: area,
+    );
+
+    final timeSlotsResult = result.fold(
+      (failure) => null,
+      (timeSlots) => timeSlots,
+    );
+
+    if (timeSlotsResult != null) {
+      state = state.copyWith(
+        availableTimeSlots: timeSlotsResult,
+        isLoadingTimeSlots: false,
+      );
+    } else {
+      final fallbackSlots = await repository.getAvailableTimeSlots(date);
+      state = state.copyWith(
+        availableTimeSlots: fallbackSlots,
+        isLoadingTimeSlots: false,
+      );
+    }
+  }
+
+  void updateArea(String area) {
+    state = state.copyWith(area: area);
+    if (state.selectedDate != null) {
+      loadTimeSlotsFromAPI(state.selectedDate!, area);
+    }
   }
 
   void selectTimeSlot(TimeSlot timeSlot) {

@@ -1,5 +1,5 @@
-
 part of 'auth_hive_model.dart';
+
 
 class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
   @override

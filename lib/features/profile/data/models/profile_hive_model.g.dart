@@ -1,5 +1,10 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'profile_hive_model.dart';
+
+// **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
 
 class ProfileHiveModelAdapter extends TypeAdapter<ProfileHiveModel> {
   @override
@@ -18,13 +23,14 @@ class ProfileHiveModelAdapter extends TypeAdapter<ProfileHiveModel> {
       phoneNumber: fields[3] as String?,
       avatarUrl: fields[4] as String?,
       address: fields[5] as String?,
+      description: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ProfileHiveModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.userId)
       ..writeByte(1)
@@ -36,7 +42,9 @@ class ProfileHiveModelAdapter extends TypeAdapter<ProfileHiveModel> {
       ..writeByte(4)
       ..write(obj.avatarUrl)
       ..writeByte(5)
-      ..write(obj.address);
+      ..write(obj.address)
+      ..writeByte(6)
+      ..write(obj.description);
   }
 
   @override

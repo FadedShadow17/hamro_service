@@ -1,16 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/datasources/services_local_datasource.dart';
 import '../../data/repositories/services_repository_impl.dart';
 import '../../domain/usecases/get_services_by_category.dart';
 import '../../domain/entities/service_item.dart';
 
-final servicesLocalDataSourceProvider = Provider<ServicesLocalDataSource>((ref) {
-  return ServicesLocalDataSourceImpl();
-});
-
 final servicesRepositoryProvider = Provider<ServicesRepositoryImpl>((ref) {
-  final datasource = ref.watch(servicesLocalDataSourceProvider);
-  return ServicesRepositoryImpl(localDataSource: datasource);
+  throw UnimplementedError('servicesRepositoryProvider must be overridden');
 });
 
 final getServicesByCategoryProvider = Provider<GetServicesByCategory>((ref) {
@@ -49,13 +43,20 @@ class ServicesScreenState {
 final servicesListProvider = FutureProvider.family<ServicesScreenState, String>((ref, category) async {
   final getServices = ref.read(getServicesByCategoryProvider);
 
-  final services = await getServices(category);
+  final result = await getServices(category);
 
   final categories = ['All', 'Plumbing', 'Cleaning', 'Electrician', 'Carpenter', 'Painter', 'Mason', 'Welder', 'Roofer', 'Pest Controller', 'More'];
 
-  return ServicesScreenState(
-    selectedCategory: category,
-    categories: categories,
-    services: services,
+  return result.fold(
+    (failure) => ServicesScreenState(
+      selectedCategory: category,
+      categories: categories,
+      services: [],
+    ),
+    (services) => ServicesScreenState(
+      selectedCategory: category,
+      categories: categories,
+      services: services,
+    ),
   );
 });

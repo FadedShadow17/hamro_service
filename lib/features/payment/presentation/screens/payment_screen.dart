@@ -1,8 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dartz/dartz.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/loading_widget.dart';
+import '../../../../core/widgets/error_widget.dart';
 import '../widgets/payment_method_card.dart';
+import '../../data/repositories/payment_repository_impl.dart';
+import '../../domain/entities/payment_entity.dart';
+import '../../presentation/providers/payment_provider.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
+
+final payableBookingsProvider = FutureProvider<List<PaymentEntity>>((ref) async {
+  final repository = ref.watch(paymentRepositoryProvider);
+  final result = await repository.getPayableBookings();
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (bookings) => bookings,
+  );
+});
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -13,11 +28,13 @@ class PaymentScreen extends ConsumerStatefulWidget {
 
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   PaymentMethod? _selectedPaymentMethod;
+  String? _selectedBookingId;
+  bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cartState = ref.watch(cartProvider);
+    final bookingsAsync = ref.watch(payableBookingsProvider);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : AppColors.backgroundLight,
@@ -29,7 +46,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             Icons.arrow_back,
             color: isDark ? Colors.white : Colors.black87,
           ),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: _isProcessing ? null : () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Payment',
@@ -40,72 +57,202 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order Summary
-            _buildOrderSummary(context, cartState, isDark),
-            const SizedBox(height: 24),
+      body: bookingsAsync.when(
+        data: (bookings) => _buildPaymentContent(context, bookings, isDark),
+        loading: () => const AppLoadingWidget(),
+        error: (error, stack) => AppErrorWidget(
+          message: error.toString(),
+          onRetry: () => ref.invalidate(payableBookingsProvider),
+        ),
+      ),
+    );
+  }
 
-            // Payment Methods
+  Widget _buildPaymentContent(BuildContext context, List<PaymentEntity> bookings, bool isDark) {
+    if (bookings.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.payment_outlined,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
             Text(
-              'Select Payment Method',
+              'No pending payments',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const SizedBox(height: 16),
-            PaymentMethodCard(
-              method: PaymentMethod.esewa,
-              isSelected: _selectedPaymentMethod == PaymentMethod.esewa,
-              onTap: () {
-                setState(() {
-                  _selectedPaymentMethod = PaymentMethod.esewa;
-                });
-              },
-            ),
-            const SizedBox(height: 12),
-            PaymentMethodCard(
-              method: PaymentMethod.fonepay,
-              isSelected: _selectedPaymentMethod == PaymentMethod.fonepay,
-              onTap: () {
-                setState(() {
-                  _selectedPaymentMethod = PaymentMethod.fonepay;
-                });
-              },
-            ),
-            const SizedBox(height: 32),
-
-            // Pay Now Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _selectedPaymentMethod == null
-                    ? null
-                    : () => _handlePayment(context, cartState),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey[400],
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Pay Now',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+            const SizedBox(height: 8),
+            Text(
+              'You have no bookings awaiting payment',
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
               ),
             ),
-            const SizedBox(height: 16),
+          ],
+        ),
+      );
+    }
+
+    if (_selectedBookingId == null && bookings.isNotEmpty) {
+      _selectedBookingId = bookings.first.bookingId;
+    }
+
+    final selectedBooking = bookings.firstWhere(
+      (b) => b.bookingId == _selectedBookingId,
+      orElse: () => bookings.first,
+    );
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (bookings.length > 1) ...[
+            Text(
+              'Select Booking',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...bookings.map((booking) => _buildBookingCard(booking, isDark)),
+            const SizedBox(height: 24),
+          ],
+          _buildOrderSummary(context, selectedBooking, isDark),
+          const SizedBox(height: 24),
+          Text(
+            'Select Payment Method',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 16),
+          PaymentMethodCard(
+            method: PaymentMethod.esewa,
+            isSelected: _selectedPaymentMethod == PaymentMethod.esewa,
+            onTap: () {
+              setState(() {
+                _selectedPaymentMethod = PaymentMethod.esewa;
+              });
+            },
+          ),
+          const SizedBox(height: 12),
+          PaymentMethodCard(
+            method: PaymentMethod.fonepay,
+            isSelected: _selectedPaymentMethod == PaymentMethod.fonepay,
+            onTap: () {
+              setState(() {
+                _selectedPaymentMethod = PaymentMethod.fonepay;
+              });
+            },
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isProcessing || _selectedPaymentMethod == null
+                  ? null
+                  : () => _handlePayment(context, selectedBooking),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey[400],
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _isProcessing
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Pay Now',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBookingCard(PaymentEntity booking, bool isDark) {
+    final isSelected = booking.bookingId == _selectedBookingId;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedBookingId = booking.bookingId;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primaryBlue
+                : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    booking.serviceName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${booking.date} at ${booking.timeSlot}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              'Rs ${booking.amount.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryBlue,
+              ),
+            ),
           ],
         ),
       ),
@@ -114,7 +261,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
   Widget _buildOrderSummary(
     BuildContext context,
-    dynamic cartState,
+    PaymentEntity booking,
     bool isDark,
   ) {
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
@@ -144,45 +291,50 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          ...cartState.items.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.serviceName,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.serviceOptionName,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     Text(
-                      'Rs ${item.totalPrice.toStringAsFixed(2)}',
+                      booking.serviceName,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryBlue,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${booking.date} at ${booking.timeSlot}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      booking.area,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
                     ),
                   ],
                 ),
-              )),
+              ),
+              Text(
+                'Rs ${booking.amount.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryBlue,
+                ),
+              ),
+            ],
+          ),
           const Divider(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -196,7 +348,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 ),
               ),
               Text(
-                'Rs ${cartState.totalPrice.toStringAsFixed(2)}',
+                'Rs ${booking.amount.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -210,7 +362,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     );
   }
 
-  void _handlePayment(BuildContext context, dynamic cartState) {
+  Future<void> _handlePayment(BuildContext context, PaymentEntity booking) async {
     if (_selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -220,38 +372,55 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       return;
     }
 
-    // Placeholder payment logic
     final methodName = _selectedPaymentMethod == PaymentMethod.esewa
-        ? 'eSewa'
-        : 'FonePay';
+        ? 'ESEWA'
+        : 'FONEPAY';
 
-    // Show loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    setState(() {
+      _isProcessing = true;
+    });
 
-    // Simulate payment processing
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.of(context).pop(); // Close loading dialog
+    try {
+      final repository = ref.read(paymentRepositoryProvider);
+      final result = await repository.payForBooking(booking.bookingId, methodName);
 
-      // Clear cart after successful payment
-      ref.read(cartProvider.notifier).clearCart();
-
-      // Show success message
+      result.fold(
+        (failure) {
+          setState(() {
+            _isProcessing = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Payment failed: ${failure.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+        (payment) {
+          setState(() {
+            _isProcessing = false;
+          });
+          ref.invalidate(payableBookingsProvider);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Payment successful via ${_selectedPaymentMethod == PaymentMethod.esewa ? 'eSewa' : 'FonePay'}!'),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          Navigator.of(context).pop();
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isProcessing = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Payment successful via $methodName!'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
+          content: Text('Payment failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
         ),
       );
-
-      // Navigate back to home
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    });
+    }
   }
 }

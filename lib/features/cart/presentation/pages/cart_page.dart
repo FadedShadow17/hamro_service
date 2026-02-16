@@ -1,14 +1,123 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/loading_widget.dart';
 import '../providers/cart_provider.dart';
 import '../../../payment/presentation/screens/payment_screen.dart';
+import '../../../booking/presentation/providers/booking_provider.dart';
 
-class CartPage extends ConsumerWidget {
+class CartPage extends ConsumerStatefulWidget {
   const CartPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CartPage> createState() => _CartPageState();
+}
+
+class _CartPageState extends ConsumerState<CartPage> {
+  bool _isCreatingBookings = false;
+
+  Future<void> _handleProceedToPayment(
+    BuildContext context,
+    WidgetRef ref,
+    CartState cartState,
+  ) async {
+    if (cartState.items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cart is empty')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isCreatingBookings = true;
+    });
+
+    ref.read(cartProvider.notifier).state = cartState.copyWith(isLoading: true);
+
+    try {
+      final bookingRepository = ref.read(bookingRepositoryProvider);
+      final List<String> createdBookingIds = [];
+      final List<String> failedItems = [];
+
+      for (final item in cartState.items) {
+        final dateStr = '${item.selectedDate.year}-${item.selectedDate.month.toString().padLeft(2, '0')}-${item.selectedDate.day.toString().padLeft(2, '0')}';
+        
+        final result = await bookingRepository.createBooking(
+          serviceId: item.serviceId,
+          date: dateStr,
+          timeSlot: item.selectedTimeSlot,
+          area: item.address,
+        );
+
+        result.fold(
+          (failure) {
+            failedItems.add(item.serviceName);
+          },
+          (booking) {
+            createdBookingIds.add(booking.id);
+          },
+        );
+      }
+
+      if (failedItems.isNotEmpty) {
+        setState(() {
+          _isCreatingBookings = false;
+        });
+        ref.read(cartProvider.notifier).state = cartState.copyWith(isLoading: false);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create bookings for: ${failedItems.join(', ')}'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
+
+      if (createdBookingIds.isEmpty) {
+        setState(() {
+          _isCreatingBookings = false;
+        });
+        ref.read(cartProvider.notifier).state = cartState.copyWith(isLoading: false);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to create bookings'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      await ref.read(cartProvider.notifier).clearCart();
+
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const PaymentScreen(),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isCreatingBookings = false;
+      });
+      ref.read(cartProvider.notifier).state = cartState.copyWith(isLoading: false);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating bookings: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final cartState = ref.watch(cartProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -136,13 +245,9 @@ class CartPage extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const PaymentScreen(),
-                  ),
-                );
-              },
+              onPressed: (cartState.isLoading || _isCreatingBookings)
+                  ? null
+                  : () => _handleProceedToPayment(context, ref, cartState),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryBlue,
                 foregroundColor: Colors.white,
@@ -151,13 +256,22 @@ class CartPage extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                'Proceed to Payment',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: (cartState.isLoading || _isCreatingBookings)
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Proceed to Payment',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ),
         ],

@@ -24,6 +24,7 @@ class BookingScreen extends ConsumerStatefulWidget {
 
 class _BookingScreenState extends ConsumerState<BookingScreen> {
   final _addressController = TextEditingController();
+  final _areaController = TextEditingController();
   final _notesController = TextEditingController();
 
   @override
@@ -38,6 +39,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   @override
   void dispose() {
     _addressController.dispose();
+    _areaController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -73,8 +75,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       return;
     }
 
-    // Update booking with address and notes
+    if (_areaController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter an area')),
+      );
+      return;
+    }
+
     ref.read(bookingProvider.notifier).updateAddress(_addressController.text.trim());
+    ref.read(bookingProvider.notifier).updateArea(_areaController.text.trim());
     ref.read(bookingProvider.notifier).updateNotes(_notesController.text.trim());
 
     // Create cart item from booking
@@ -246,9 +255,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Notes section
             Text(
-              'Notes for cleaner (optional)',
+              'Area',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -257,10 +265,59 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             ),
             const SizedBox(height: 12),
             TextField(
+              controller: _areaController,
+              decoration: InputDecoration(
+                hintText: 'Enter area (e.g., Kathmandu, Lalitpur)',
+                filled: true,
+                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: AppColors.primaryBlue,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+              ),
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              onChanged: (value) {
+                if (value.isNotEmpty && bookingState.selectedDate != null) {
+                  ref.read(bookingProvider.notifier).updateArea(value);
+                }
+              },
+            ),
+            const SizedBox(height: 24),
+
+            Text(
+              'Notes',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            TextField(
               controller: _notesController,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'Add any special instructions',
+                hintText: 'Add any special instructions (optional)',
                 filled: true,
                 fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 border: OutlineInputBorder(

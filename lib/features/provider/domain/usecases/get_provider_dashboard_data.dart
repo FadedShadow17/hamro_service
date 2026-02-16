@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart';
+import '../../../../core/error/failures.dart';
 import '../entities/provider_order.dart';
 import '../entities/provider_stats.dart';
 import '../repositories/provider_repository.dart';
@@ -7,17 +9,35 @@ class GetProviderDashboardData {
 
   GetProviderDashboardData(this.repository);
 
-  Future<ProviderDashboardData> call() async {
-    final stats = await repository.getProviderStats();
-    final pendingOrders = await repository.getPendingOrders();
-    final activeOrders = await repository.getActiveOrders();
-    final recentOrders = await repository.getRecentOrders();
-    
-    return ProviderDashboardData(
-      stats: stats,
-      pendingOrders: pendingOrders,
-      activeOrders: activeOrders,
-      recentOrders: recentOrders,
+  Future<Either<Failure, ProviderDashboardData>> call() async {
+    final statsResult = await repository.getProviderStats();
+    final pendingResult = await repository.getPendingOrders();
+    final activeResult = await repository.getActiveOrders();
+    final recentResult = await repository.getRecentOrders();
+
+    return statsResult.fold(
+      (failure) => Left(failure),
+      (stats) async {
+        return pendingResult.fold(
+          (failure) => Left(failure),
+          (pending) async {
+            return activeResult.fold(
+              (failure) => Left(failure),
+              (active) async {
+                return recentResult.fold(
+                  (failure) => Left(failure),
+                  (recent) => Right(ProviderDashboardData(
+                    stats: stats,
+                    pendingOrders: pending,
+                    activeOrders: active,
+                    recentOrders: recent,
+                  )),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 }
