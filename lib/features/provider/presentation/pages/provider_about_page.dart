@@ -202,6 +202,13 @@ class ProviderAboutPage extends ConsumerWidget {
     final isApproved = status == 'APPROVED';
     final isRejected = status == 'REJECTED';
     final isPending = status == 'PENDING_REVIEW';
+    
+    final fullName = summary['fullName'] as String?;
+    final phoneNumber = summary['phoneNumber'] as String?;
+    final citizenshipNumber = summary['citizenshipNumber'] as String?;
+    final serviceRole = summary['serviceRole'] as String?;
+    final verifiedAt = summary['verifiedAt'] as String?;
+    final rejectionReason = summary['rejectionReason'] as String?;
 
     Color statusColor;
     IconData statusIcon;
@@ -222,7 +229,6 @@ class ProviderAboutPage extends ConsumerWidget {
       statusColor = Colors.red;
       statusIcon = Icons.cancel;
       statusText = 'Rejected';
-      final rejectionReason = summary['rejectionReason'] as String?;
       statusDescription = rejectionReason != null
           ? 'Rejection reason: $rejectionReason'
           : 'Your verification was rejected. Please resubmit.';
@@ -293,6 +299,29 @@ class ProviderAboutPage extends ConsumerWidget {
               ),
             ],
           ),
+          if (isApproved && verifiedAt != null) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+            Text(
+              'Verification Details',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (fullName != null)
+              _buildDetailRow(context, isDark, 'Full Name', fullName),
+            if (phoneNumber != null)
+              _buildDetailRow(context, isDark, 'Phone Number', phoneNumber),
+            if (citizenshipNumber != null)
+              _buildDetailRow(context, isDark, 'Citizenship Number', citizenshipNumber),
+            if (serviceRole != null)
+              _buildDetailRow(context, isDark, 'Service Role', serviceRole),
+            _buildDetailRow(context, isDark, 'Verified At', verifiedAt!),
+          ],
           if (!isApproved) ...[
             const SizedBox(height: 16),
             SizedBox(
@@ -323,6 +352,37 @@ class ProviderAboutPage extends ConsumerWidget {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(BuildContext context, bool isDark, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
         ],
       ),
     );
