@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
 import 'package:hamro_service/features/icon_screen/presentation/pages/icon_page.dart';
+import 'package:hamro_service/core/services/storage/user_session_service.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -58,9 +61,25 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
       if (authState.isAuthenticated && authState.user != null) {
         if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const DashboardPage()),
-          );
+          // Check user role and navigate accordingly
+          final prefs = await SharedPreferences.getInstance();
+          final sessionService = UserSessionService(prefs: prefs);
+          final role = sessionService.getRole();
+          
+          if (role == 'provider') {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
+            );
+          } else if (role == 'user') {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const DashboardPage()),
+            );
+          } else {
+            // No role saved, navigate to role selection
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const IconPage()),
+            );
+          }
         }
       } else {
         if (mounted) {

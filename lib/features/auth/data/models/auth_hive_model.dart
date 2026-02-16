@@ -23,6 +23,9 @@ class AuthHiveModel {
   @HiveField(5)
   final String? phoneNumber;
 
+  @HiveField(6)
+  final String? role;
+
   AuthHiveModel({
     required this.authId,
     required this.fullName,
@@ -30,6 +33,7 @@ class AuthHiveModel {
     this.username,
     required this.password,
     this.phoneNumber,
+    this.role,
   });
 
   AuthHiveModel copyWith({
@@ -39,6 +43,7 @@ class AuthHiveModel {
     String? username,
     String? password,
     String? phoneNumber,
+    String? role,
   }) {
     return AuthHiveModel(
       authId: authId ?? this.authId,
@@ -47,6 +52,7 @@ class AuthHiveModel {
       username: username ?? this.username,
       password: password ?? this.password,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      role: role ?? this.role,
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/storage/user_session_service.dart';
 
 class RolePage extends StatelessWidget {
   const RolePage({super.key});
@@ -68,12 +70,19 @@ class RolePage extends StatelessWidget {
                       AppColors.primaryBlue.withValues(alpha: 0.1),
                       AppColors.primaryBlue.withValues(alpha: 0.05),
                     ],
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const DashboardPage(),
-                        ),
-                      );
+                    onTap: () async {
+                      // Save role as 'user'
+                      final prefs = await SharedPreferences.getInstance();
+                      final sessionService = UserSessionService(prefs: prefs);
+                      await sessionService.saveRole('user');
+                      
+                      if (context.mounted) {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const DashboardPage(),
+                          ),
+                        );
+                      }
                     },
                   ),
 
@@ -88,12 +97,19 @@ class RolePage extends StatelessWidget {
                       AppColors.accentOrange.withValues(alpha: 0.1),
                       AppColors.accentOrange.withValues(alpha: 0.05),
                     ],
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const ProviderDashboardPage(),
-                        ),
-                      );
+                    onTap: () async {
+                      // Save role as 'provider'
+                      final prefs = await SharedPreferences.getInstance();
+                      final sessionService = UserSessionService(prefs: prefs);
+                      await sessionService.saveRole('provider');
+                      
+                      if (context.mounted) {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const ProviderDashboardPage(),
+                          ),
+                        );
+                      }
                     },
                   ),
 

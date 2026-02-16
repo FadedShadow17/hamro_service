@@ -7,6 +7,7 @@ import '../providers/provider_dashboard_provider.dart';
 import '../widgets/stats_card.dart';
 import '../widgets/order_card.dart';
 import '../../../profile/presentation/viewmodel/profile_viewmodel.dart';
+import '../pages/provider_verification_page.dart';
 
 class ProviderDashboardScreen extends ConsumerWidget {
   const ProviderDashboardScreen({super.key});
@@ -14,17 +15,40 @@ class ProviderDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardDataAsync = ref.watch(providerDashboardDataProvider);
+    final verificationStatusAsync = ref.watch(providerVerificationStatusForDashboardProvider);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : AppColors.backgroundLight,
       body: SafeArea(
-        child: dashboardDataAsync.when(
-          data: (data) => _buildContent(data, ref, context),
+        child: verificationStatusAsync.when(
+          data: (verificationSummary) {
+            final status = verificationSummary['status'] as String? ?? 'NOT_SUBMITTED';
+            final isApproved = status == 'APPROVED';
+            
+            if (!isApproved) {
+              return _buildVerificationRequired(context, isDark, status);
+            }
+            
+            return dashboardDataAsync.when(
+              data: (data) => _buildContent(data, ref, context),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(
+                child: Text('Error: $error'),
+              ),
+            );
+          },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(
-            child: Text('Error: $error'),
-          ),
+          error: (error, stack) {
+            // If verification check fails, still show dashboard but with warning
+            return dashboardDataAsync.when(
+              data: (data) => _buildContent(data, ref, context),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(
+                child: Text('Error: $error'),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -284,6 +308,98 @@ class ProviderDashboardScreen extends ConsumerWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildVerificationRequired(BuildContext context, bool isDark, String status) {
+    String statusText;
+    String description;
+    Color statusColor;
+
+    if (status == 'PENDING_REVIEW') {
+      statusText = 'Pending Review';
+      description = 'Your verification is under review. Please wait for approval.';
+      statusColor = Colors.orange;
+    } else if (status == 'REJECTED') {
+      statusText = 'Rejected';
+      description = 'Your verification was rejected. Please resubmit your verification.';
+      statusColor = Colors.red;
+    } else {
+      statusText = 'Verification Required';
+      description = 'Please complete verification to browse user requests.';
+      statusColor = Colors.blue;
+    }
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 60),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.verified_user,
+                size: 80,
+                color: statusColor,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              statusText,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ProviderVerificationPage(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  status == 'REJECTED' ? 'Resubmit Verification' : 'Complete Verification',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

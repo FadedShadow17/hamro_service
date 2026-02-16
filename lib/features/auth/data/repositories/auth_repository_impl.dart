@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
@@ -34,6 +35,7 @@ class AuthRepositoryImpl implements AuthRepository {
       email: model.email,
       username: model.username,
       phoneNumber: model.phoneNumber,
+      role: model.role,
     );
   }
 
@@ -43,6 +45,7 @@ class AuthRepositoryImpl implements AuthRepository {
     final userEmail = user["email"] ?? email;
     final username = user["username"];
     final phoneNumber = user["phoneNumber"];
+    final role = user["role"] as String?;
 
     return AuthEntity(
       authId: id,
@@ -50,6 +53,7 @@ class AuthRepositoryImpl implements AuthRepository {
       email: userEmail,
       username: username,
       phoneNumber: phoneNumber,
+      role: role,
     );
   }
 
@@ -83,6 +87,10 @@ class AuthRepositoryImpl implements AuthRepository {
         if (authEntity.authId.isNotEmpty) {
           await _sessionService.saveSession(authEntity.authId);
           
+          // Save role if it exists
+          if (authEntity.role != null && authEntity.role!.isNotEmpty) {
+            await _sessionService.saveRole(authEntity.role!);
+          }
           
           if (_localDatasource != null) {
             final userModel = AuthHiveModel(
@@ -92,6 +100,7 @@ class AuthRepositoryImpl implements AuthRepository {
               username: authEntity.username,
               password: '', 
               phoneNumber: authEntity.phoneNumber,
+              role: authEntity.role,
             );
             await _localDatasource!.saveUser(userModel);
           }
@@ -144,7 +153,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }) async {
     final hasInternet = await _connectivityService.hasInternetConnection();
     
- 
+    // Try remote login first if internet is available
     if (hasInternet) {
       try {
         final response = await _remoteDatasource.login(
@@ -162,6 +171,10 @@ class AuthRepositoryImpl implements AuthRepository {
         if (authEntity.authId.isNotEmpty) {
           await _sessionService.saveSession(authEntity.authId);
           
+          // Save role if it exists
+          if (authEntity.role != null && authEntity.role!.isNotEmpty) {
+            await _sessionService.saveRole(authEntity.role!);
+          }
           
           if (_localDatasource != null) {
             final userModel = AuthHiveModel(
@@ -171,14 +184,88 @@ class AuthRepositoryImpl implements AuthRepository {
               username: authEntity.username,
               password: '', 
               phoneNumber: authEntity.phoneNumber,
+              role: authEntity.role,
             );
             await _localDatasource!.saveUser(userModel);
           }
         }
 
         return Right(authEntity);
+      } on DioException catch (e) {
+        // Handle connection errors (timeout, connection refused, etc.)
+        // Fall back to local storage when backend is unavailable
+        if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.sendTimeout ||
+            e.type == DioExceptionType.connectionError) {
+          // Backend is unavailable, try local login
+          if (_localDatasource == null) {
+            return Left(CacheFailure('Backend unavailable and local storage not available'));
+          }
+          
+          try {
+            final user = await _localDatasource!.login(emailOrUsername, password);
+            // Get role from session if available
+            final sessionRole = _sessionService.getRole();
+            final userModel = user.copyWith(role: sessionRole ?? user.role);
+            if (sessionRole != null && sessionRole.isNotEmpty) {
+              await _localDatasource!.saveUser(userModel);
+            }
+            return Right(_modelToEntity(userModel));
+          } on AuthenticationException catch (e) {
+            return Left(AuthenticationFailure(e.message));
+          } on UserNotFoundException catch (e) {
+            return Left(UserNotFoundFailure(e.message));
+          } on CacheException catch (e) {
+            return Left(CacheFailure(e.message));
+          } catch (e) {
+            return Left(AuthenticationFailure('Local login failed: ${e.toString()}'));
+          }
+        }
+        
+        // Handle authentication errors from backend
+        final message = e.response?.data?['message'] ??
+            e.response?.data?['error'] ??
+            e.message ??
+            'Login failed';
+        
+        if (message.toString().toLowerCase().contains('invalid') ||
+            message.toString().toLowerCase().contains('password') ||
+            message.toString().toLowerCase().contains('credentials')) {
+          return Left(AuthenticationFailure(message.toString()));
+        }
+        if (message.toString().toLowerCase().contains('not found') ||
+            message.toString().toLowerCase().contains('user not found')) {
+          return Left(UserNotFoundFailure(message.toString()));
+        }
+        return Left(AuthenticationFailure(message.toString()));
       } on Exception catch (e) {
         final message = e.toString().replaceFirst('Exception: ', '');
+        // If it's a connection-related error, try local login
+        if (message.toLowerCase().contains('timeout') ||
+            message.toLowerCase().contains('connection') ||
+            message.toLowerCase().contains('failed host lookup')) {
+          if (_localDatasource == null) {
+            return Left(CacheFailure('Backend unavailable and local storage not available'));
+          }
+          
+          try {
+            final user = await _localDatasource!.login(emailOrUsername, password);
+            final sessionRole = _sessionService.getRole();
+            final userModel = user.copyWith(role: sessionRole ?? user.role);
+            if (sessionRole != null && sessionRole.isNotEmpty) {
+              await _localDatasource!.saveUser(userModel);
+            }
+            return Right(_modelToEntity(userModel));
+          } on AuthenticationException catch (e) {
+            return Left(AuthenticationFailure(e.message));
+          } on UserNotFoundException catch (e) {
+            return Left(UserNotFoundFailure(e.message));
+          } catch (e) {
+            return Left(AuthenticationFailure('Local login failed: ${e.toString()}'));
+          }
+        }
+        
         if (message.toLowerCase().contains('invalid') ||
             message.toLowerCase().contains('password') ||
             message.toLowerCase().contains('credentials')) {
@@ -190,17 +277,36 @@ class AuthRepositoryImpl implements AuthRepository {
         }
         return Left(AuthenticationFailure(message));
       } catch (e) {
+        // For any other errors, try local login as fallback
+        if (_localDatasource != null) {
+          try {
+            final user = await _localDatasource!.login(emailOrUsername, password);
+            final sessionRole = _sessionService.getRole();
+            final userModel = user.copyWith(role: sessionRole ?? user.role);
+            if (sessionRole != null && sessionRole.isNotEmpty) {
+              await _localDatasource!.saveUser(userModel);
+            }
+            return Right(_modelToEntity(userModel));
+          } catch (localError) {
+            return Left(AuthenticationFailure('Login failed: ${e.toString()}'));
+          }
+        }
         return Left(AuthenticationFailure(e.toString()));
       }
     } else {
-      
+      // No internet connection, use local storage
       if (_localDatasource == null) {
         return const Left(CacheFailure('No internet connection and local storage not available'));
       }
       
       try {
         final user = await _localDatasource!.login(emailOrUsername, password);
-        return Right(_modelToEntity(user));
+        final sessionRole = _sessionService.getRole();
+        final userModel = user.copyWith(role: sessionRole ?? user.role);
+        if (sessionRole != null && sessionRole.isNotEmpty) {
+          await _localDatasource!.saveUser(userModel);
+        }
+        return Right(_modelToEntity(userModel));
       } on AuthenticationException catch (e) {
         return Left(AuthenticationFailure(e.message));
       } on UserNotFoundException catch (e) {
@@ -230,6 +336,16 @@ class AuthRepositoryImpl implements AuthRepository {
       if (_localDatasource != null) {
         final user = await _localDatasource!.getCurrentUser(userId);
         if (user != null) {
+          // If user model doesn't have role but session has it, update the model
+          if (user.role == null || user.role!.isEmpty) {
+            final sessionRole = _sessionService.getRole();
+            if (sessionRole != null && sessionRole.isNotEmpty) {
+              // Update the user model with role from session
+              final updatedUser = user.copyWith(role: sessionRole);
+              await _localDatasource!.saveUser(updatedUser);
+              return Right(_modelToEntity(updatedUser));
+            }
+          }
           return Right(_modelToEntity(user));
         }
       }
@@ -255,6 +371,11 @@ class AuthRepositoryImpl implements AuthRepository {
         if (authEntity.authId.isNotEmpty) {
           await _sessionService.saveSession(authEntity.authId);
           
+          // Save role if it exists
+          if (authEntity.role != null && authEntity.role!.isNotEmpty) {
+            await _sessionService.saveRole(authEntity.role!);
+          }
+          
           if (_localDatasource != null) {
             final userModel = AuthHiveModel(
               authId: authEntity.authId,
@@ -263,12 +384,38 @@ class AuthRepositoryImpl implements AuthRepository {
               username: authEntity.username,
               password: '',
               phoneNumber: authEntity.phoneNumber,
+              role: authEntity.role,
             );
             await _localDatasource!.saveUser(userModel);
           }
         }
         
         return Right(authEntity);
+      } on DioException catch (e) {
+        // Handle connection errors (timeout, connection refused, etc.)
+        // Fall back to local storage if backend is unavailable
+        if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.sendTimeout ||
+            e.type == DioExceptionType.connectionError) {
+          // Backend is unavailable, try to get user from local storage
+          return getCurrentUser();
+        }
+        
+        // Handle authentication errors
+        final message = e.response?.data?['message'] ??
+            e.response?.data?['error'] ??
+            e.message ??
+            'Failed to fetch user';
+        
+        if (message.toString().toLowerCase().contains('unauthorized') ||
+            message.toString().toLowerCase().contains('invalid token')) {
+          await _sessionService.clearSession();
+          return const Right(null);
+        }
+        
+        // For other errors, fall back to local storage
+        return getCurrentUser();
       } on Exception catch (e) {
         final message = e.toString().replaceFirst('Exception: ', '');
         if (message.toLowerCase().contains('unauthorized') ||
@@ -276,9 +423,11 @@ class AuthRepositoryImpl implements AuthRepository {
           await _sessionService.clearSession();
           return const Right(null);
         }
-        return Left(AuthenticationFailure(message));
+        // For other exceptions, fall back to local storage
+        return getCurrentUser();
       } catch (e) {
-        return Left(AuthenticationFailure(e.toString()));
+        // For any other errors, fall back to local storage
+        return getCurrentUser();
       }
     } else {
       return getCurrentUser();

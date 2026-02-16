@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
 import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
+import 'package:hamro_service/core/services/storage/user_session_service.dart';
 import 'package:hamro_service/core/widgets/animated_text_field.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
@@ -76,8 +78,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.isRegistered && !_hasNavigated) {
         _hasNavigated = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (mounted && Navigator.of(context).canPop() == false) {
+            // After registration, always show role selection page for new users
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => const RolePage()),
             );

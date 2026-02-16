@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/features/forgot_password/presentation/pages/forgot_password_page.dart';
 import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
+import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
+import 'package:hamro_service/core/services/storage/user_session_service.dart';
 import 'package:hamro_service/core/widgets/animated_text_field.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -56,11 +60,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.isAuthenticated && next.user != null && !_hasNavigated) {
         _hasNavigated = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (mounted && Navigator.of(context).canPop() == false) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const RolePage()),
-            );
+            // Check if user has a role saved
+            final prefs = await SharedPreferences.getInstance();
+            final sessionService = UserSessionService(prefs: prefs);
+            final role = sessionService.getRole();
+            
+            if (role != null && role.isNotEmpty) {
+              // User has a role, navigate to appropriate dashboard
+              if (role == 'provider') {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
+                );
+              } else {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const DashboardPage()),
+                );
+              }
+            } else {
+              // No role saved, show role selection page
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const RolePage()),
+              );
+            }
           }
         });
       }

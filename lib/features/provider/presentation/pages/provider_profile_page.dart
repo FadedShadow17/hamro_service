@@ -3,12 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/profile/presentation/viewmodel/profile_viewmodel.dart';
 import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
-import 'package:hamro_service/features/profile/presentation/pages/about_developer_page.dart';
 import 'package:hamro_service/core/providers/theme_provider.dart';
 import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'provider_edit_profile_page.dart';
-import 'provider_verification_page.dart';
+import 'provider_about_page.dart';
 import 'provider_availability_page.dart';
 
 class ProviderProfilePage extends ConsumerStatefulWidget {
@@ -240,22 +239,6 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                       indent: 60,
                       color: isDark ? Colors.grey[800] : Colors.grey[300],
                     ),
-                    _MenuItem(
-                      icon: Icons.verified_user,
-                      title: 'Verification',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const ProviderVerificationPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    Divider(
-                      height: 1,
-                      indent: 60,
-                      color: isDark ? Colors.grey[800] : Colors.grey[300],
-                    ),
                     _DarkModeMenuItem(),
                     Divider(
                       height: 1,
@@ -278,11 +261,11 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                     ),
                     _MenuItem(
                       icon: Icons.info,
-                      title: 'About Developer',
+                      title: 'About',
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => const AboutDeveloperPage(),
+                            builder: (context) => const ProviderAboutPage(),
                           ),
                         );
                       },

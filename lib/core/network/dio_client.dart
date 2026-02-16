@@ -15,8 +15,8 @@ class DioClient {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
             },
-            connectTimeout: const Duration(seconds: 20),
-            receiveTimeout: const Duration(seconds: 20),
+            connectTimeout: const Duration(seconds: 10),
+            receiveTimeout: const Duration(seconds: 10),
           ),
         ) {
     // Add logging interceptor for debugging

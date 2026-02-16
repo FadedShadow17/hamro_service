@@ -8,6 +8,7 @@ class UserSessionService {
   static const String _sessionUserIdKey = 'session_user_id';
   static const String _sessionIsLoggedInKey = 'session_is_logged_in';
   static const String _tokenKey = "auth_token";
+  static const String _userRoleKey = "user_role";
 
   Future<bool> saveSession(String userId) async {
     final userIdSaved = await _prefs.setString(_sessionUserIdKey, userId);
@@ -27,6 +28,7 @@ class UserSessionService {
     final userIdRemoved = await _prefs.remove(_sessionUserIdKey);
     final isLoggedInRemoved = await _prefs.remove(_sessionIsLoggedInKey);
     await clearToken();
+    await clearRole();
     return userIdRemoved && isLoggedInRemoved;
   }
 
@@ -40,6 +42,18 @@ class UserSessionService {
 
   Future<void> clearToken() async {
     await _prefs.remove(_tokenKey);
+  }
+
+  Future<void> saveRole(String role) async {
+    await _prefs.setString(_userRoleKey, role);
+  }
+
+  String? getRole() {
+    return _prefs.getString(_userRoleKey);
+  }
+
+  Future<void> clearRole() async {
+    await _prefs.remove(_userRoleKey);
   }
 }
 
