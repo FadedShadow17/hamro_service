@@ -132,6 +132,25 @@ class ProfileRepositoryImpl implements ProfileRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, ProfileEntity>> updateRole(String role) async {
+    final hasInternet = await connectivityService.hasInternetConnection();
+    
+    if (!hasInternet) {
+      return const Left(CacheFailure('No internet connection'));
+    }
+
+    try {
+      final updatedProfile = await remoteDataSource.updateRole(role);
+      final model = _entityToModel(updatedProfile);
+      await localDatasource.updateProfile(model);
+      await _sessionService.saveRole(role);
+      return Right(updatedProfile);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
   Future<Either<Failure, ProfileEntity>> uploadAvatar(File imageFile) async {
     final hasInternet = await connectivityService.hasInternetConnection();
     

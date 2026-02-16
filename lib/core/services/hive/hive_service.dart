@@ -2,6 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../constants/hive_table_constant.dart';
 import '../../../features/auth/data/models/auth_hive_model.dart';
 import '../../../features/profile/data/models/profile_hive_model.dart';
+import '../../../features/provider/data/models/profession_hive_model.dart';
 
 class HiveService {
   HiveService._();
@@ -11,9 +12,11 @@ class HiveService {
 
     Hive.registerAdapter(AuthHiveModelAdapter());
     Hive.registerAdapter(ProfileHiveModelAdapter());
+    Hive.registerAdapter(ProfessionHiveModelAdapter());
 
     await Hive.openBox<AuthHiveModel>(HiveTableConstant.usersBox);
     await Hive.openBox<ProfileHiveModel>(HiveTableConstant.profileBox);
+    await Hive.openBox<ProfessionHiveModel>(HiveTableConstant.professionsBox);
   }
 
   static Future<Box> openBox(String boxName) async {

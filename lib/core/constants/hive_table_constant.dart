@@ -5,8 +5,10 @@ class HiveTableConstant {
 
   static const String usersBox = 'users_box';
   static const String profileBox = 'profile_box';
+  static const String professionsBox = 'professions_box';
 
   static const int authHiveModelTypeId = 0;
   static const int profileHiveModelTypeId = 1;
+  static const int professionHiveModelTypeId = 2;
 }
 

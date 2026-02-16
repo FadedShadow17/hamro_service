@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../utils/jwt_decoder.dart';
 
 class UserSessionService {
   final SharedPreferences _prefs;
@@ -49,6 +50,13 @@ class UserSessionService {
   }
 
   String? getRole() {
+    final token = getToken();
+    if (token != null) {
+      final roleFromToken = JwtDecoder.getRole(token);
+      if (roleFromToken != null) {
+        return roleFromToken;
+      }
+    }
     return _prefs.getString(_userRoleKey);
   }
 

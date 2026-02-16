@@ -14,6 +14,7 @@ class RegisterUsecase {
     String? username,
     required String password,
     String? phoneNumber,
+    String? role,
   }) async {
     return await repository.register(
       fullName: fullName,
@@ -21,6 +22,7 @@ class RegisterUsecase {
       username: username,
       password: password,
       phoneNumber: phoneNumber,
+      role: role,
     );
   }
 }

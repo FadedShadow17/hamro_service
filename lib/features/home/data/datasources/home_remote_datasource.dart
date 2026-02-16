@@ -20,7 +20,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       
       if (data is Map && data.containsKey('categories')) {
         final categories = data['categories'] as List;
-        return categories.map((category) {
+        return categories.take(10).map((category) {
           return ServiceCategoryModel(
             id: category['_id'] ?? category['id'] ?? '',
             name: category['name'] ?? '',
@@ -51,7 +51,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       
       if (data is Map && data.containsKey('data')) {
         final servicesList = data['data'] as List;
-        services = servicesList.take(5).map((service) {
+        services = servicesList.map((service) {
           return PopularServiceModel(
             id: service['_id'] ?? service['id'] ?? '',
             title: service['title'] ?? service['name'] ?? '',
@@ -63,7 +63,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         }).toList();
       } else if (data is Map && data.containsKey('services')) {
         final servicesList = data['services'] as List;
-        services = servicesList.take(5).map((service) {
+        services = servicesList.map((service) {
           return PopularServiceModel(
             id: service['_id'] ?? service['id'] ?? '',
             title: service['title'] ?? service['name'] ?? '',

@@ -66,18 +66,24 @@ class AuthViewModel extends Notifier<AuthState> {
     String? username,
     required String password,
     String? phoneNumber,
+    String? role,
   }) async {
     state = const AuthState.loading();
+    final repository = ref.read(authRepositoryProvider);
     final result = await _registerUsecase(
       fullName: fullName,
       email: email,
       username: username,
       password: password,
       phoneNumber: phoneNumber,
+      role: role,
     );
     result.fold(
       (failure) => state = AuthState.error(failure.message),
-      (user) => state = const AuthState.registered(),
+      (user) {
+        final message = repository.lastRegistrationMessage;
+        state = AuthState.registered(user, message);
+      },
     );
   }
 

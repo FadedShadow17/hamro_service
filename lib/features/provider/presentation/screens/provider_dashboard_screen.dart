@@ -8,6 +8,7 @@ import '../widgets/stats_card.dart';
 import '../widgets/order_card.dart';
 import '../../../profile/presentation/viewmodel/profile_viewmodel.dart';
 import '../pages/provider_verification_page.dart';
+import '../pages/provider_bookings_page.dart';
 
 class ProviderDashboardScreen extends ConsumerWidget {
   const ProviderDashboardScreen({super.key});
@@ -31,7 +32,7 @@ class ProviderDashboardScreen extends ConsumerWidget {
             }
             
             return dashboardDataAsync.when(
-              data: (data) => _buildContent(data, ref, context),
+              data: (data) => _buildContent(data, ref, context, verificationSummary),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(
                 child: Text('Error: $error'),
@@ -42,7 +43,7 @@ class ProviderDashboardScreen extends ConsumerWidget {
           error: (error, stack) {
             // If verification check fails, still show dashboard but with warning
             return dashboardDataAsync.when(
-              data: (data) => _buildContent(data, ref, context),
+              data: (data) => _buildContent(data, ref, context, {}),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(
                 child: Text('Error: $error'),
@@ -54,12 +55,12 @@ class ProviderDashboardScreen extends ConsumerWidget {
     );
   }
 
-  static Widget _buildContent(dynamic data, WidgetRef ref, BuildContext context) {
+  static Widget _buildContent(dynamic data, WidgetRef ref, BuildContext context, Map<String, dynamic> verificationSummary) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(ref, context),
+          _buildHeader(ref, context, verificationSummary),
           const SizedBox(height: 16),
 
           // Stats Cards
@@ -205,7 +206,13 @@ class ProviderDashboardScreen extends ConsumerWidget {
             KSectionHeader(
               title: 'Pending Orders',
               actionText: 'View all',
-              onActionTap: () {},
+              onActionTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProviderBookingsPage(filterStatus: 'pending'),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 8),
             ...data.pendingOrders.map(
@@ -219,7 +226,13 @@ class ProviderDashboardScreen extends ConsumerWidget {
             KSectionHeader(
               title: 'Active Orders',
               actionText: 'View all',
-              onActionTap: () {},
+              onActionTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProviderBookingsPage(filterStatus: 'confirmed'),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 8),
             ...data.activeOrders.map(
@@ -229,25 +242,49 @@ class ProviderDashboardScreen extends ConsumerWidget {
           ],
 
           // Recent Orders
-          KSectionHeader(
-            title: 'Recent Orders',
-            actionText: 'View all',
-            onActionTap: () {},
-          ),
-          const SizedBox(height: 8),
-          ...data.recentOrders.map(
-            (order) => OrderCard(order: order),
-          ),
-          const SizedBox(height: 24),
+          if (data.recentOrders.isNotEmpty) ...[
+            KSectionHeader(
+              title: 'Recent Orders',
+              actionText: 'View all',
+              onActionTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProviderBookingsPage(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            ...data.recentOrders.map(
+              (order) => OrderCard(order: order),
+            ),
+            const SizedBox(height: 24),
+          ] else ...[
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Text(
+                  'No recent orders',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[400]
+                        : Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  static Widget _buildHeader(WidgetRef ref, BuildContext context) {
+  static Widget _buildHeader(WidgetRef ref, BuildContext context, Map<String, dynamic> verificationSummary) {
     final profileState = ref.watch(profileViewModelProvider);
     final userName = profileState.profile?.fullName ?? 'Provider';
     final avatarUrl = profileState.profile?.avatarUrl;
+    final profession = verificationSummary['serviceRole'] as String?;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -277,6 +314,19 @@ class ProviderDashboardScreen extends ConsumerWidget {
                     color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87,
                   ),
                 ),
+                if (profession != null && profession!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    profession!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[500]
+                          : Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

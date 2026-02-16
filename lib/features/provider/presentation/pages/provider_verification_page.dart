@@ -2,11 +2,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../../core/widgets/error_widget.dart';
+import '../../../../core/services/storage/user_session_service.dart';
 import '../../data/repositories/provider_verification_repository_impl.dart';
 import '../../presentation/providers/provider_verification_provider.dart';
+import '../../presentation/providers/profession_provider.dart';
+import '../../../role/presentation/pages/role_page.dart';
 
 final verificationStatusProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final repository = ref.watch(providerVerificationRepositoryProvider);
@@ -42,19 +46,6 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
   File? _profileImage;
   File? _selfie;
   bool _isSubmitting = false;
-
-  final List<String> _serviceRoles = [
-    'Plumber',
-    'Electrician',
-    'Cleaner',
-    'Carpenter',
-    'Painter',
-    'HVAC Technician',
-    'Appliance Repair Technician',
-    'Gardener/Landscaper',
-    'Pest Control Specialist',
-    'Water Tank Cleaner',
-  ];
 
   @override
   void dispose() {
@@ -131,6 +122,27 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
 
   Future<void> _submitVerification() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Check if user role is provider
+    final prefs = await SharedPreferences.getInstance();
+    final sessionService = UserSessionService(prefs: prefs);
+    final role = sessionService.getRole();
+    
+    if (role != 'provider') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You must be a provider to submit verification. Please select provider role first.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      await Future.delayed(const Duration(seconds: 2));
+      if (context.mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const RolePage()),
+        );
+      }
       return;
     }
 
@@ -453,36 +465,7 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
                     ),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _selectedServiceRole,
-                    decoration: InputDecoration(
-                      labelText: 'Select Service Role',
-                      prefixIcon: const Icon(Icons.work),
-                      filled: true,
-                      fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    items: _serviceRoles.map((role) {
-                      return DropdownMenuItem(
-                        value: role,
-                        child: Text(role),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedServiceRole = value;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null) {
-                        return 'Please select a service role';
-                      }
-                      return null;
-                    },
-                  ),
+                  _buildServiceRoleDropdown(context, isDark),
                   const SizedBox(height: 24),
                   Text(
                     'Address',
@@ -712,36 +695,7 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
               ),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedServiceRole,
-              decoration: InputDecoration(
-                labelText: 'Select Service Role',
-                prefixIcon: const Icon(Icons.work),
-                filled: true,
-                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              items: _serviceRoles.map((role) {
-                return DropdownMenuItem(
-                  value: role,
-                  child: Text(role),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedServiceRole = value;
-                });
-              },
-              validator: (value) {
-                if (value == null) {
-                  return 'Please select a service role';
-                }
-                return null;
-              },
-            ),
+            _buildServiceRoleDropdown(context, isDark),
             const SizedBox(height: 24),
             Text(
               'Address',
@@ -1025,6 +979,112 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
                 color: isDark ? Colors.grey[600] : Colors.grey[400],
                 size: 24,
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildServiceRoleDropdown(BuildContext context, bool isDark) {
+    final professionsAsync = ref.watch(professionsProvider);
+
+    return professionsAsync.when(
+      data: (professions) {
+        final activeProfessions = professions.where((p) => p.active).toList();
+        
+        if (activeProfessions.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'No professions available',
+              style: TextStyle(
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              ),
+            ),
+          );
+        }
+
+        return DropdownButtonFormField<String>(
+          value: _selectedServiceRole,
+          decoration: InputDecoration(
+            labelText: 'Select Service Role',
+            prefixIcon: const Icon(Icons.work),
+            filled: true,
+            fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          items: activeProfessions.map((profession) {
+            return DropdownMenuItem(
+              value: profession.name,
+              child: Text(profession.name),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedServiceRole = value;
+            });
+          },
+          validator: (value) {
+            if (value == null) {
+              return 'Please select a service role';
+            }
+            return null;
+          },
+        );
+      },
+      loading: () => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+      error: (error, stack) => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Failed to load professions',
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              error.toString(),
+              style: TextStyle(
+                color: Colors.red[700],
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                ref.invalidate(professionsProvider);
+              },
+              child: const Text('Retry'),
+            ),
           ],
         ),
       ),

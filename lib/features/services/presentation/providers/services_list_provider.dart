@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/services_repository_impl.dart';
 import '../../domain/usecases/get_services_by_category.dart';
 import '../../domain/entities/service_item.dart';
+import '../../../home/presentation/providers/home_dashboard_provider.dart';
 
 final servicesRepositoryProvider = Provider<ServicesRepositoryImpl>((ref) {
   throw UnimplementedError('servicesRepositoryProvider must be overridden');
@@ -42,12 +43,20 @@ class ServicesScreenState {
 
 final servicesListProvider = FutureProvider.family<ServicesScreenState, String>((ref, category) async {
   final getServices = ref.read(getServicesByCategoryProvider);
+  final homeRepo = ref.read(homeRepositoryProvider);
 
-  final result = await getServices(category);
+  final servicesResult = await getServices(category);
+  final categoriesResult = await homeRepo.getMostBookedServices();
 
-  final categories = ['All', 'Plumbing', 'Cleaning', 'Electrician', 'Carpenter', 'Painter', 'Mason', 'Welder', 'Roofer', 'Pest Controller', 'More'];
+  final categories = categoriesResult.fold(
+    (failure) => <String>['All'],
+    (categoryList) {
+      final categoryNames = categoryList.map((c) => c.name).toList();
+      return ['All', ...categoryNames];
+    },
+  );
 
-  return result.fold(
+  return servicesResult.fold(
     (failure) => ServicesScreenState(
       selectedCategory: category,
       categories: categories,

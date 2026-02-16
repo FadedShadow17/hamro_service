@@ -5,6 +5,8 @@ import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmod
 import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
 import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
+import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
 import 'package:hamro_service/core/services/storage/user_session_service.dart';
 import 'package:hamro_service/core/widgets/animated_text_field.dart';
 
@@ -76,14 +78,44 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
     // Listen to auth state changes and navigate only once
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-      if (next.isRegistered && !_hasNavigated) {
+      if (next.isRegistered && next.user != null && !_hasNavigated) {
         _hasNavigated = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (mounted && Navigator.of(context).canPop() == false) {
-            // After registration, always show role selection page for new users
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const RolePage()),
+          if (mounted) {
+            // Show success message from backend or default message
+            final successMessage = next.successMessage ?? 'Your account was created';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(successMessage),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
             );
+
+            // Wait a bit for message to be visible, then navigate
+            await Future.delayed(const Duration(milliseconds: 500));
+
+            if (mounted && Navigator.of(context).canPop() == false) {
+              final prefs = await SharedPreferences.getInstance();
+              final sessionService = UserSessionService(prefs: prefs);
+              final role = next.user?.role ?? sessionService.getRole();
+              
+              if (role != null && role.isNotEmpty) {
+                if (role == 'provider') {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
+                  );
+                } else {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const DashboardPage()),
+                  );
+                }
+              } else {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const RolePage()),
+                );
+              }
+            }
           }
         });
       }
@@ -92,7 +124,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(next.errorMessage!)),
+              SnackBar(
+                content: Text(next.errorMessage!),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         });

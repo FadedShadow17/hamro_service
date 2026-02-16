@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../services/presentation/screens/services_by_category_screen.dart';
+import '../../../services/presentation/screens/service_selection_screen.dart';
 
 class PromoBanner extends StatelessWidget {
   const PromoBanner({super.key});
@@ -51,10 +51,7 @@ class PromoBanner extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const ServicesByCategoryScreen(
-                          categoryId: 'all',
-                          categoryName: 'All',
-                        ),
+                        builder: (context) => const ServiceSelectionScreen(),
                       ),
                     );
                   },

@@ -46,7 +46,7 @@ class ProviderRemoteDataSourceImpl implements ProviderRemoteDataSource {
             serviceName: bookingModel.service?['name'] ?? 
                         bookingModel.service?['title'] ?? 
                         'Service',
-            status: bookingModel.status.toLowerCase(),
+            status: bookingModel.status.toUpperCase(),
             priceRs: (bookingModel.service?['price'] ?? 
                      bookingModel.service?['basePrice'] ?? 
                      0) as int,

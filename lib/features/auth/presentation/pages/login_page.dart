@@ -62,13 +62,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         _hasNavigated = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (mounted && Navigator.of(context).canPop() == false) {
-            // Check if user has a role saved
             final prefs = await SharedPreferences.getInstance();
             final sessionService = UserSessionService(prefs: prefs);
-            final role = sessionService.getRole();
+            final role = next.user?.role ?? sessionService.getRole();
             
             if (role != null && role.isNotEmpty) {
-              // User has a role, navigate to appropriate dashboard
               if (role == 'provider') {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
@@ -79,7 +77,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 );
               }
             } else {
-              // No role saved, show role selection page
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const RolePage()),
               );

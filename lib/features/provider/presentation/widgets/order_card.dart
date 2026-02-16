@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/provider_order.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/booking_status.dart';
+import '../../data/repositories/provider_repository_impl.dart';
+import '../providers/provider_dashboard_provider.dart';
 
-class OrderCard extends StatelessWidget {
+class OrderCard extends ConsumerWidget {
   final ProviderOrder order;
 
   const OrderCard({
@@ -11,43 +15,32 @@ class OrderCard extends StatelessWidget {
   });
 
   Color _getStatusColor(String status) {
-    switch (status) {
-      case 'pending':
+    final upperStatus = status.toUpperCase();
+    switch (upperStatus) {
+      case BookingStatus.pending:
         return Colors.orange;
-      case 'accepted':
+      case BookingStatus.confirmed:
         return Colors.blue;
-      case 'in_progress':
-        return AppColors.badgeBlue;
-      case 'completed':
+      case BookingStatus.completed:
         return Colors.green;
-      case 'cancelled':
+      case BookingStatus.declined:
         return Colors.red;
+      case BookingStatus.cancelled:
+        return Colors.grey;
       default:
         return Colors.grey;
     }
   }
 
   String _getStatusLabel(String status) {
-    switch (status) {
-      case 'pending':
-        return 'Pending';
-      case 'accepted':
-        return 'Accepted';
-      case 'in_progress':
-        return 'In Progress';
-      case 'completed':
-        return 'Completed';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return status;
-    }
+    return BookingStatus.toDisplayLabel(status);
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final statusColor = _getStatusColor(order.status);
+    final upperStatus = order.status.toUpperCase();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -151,9 +144,118 @@ class OrderCard extends StatelessWidget {
                 ),
             ],
           ),
+          if (BookingStatus.canAccept(upperStatus) || 
+              BookingStatus.canDecline(upperStatus) || 
+              BookingStatus.canComplete(upperStatus)) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (BookingStatus.canAccept(upperStatus))
+                  TextButton.icon(
+                    onPressed: () => _handleAccept(ref, context),
+                    icon: const Icon(Icons.check, size: 18),
+                    label: const Text('Accept'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.green,
+                    ),
+                  ),
+                if (BookingStatus.canDecline(upperStatus))
+                  TextButton.icon(
+                    onPressed: () => _handleDecline(ref, context),
+                    icon: const Icon(Icons.close, size: 18),
+                    label: const Text('Decline'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
+                  ),
+                if (BookingStatus.canComplete(upperStatus))
+                  TextButton.icon(
+                    onPressed: () => _handleComplete(ref, context),
+                    icon: const Icon(Icons.done_all, size: 18),
+                    label: const Text('Complete'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _handleAccept(WidgetRef ref, BuildContext context) async {
+    try {
+      final repository = ref.read(providerRepositoryProvider);
+      final result = await repository.acceptBooking(order.id);
+      result.fold(
+        (failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to accept: ${failure.message}')),
+          );
+        },
+        (_) {
+          ref.invalidate(providerDashboardDataProvider);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Booking accepted')),
+          );
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  Future<void> _handleDecline(WidgetRef ref, BuildContext context) async {
+    try {
+      final repository = ref.read(providerRepositoryProvider);
+      final result = await repository.declineBooking(order.id);
+      result.fold(
+        (failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to decline: ${failure.message}')),
+          );
+        },
+        (_) {
+          ref.invalidate(providerDashboardDataProvider);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Booking declined')),
+          );
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  Future<void> _handleComplete(WidgetRef ref, BuildContext context) async {
+    try {
+      final repository = ref.read(providerRepositoryProvider);
+      final result = await repository.completeBooking(order.id);
+      result.fold(
+        (failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to complete: ${failure.message}')),
+          );
+        },
+        (_) {
+          ref.invalidate(providerDashboardDataProvider);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Booking completed')),
+          );
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   String _formatDate(DateTime date) {

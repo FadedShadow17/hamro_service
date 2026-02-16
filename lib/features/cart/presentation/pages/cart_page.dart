@@ -5,6 +5,7 @@ import '../../../../core/widgets/loading_widget.dart';
 import '../providers/cart_provider.dart';
 import '../../../payment/presentation/screens/payment_screen.dart';
 import '../../../booking/presentation/providers/booking_provider.dart';
+import '../../../provider/presentation/providers/provider_dashboard_provider.dart';
 
 class CartPage extends ConsumerStatefulWidget {
   const CartPage({super.key});
@@ -91,6 +92,8 @@ class _CartPageState extends ConsumerState<CartPage> {
       }
 
       await ref.read(cartProvider.notifier).clearCart();
+
+      ref.invalidate(providerDashboardDataProvider);
 
       if (mounted) {
         Navigator.of(context).push(

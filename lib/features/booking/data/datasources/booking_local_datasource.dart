@@ -2,35 +2,144 @@ import '../../domain/entities/service_option.dart';
 import '../../domain/entities/time_slot.dart';
 
 abstract class BookingLocalDataSource {
-  Future<List<ServiceOption>> getServiceOptions(String serviceId);
+  Future<List<ServiceOption>> getServiceOptions(String serviceId, String categoryTag);
   Future<List<TimeSlot>> getAvailableTimeSlots(DateTime date);
 }
 
 class BookingLocalDataSourceImpl implements BookingLocalDataSource {
   @override
-  Future<List<ServiceOption>> getServiceOptions(String serviceId) async {
+  Future<List<ServiceOption>> getServiceOptions(String serviceId, String categoryTag) async {
     await Future.delayed(const Duration(milliseconds: 300));
     
-    return const [
-      ServiceOption(
-        id: 'deep_cleaning',
-        name: 'Deep cleaning',
-        price: 120.0,
-        duration: '3 hours',
-      ),
-      ServiceOption(
-        id: 'kitchen_only',
-        name: 'Kitchen only',
-        price: 80.0,
-        duration: '2 hours',
-      ),
-      ServiceOption(
-        id: 'full_apartment',
-        name: 'Full apartment',
-        price: 200.0,
-        duration: '5 hours',
-      ),
-    ];
+    final category = categoryTag.toLowerCase();
+    
+    if (category.contains('cleaning') || category.contains('clean')) {
+      return const [
+        ServiceOption(
+          id: 'basic_clean',
+          name: 'Basic Clean',
+          price: 500.0,
+          duration: '2 hours',
+        ),
+        ServiceOption(
+          id: 'deep_clean',
+          name: 'Deep Clean',
+          price: 1200.0,
+          duration: '4 hours',
+        ),
+        ServiceOption(
+          id: 'premium_clean',
+          name: 'Premium Clean',
+          price: 2000.0,
+          duration: '6 hours',
+        ),
+      ];
+    } else if (category.contains('plumbing') || category.contains('plumber')) {
+      return const [
+        ServiceOption(
+          id: 'quick_fix',
+          name: 'Quick Fix',
+          price: 800.0,
+          duration: '1 hour',
+        ),
+        ServiceOption(
+          id: 'standard',
+          name: 'Standard',
+          price: 1500.0,
+          duration: '2 hours',
+        ),
+        ServiceOption(
+          id: 'complete',
+          name: 'Complete',
+          price: 3000.0,
+          duration: '4 hours',
+        ),
+      ];
+    } else if (category.contains('electrical') || category.contains('electric')) {
+      return const [
+        ServiceOption(
+          id: 'basic',
+          name: 'Basic',
+          price: 600.0,
+          duration: '1 hour',
+        ),
+        ServiceOption(
+          id: 'standard',
+          name: 'Standard',
+          price: 1200.0,
+          duration: '2 hours',
+        ),
+        ServiceOption(
+          id: 'full_service',
+          name: 'Full Service',
+          price: 2500.0,
+          duration: '4 hours',
+        ),
+      ];
+    } else if (category.contains('carpentry') || category.contains('carpenter')) {
+      return const [
+        ServiceOption(
+          id: 'basic',
+          name: 'Basic',
+          price: 700.0,
+          duration: '2 hours',
+        ),
+        ServiceOption(
+          id: 'standard',
+          name: 'Standard',
+          price: 1400.0,
+          duration: '4 hours',
+        ),
+        ServiceOption(
+          id: 'complete',
+          name: 'Complete',
+          price: 2800.0,
+          duration: '6 hours',
+        ),
+      ];
+    } else if (category.contains('painting') || category.contains('paint')) {
+      return const [
+        ServiceOption(
+          id: 'single_room',
+          name: 'Single Room',
+          price: 2000.0,
+          duration: '1 day',
+        ),
+        ServiceOption(
+          id: 'multiple_rooms',
+          name: 'Multiple Rooms',
+          price: 5000.0,
+          duration: '3 days',
+        ),
+        ServiceOption(
+          id: 'full_house',
+          name: 'Full House',
+          price: 12000.0,
+          duration: '7 days',
+        ),
+      ];
+    } else {
+      return const [
+        ServiceOption(
+          id: 'basic',
+          name: 'Basic',
+          price: 500.0,
+          duration: '1 hour',
+        ),
+        ServiceOption(
+          id: 'standard',
+          name: 'Standard',
+          price: 1000.0,
+          duration: '2 hours',
+        ),
+        ServiceOption(
+          id: 'premium',
+          name: 'Premium',
+          price: 2000.0,
+          duration: '4 hours',
+        ),
+      ];
+    }
   }
 
   @override

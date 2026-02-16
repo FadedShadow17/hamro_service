@@ -8,6 +8,7 @@ abstract class ProfileRemoteDataSource {
     String? name,
     String? phone,
   });
+  Future<ProfileEntity> updateRole(String role);
   Future<ProfileEntity> uploadAvatar(File imageFile);
 }
 
@@ -88,6 +89,41 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       throw Exception(message);
     } catch (e) {
       throw Exception('Failed to update profile: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<ProfileEntity> updateRole(String role) async {
+    try {
+      final response = await _dio.patch(
+        '/api/users/me',
+        data: {'role': role},
+      );
+      final data = response.data;
+
+      final userData = data is Map && data.containsKey('user')
+          ? data['user']
+          : data;
+
+      return ProfileEntity(
+        userId: userData['_id'] ?? userData['id'] ?? '',
+        fullName: userData['name'] ?? userData['fullName'] ?? '',
+        email: userData['email'] ?? '',
+        phoneNumber: userData['phone'] ?? userData['phoneNumber'],
+        avatarUrl: userData['profileImageUrl'] ?? 
+                   userData['avatar'] ?? 
+                   userData['avatarUrl'],
+        address: userData['address'],
+        description: userData['description'],
+      );
+    } on DioException catch (e) {
+      final message = e.response?.data?['message'] ??
+          e.response?.data?['error'] ??
+          e.message ??
+          'Failed to update role';
+      throw Exception(message);
+    } catch (e) {
+      throw Exception('Failed to update role: ${e.toString()}');
     }
   }
 

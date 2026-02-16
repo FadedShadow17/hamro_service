@@ -91,29 +91,43 @@ class _ServicesByCategoryScreenState extends ConsumerState<ServicesByCategoryScr
           },
         ),
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 16),
-            children: [
-              if (state.services.isNotEmpty)
-                ServiceItemCard(
-                  service: state.services.first,
-                  onViewProfile: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('View Profile - Coming soon')),
-                    );
-                  },
-                  onBookNow: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => BookingScreen(
-                          service: state.services.first,
-                        ),
+          child: state.services.isEmpty
+              ? Center(
+                  child: Text(
+                    'No services available',
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      fontSize: 16,
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: state.services.length,
+                  itemBuilder: (context, index) {
+                    final service = state.services[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: ServiceItemCard(
+                        service: service,
+                        onViewProfile: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('View Profile - Coming soon')),
+                          );
+                        },
+                        onBookNow: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => BookingScreen(
+                                service: service,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     );
                   },
                 ),
-            ],
-          ),
         ),
       ],
     );

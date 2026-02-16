@@ -61,10 +61,9 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
       if (authState.isAuthenticated && authState.user != null) {
         if (mounted) {
-          // Check user role and navigate accordingly
           final prefs = await SharedPreferences.getInstance();
           final sessionService = UserSessionService(prefs: prefs);
-          final role = sessionService.getRole();
+          final role = authState.user?.role ?? sessionService.getRole();
           
           if (role == 'provider') {
             Navigator.of(context).pushReplacement(
@@ -75,7 +74,6 @@ class _SplashPageState extends ConsumerState<SplashPage>
               MaterialPageRoute(builder: (context) => const DashboardPage()),
             );
           } else {
-            // No role saved, navigate to role selection
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (context) => const IconPage()),
             );

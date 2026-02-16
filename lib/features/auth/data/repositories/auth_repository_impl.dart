@@ -17,6 +17,7 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDatasource _remoteDatasource;
   final UserSessionService _sessionService;
   final ConnectivityService _connectivityService;
+  String? _lastRegistrationMessage;
 
   AuthRepositoryImpl({
     AuthDatasource? localDatasource,
@@ -27,6 +28,8 @@ class AuthRepositoryImpl implements AuthRepository {
         _remoteDatasource = remoteDatasource,
         _sessionService = sessionService,
         _connectivityService = connectivityService;
+
+  String? get lastRegistrationMessage => _lastRegistrationMessage;
 
   AuthEntity _modelToEntity(AuthHiveModel model) {
     return AuthEntity(
@@ -64,6 +67,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? username,
     required String password,
     String? phoneNumber,
+    String? role,
   }) async {
     final hasInternet = await _connectivityService.hasInternetConnection();
     
@@ -76,7 +80,10 @@ class AuthRepositoryImpl implements AuthRepository {
           password: password,
           phoneNumber: phoneNumber,
           username: username,
+          role: role,
         );
+
+        _lastRegistrationMessage = response.message;
 
         if (response.token.isNotEmpty) {
           await _sessionService.saveToken(response.token);

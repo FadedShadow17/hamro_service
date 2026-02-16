@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/service_item.dart';
+import '../../../favorites/presentation/providers/favorites_provider.dart';
 
-class ServiceItemCard extends StatelessWidget {
+class ServiceItemCard extends ConsumerWidget {
   final ServiceItem service;
   final VoidCallback? onViewProfile;
   final VoidCallback? onBookNow;
@@ -16,9 +18,10 @@ class ServiceItemCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final isFavoriteAsync = ref.watch(isFavoriteProvider(service.id));
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -61,9 +64,9 @@ class ServiceItemCard extends StatelessWidget {
                     Text(
                       'Rs ${service.priceRs.toStringAsFixed(0)}',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.grey[900],
+                        color: AppColors.primaryBlue,
                       ),
                     ),
                   ],
@@ -83,6 +86,31 @@ class ServiceItemCard extends StatelessWidget {
                     color: AppColors.accentOrange,
                   ),
                 ),
+              ),
+              const SizedBox(width: 8),
+              isFavoriteAsync.when(
+                data: (isFav) => IconButton(
+                  icon: Icon(
+                    isFav ? Icons.favorite : Icons.favorite_border,
+                    color: isFav ? Colors.red : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                  ),
+                  onPressed: () async {
+                    final repository = ref.read(favoritesRepositoryProvider);
+                    if (isFav) {
+                      await repository.removeFavorite(service.id);
+                    } else {
+                      await repository.addFavorite(service.id);
+                    }
+                    ref.invalidate(isFavoriteProvider(service.id));
+                    ref.invalidate(favoriteServicesProvider);
+                  },
+                ),
+                loading: () => const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                error: (_, __) => const SizedBox.shrink(),
               ),
             ],
           ),

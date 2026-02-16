@@ -71,11 +71,11 @@ class BookingNotifier extends Notifier<BookingState> {
 
   Future<void> initialize(ServiceItem service) async {
     state = state.copyWith(service: service);
-    await loadServiceOptions(service.id);
+    await loadServiceOptions(service.id, service.categoryTag);
   }
 
-  Future<void> loadServiceOptions(String serviceId) async {
-    final options = await repository.getServiceOptions(serviceId);
+  Future<void> loadServiceOptions(String serviceId, String categoryTag) async {
+    final options = await repository.getServiceOptions(serviceId, categoryTag);
     state = state.copyWith(serviceOptions: options);
   }
 

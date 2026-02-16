@@ -9,4 +9,7 @@ abstract class ProviderRepository {
   Future<Either<Failure, List<ProviderOrder>>> getActiveOrders();
   Future<Either<Failure, List<ProviderOrder>>> getRecentOrders();
   Future<Either<Failure, List<ProviderOrder>>> getProviderBookings({String? status});
+  Future<Either<Failure, ProviderOrder>> acceptBooking(String bookingId);
+  Future<Either<Failure, ProviderOrder>> declineBooking(String bookingId);
+  Future<Either<Failure, ProviderOrder>> completeBooking(String bookingId);
 }

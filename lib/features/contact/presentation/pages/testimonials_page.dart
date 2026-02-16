@@ -4,10 +4,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../../core/widgets/error_widget.dart';
 import '../../domain/entities/contact_entity.dart';
-import '../../data/repositories/contact_repository_impl.dart';
 import '../../presentation/providers/contact_provider.dart';
 
-final testimonialsProvider = FutureProvider<List<ContactEntity>>((ref) async {
+final testimonialsPageProvider = FutureProvider<List<ContactEntity>>((ref) async {
   final repository = ref.watch(contactRepositoryProvider);
   final result = await repository.getTestimonials(limit: 20);
   return result.fold(
@@ -22,7 +21,7 @@ class TestimonialsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final testimonialsAsync = ref.watch(testimonialsProvider);
+    final testimonialsAsync = ref.watch(testimonialsPageProvider);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : AppColors.backgroundLight,
@@ -86,7 +85,7 @@ class TestimonialsPage extends ConsumerWidget {
         loading: () => const AppLoadingWidget(),
         error: (error, stack) => AppErrorWidget(
           message: error.toString(),
-          onRetry: () => ref.invalidate(testimonialsProvider),
+          onRetry: () => ref.invalidate(testimonialsPageProvider),
         ),
       ),
     );

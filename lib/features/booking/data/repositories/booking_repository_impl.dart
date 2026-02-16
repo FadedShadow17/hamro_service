@@ -24,8 +24,8 @@ class BookingRepositoryImpl implements BookingRepository {
   });
 
   @override
-  Future<List<ServiceOption>> getServiceOptions(String serviceId) {
-    return localDataSource.getServiceOptions(serviceId);
+  Future<List<ServiceOption>> getServiceOptions(String serviceId, String categoryTag) {
+    return localDataSource.getServiceOptions(serviceId, categoryTag);
   }
 
   @override

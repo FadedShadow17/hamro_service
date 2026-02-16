@@ -9,6 +9,7 @@ abstract class AuthRepository {
     String? username,
     required String password,
     String? phoneNumber,
+    String? role,
   });
 
   Future<Either<Failure, AuthEntity>> login({
@@ -21,5 +22,7 @@ abstract class AuthRepository {
   Future<Either<Failure, AuthEntity?>> getMe();
 
   Future<Either<Failure, void>> logout();
+
+  String? get lastRegistrationMessage;
 }
 

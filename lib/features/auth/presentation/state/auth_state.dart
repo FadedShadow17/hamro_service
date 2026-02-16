@@ -6,6 +6,7 @@ class AuthState extends Equatable {
   final bool isLoading;
   final AuthEntity? user;
   final String? errorMessage;
+  final String? successMessage;
   final bool isRegistered;
 
   const AuthState({
@@ -13,6 +14,7 @@ class AuthState extends Equatable {
     this.isLoading = false,
     this.user,
     this.errorMessage,
+    this.successMessage,
     this.isRegistered = false,
   });
 
@@ -21,6 +23,7 @@ class AuthState extends Equatable {
         isLoading = false,
         user = null,
         errorMessage = null,
+        successMessage = null,
         isRegistered = false;
 
   const AuthState.loading()
@@ -28,18 +31,19 @@ class AuthState extends Equatable {
         isLoading = true,
         user = null,
         errorMessage = null,
+        successMessage = null,
         isRegistered = false;
 
   const AuthState.authenticated(this.user)
       : isAuthenticated = true,
         isLoading = false,
         errorMessage = null,
+        successMessage = null,
         isRegistered = false;
 
-  const AuthState.registered()
+  AuthState.registered([this.user, this.successMessage])
       : isAuthenticated = false,
         isLoading = false,
-        user = null,
         errorMessage = null,
         isRegistered = true;
 
@@ -47,6 +51,7 @@ class AuthState extends Equatable {
       : isAuthenticated = false,
         isLoading = false,
         user = null,
+        successMessage = null,
         isRegistered = false;
 
   AuthState copyWith({
@@ -54,6 +59,7 @@ class AuthState extends Equatable {
     bool? isLoading,
     AuthEntity? user,
     String? errorMessage,
+    String? successMessage,
     bool? isRegistered,
   }) {
     return AuthState(
@@ -61,6 +67,7 @@ class AuthState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       user: user ?? this.user,
       errorMessage: errorMessage,
+      successMessage: successMessage,
       isRegistered: isRegistered ?? this.isRegistered,
     );
   }
@@ -71,6 +78,7 @@ class AuthState extends Equatable {
         isLoading,
         user,
         errorMessage,
+        successMessage,
         isRegistered,
       ];
 }

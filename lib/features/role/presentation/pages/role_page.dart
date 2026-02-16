@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/storage/user_session_service.dart';
+import '../../../profile/presentation/viewmodel/profile_viewmodel.dart';
 
-class RolePage extends StatelessWidget {
+class RolePage extends ConsumerWidget {
   const RolePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenHeight < 700;
     
@@ -71,17 +73,37 @@ class RolePage extends StatelessWidget {
                       AppColors.primaryBlue.withValues(alpha: 0.05),
                     ],
                     onTap: () async {
-                      // Save role as 'user'
-                      final prefs = await SharedPreferences.getInstance();
-                      final sessionService = UserSessionService(prefs: prefs);
-                      await sessionService.saveRole('user');
-                      
-                      if (context.mounted) {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => const DashboardPage(),
-                          ),
+                      try {
+                        final prefs = await SharedPreferences.getInstance();
+                        final sessionService = UserSessionService(prefs: prefs);
+                        final profileRepo = ref.read(profileRepositoryProvider);
+                        
+                        final result = await profileRepo.updateRole('user');
+                        await result.fold(
+                          (failure) async {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to update role: ${failure.message}')),
+                              );
+                            }
+                          },
+                          (profile) async {
+                            await sessionService.saveRole('user');
+                            if (context.mounted) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const DashboardPage(),
+                                ),
+                              );
+                            }
+                          },
                         );
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e')),
+                          );
+                        }
                       }
                     },
                   ),
@@ -98,17 +120,37 @@ class RolePage extends StatelessWidget {
                       AppColors.accentOrange.withValues(alpha: 0.05),
                     ],
                     onTap: () async {
-                      // Save role as 'provider'
-                      final prefs = await SharedPreferences.getInstance();
-                      final sessionService = UserSessionService(prefs: prefs);
-                      await sessionService.saveRole('provider');
-                      
-                      if (context.mounted) {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) => const ProviderDashboardPage(),
-                          ),
+                      try {
+                        final prefs = await SharedPreferences.getInstance();
+                        final sessionService = UserSessionService(prefs: prefs);
+                        final profileRepo = ref.read(profileRepositoryProvider);
+                        
+                        final result = await profileRepo.updateRole('provider');
+                        await result.fold(
+                          (failure) async {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to update role: ${failure.message}')),
+                              );
+                            }
+                          },
+                          (profile) async {
+                            await sessionService.saveRole('provider');
+                            if (context.mounted) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const ProviderDashboardPage(),
+                                ),
+                              );
+                            }
+                          },
                         );
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e')),
+                          );
+                        }
                       }
                     },
                   ),

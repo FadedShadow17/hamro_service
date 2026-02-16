@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../services/domain/entities/service_item.dart';
 

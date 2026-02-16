@@ -1,25 +1,33 @@
 import '../models/provider_stats_model.dart';
+import '../../../booking/data/models/booking_model.dart';
 
 class ProviderDashboardModel {
   final ProviderStatsModel stats;
-  final Map<String, dynamic>? additionalData;
+  final List<BookingModel> upcomingBookings;
+  final List<BookingModel> recentBookings;
 
   ProviderDashboardModel({
     required this.stats,
-    this.additionalData,
+    required this.upcomingBookings,
+    required this.recentBookings,
   });
 
   factory ProviderDashboardModel.fromJson(Map<String, dynamic> json) {
+    // Backend returns: { pending, confirmed, completed, total, upcoming: [...], recent: [...] }
+    final upcoming = json['upcoming'] as List<dynamic>? ?? [];
+    final recent = json['recent'] as List<dynamic>? ?? [];
+    
     return ProviderDashboardModel(
       stats: ProviderStatsModel(
-        totalOrders: json['totalOrders'] ?? json['totalBookings'] ?? 0,
-        pendingOrders: json['pendingOrders'] ?? json['pendingBookings'] ?? 0,
-        completedOrders: json['completedOrders'] ?? json['completedBookings'] ?? 0,
-        totalEarnings: (json['totalEarnings'] ?? 0.0).toDouble(),
-        averageRating: (json['averageRating'] ?? 0.0).toDouble(),
-        totalReviews: json['totalReviews'] ?? 0,
+        totalOrders: json['total'] ?? 0,
+        pendingOrders: json['pending'] ?? 0,
+        completedOrders: json['completed'] ?? 0,
+        totalEarnings: 0, // Backend doesn't provide earnings in summary
+        averageRating: 0.0, // Backend doesn't provide rating in summary
+        totalReviews: 0, // Backend doesn't provide reviews in summary
       ),
-      additionalData: json,
+      upcomingBookings: upcoming.map((b) => BookingModel.fromJson(b as Map<String, dynamic>)).toList(),
+      recentBookings: recent.map((b) => BookingModel.fromJson(b as Map<String, dynamic>)).toList(),
     );
   }
 }

@@ -28,10 +28,16 @@ import 'package:hamro_service/features/payment/data/repositories/payment_reposit
 import 'package:hamro_service/features/payment/presentation/providers/payment_provider.dart';
 import 'package:hamro_service/features/provider/data/datasources/provider_verification_remote_datasource.dart';
 import 'package:hamro_service/features/provider/data/repositories/provider_verification_repository_impl.dart';
+import 'package:hamro_service/features/favorites/data/datasources/favorites_local_datasource.dart';
+import 'package:hamro_service/features/favorites/presentation/providers/favorites_provider.dart';
 import 'package:hamro_service/features/provider/presentation/providers/provider_verification_provider.dart';
 import 'package:hamro_service/features/provider/data/datasources/provider_availability_remote_datasource.dart';
 import 'package:hamro_service/features/provider/data/repositories/availability_repository_impl.dart';
 import 'package:hamro_service/features/provider/presentation/providers/availability_provider.dart';
+import 'package:hamro_service/features/provider/data/datasources/profession_remote_datasource.dart';
+import 'package:hamro_service/features/provider/data/datasources/profession_local_datasource.dart';
+import 'package:hamro_service/features/provider/data/repositories/profession_repository_impl.dart';
+import 'package:hamro_service/features/provider/presentation/providers/profession_provider.dart';
 import 'package:hamro_service/features/contact/data/datasources/contact_remote_datasource.dart';
 import 'package:hamro_service/features/contact/data/repositories/contact_repository_impl.dart';
 import 'package:hamro_service/features/contact/presentation/providers/contact_provider.dart';
@@ -132,6 +138,9 @@ void main() async {
               );
             },
           ),
+          favoritesLocalDataSourceProvider.overrideWith(
+            (ref) => FavoritesLocalDataSourceImpl(prefs: sharedPreferences),
+          ),
           bookingRepositoryProvider.overrideWith(
             (ref) {
               final connectivityService = ConnectivityService();
@@ -206,6 +215,20 @@ void main() async {
               final remoteDataSource = ContactRemoteDataSourceImpl(dio: dioClient.dio);
               return ContactRepositoryImpl(
                 remoteDataSource: remoteDataSource,
+                connectivityService: connectivityService,
+              );
+            },
+          ),
+          professionRepositoryProvider.overrideWith(
+            (ref) {
+              final connectivityService = ConnectivityService();
+              final sessionService = UserSessionService(prefs: sharedPreferences);
+              final dioClient = DioClient(session: sessionService);
+              final remoteDataSource = ProfessionRemoteDataSourceImpl(dio: dioClient.dio);
+              final localDataSource = ProfessionLocalDataSourceImpl();
+              return ProfessionRepositoryImpl(
+                remoteDataSource: remoteDataSource,
+                localDataSource: localDataSource,
                 connectivityService: connectivityService,
               );
             },

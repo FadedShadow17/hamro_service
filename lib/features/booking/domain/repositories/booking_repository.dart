@@ -5,7 +5,7 @@ import '../entities/time_slot.dart';
 import '../../data/models/booking_model.dart';
 
 abstract class BookingRepository {
-  Future<List<ServiceOption>> getServiceOptions(String serviceId);
+  Future<List<ServiceOption>> getServiceOptions(String serviceId, String categoryTag);
   Future<List<TimeSlot>> getAvailableTimeSlots(DateTime date);
   Future<Either<Failure, List<TimeSlot>>> getAvailableTimeSlotsFromAPI({
     required String serviceId,
