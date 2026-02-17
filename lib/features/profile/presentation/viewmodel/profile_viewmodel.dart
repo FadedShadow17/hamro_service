@@ -69,7 +69,10 @@ class ProfileViewModel extends Notifier<ProfileState> {
     final result = await _updateProfileUsecase(profile);
     result.fold(
       (failure) => state = ProfileState.error(failure.message),
-      (updatedProfile) => state = ProfileState.loaded(updatedProfile),
+      (updatedProfile) {
+        state = ProfileState.loaded(updatedProfile);
+        loadProfile();
+      },
     );
   }
 }

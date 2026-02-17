@@ -13,6 +13,7 @@ class CartItemModel extends CartItem {
     required super.selectedDate,
     required super.selectedTimeSlot,
     required super.address,
+    required super.area,
     super.notes,
     required super.totalPrice,
   });
@@ -30,6 +31,7 @@ class CartItemModel extends CartItem {
       selectedDate: entity.selectedDate,
       selectedTimeSlot: entity.selectedTimeSlot,
       address: entity.address,
+      area: entity.area,
       notes: entity.notes,
       totalPrice: entity.totalPrice,
     );

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../../core/widgets/error_widget.dart';
+import '../../../../core/widgets/phone_number_field.dart';
 import '../../../../core/services/storage/user_session_service.dart';
 import '../../data/repositories/provider_verification_repository_impl.dart';
 import '../../presentation/providers/provider_verification_provider.dart';
@@ -176,10 +177,8 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
         if (_streetController.text.trim().isNotEmpty) 'street': _streetController.text.trim(),
       };
 
-      final phoneNumber = _phoneController.text.trim();
-      final formattedPhone = phoneNumber.startsWith('+977-') 
-          ? phoneNumber 
-          : '+977-$phoneNumber';
+      // Phone number already has +977- prefix from PhoneNumberField
+      final formattedPhone = '+977-${_phoneController.text.trim()}';
 
       final result = await repository.submitVerification(
         fullName: _fullNameController.text.trim(),
@@ -427,18 +426,16 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
                     },
                   ),
                   const SizedBox(height: 16),
-                  _buildTextField(
+                  PhoneNumberField(
                     controller: _phoneController,
-                    label: 'Phone Number (+977-XXXXXXXXX)',
-                    icon: Icons.phone,
-                    keyboardType: TextInputType.phone,
+                    label: 'Phone Number',
+                    hintText: 'XXXXXXXXXX',
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter your phone number';
                       }
-                      final phone = value.trim();
-                      if (!phone.startsWith('+977-') && !RegExp(r'^[0-9]{9,10}$').hasMatch(phone)) {
-                        return 'Phone must be in format +977-XXXXXXXXX or 9-10 digits';
+                      if (value.trim().length < 9 || value.trim().length > 10) {
+                        return 'Phone number must be 9-10 digits';
                       }
                       return null;
                     },
@@ -657,18 +654,16 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
               },
             ),
             const SizedBox(height: 16),
-            _buildTextField(
+            PhoneNumberField(
               controller: _phoneController,
-              label: 'Phone Number (+977-XXXXXXXXX)',
-              icon: Icons.phone,
-              keyboardType: TextInputType.phone,
+              label: 'Phone Number',
+              hintText: 'XXXXXXXXXX',
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Please enter your phone number';
                 }
-                final phone = value.trim();
-                if (!phone.startsWith('+977-') && !RegExp(r'^[0-9]{9,10}$').hasMatch(phone)) {
-                  return 'Phone must be in format +977-XXXXXXXXX or 9-10 digits';
+                if (value.trim().length < 9 || value.trim().length > 10) {
+                  return 'Phone number must be 9-10 digits';
                 }
                 return null;
               },

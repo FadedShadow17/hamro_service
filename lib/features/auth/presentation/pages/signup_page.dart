@@ -9,6 +9,7 @@ import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_pa
 import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
 import 'package:hamro_service/core/services/storage/user_session_service.dart';
 import 'package:hamro_service/core/widgets/animated_text_field.dart';
+import 'package:hamro_service/core/widgets/phone_number_field.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({super.key});
@@ -63,12 +64,15 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       return;
     }
 
+    // Add +977- prefix to phone number if provided
+    final formattedPhone = phone.isNotEmpty ? '+977-$phone' : null;
+
     ref.read(authViewModelProvider.notifier).register(
           fullName: username.isNotEmpty ? username : email.split('@')[0],
           email: email,
           username: username.isNotEmpty ? username : null,
           password: password,
-          phoneNumber: phone.isNotEmpty ? phone : null,
+          phoneNumber: formattedPhone,
         );
   }
 
@@ -227,11 +231,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 20),
-                      AnimatedTextField(
+                      PhoneNumberField(
                         controller: _phoneController,
-                        label: 'Phone',
-                        icon: Icons.phone,
-                        keyboardType: TextInputType.phone,
+                        label: 'Phone Number',
+                        hintText: 'XXXXXXXXXX',
                       ),
                       const SizedBox(height: 20),
                       AnimatedTextField(

@@ -10,6 +10,7 @@ class ProviderOrderModel extends ProviderOrder {
     required super.location,
     required super.createdAt,
     super.scheduledDate,
+    super.paymentStatus,
   });
 
   factory ProviderOrderModel.fromEntity(ProviderOrder order) {
@@ -22,6 +23,7 @@ class ProviderOrderModel extends ProviderOrder {
       location: order.location,
       createdAt: order.createdAt,
       scheduledDate: order.scheduledDate,
+      paymentStatus: order.paymentStatus,
     );
   }
 
@@ -35,6 +37,7 @@ class ProviderOrderModel extends ProviderOrder {
       location: location,
       createdAt: createdAt,
       scheduledDate: scheduledDate,
+      paymentStatus: paymentStatus,
     );
   }
 }

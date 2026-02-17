@@ -69,8 +69,10 @@ class BookingRepositoryImpl implements BookingRepository {
                 final startTime = slot['start'] as String?;
                 if (startTime != null && !uniqueTimes.contains(startTime)) {
                   uniqueTimes.add(startTime);
+                  // Use startTime directly as id (it should be in HH:mm format from API)
+                  // If not, we'll use it as-is since backend expects HH:mm format
                   timeSlots.add(TimeSlot(
-                    id: '${serviceId}_${date}_${startTime}',
+                    id: startTime,
                     time: _formatTime(startTime),
                     isAvailable: true,
                   ));
@@ -118,8 +120,10 @@ class BookingRepositoryImpl implements BookingRepository {
         final period = hour >= 12 ? 'PM' : 'AM';
         final displayHour = hour > 12 ? hour - 12 : (hour == 12 ? 12 : hour);
         final timeStr = '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+        // Use HH:mm format for id (backend expects this format)
+        final idStr = '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
         slots.add(TimeSlot(
-          id: 'default_${hour}_$minute',
+          id: idStr,
           time: timeStr,
           isAvailable: true,
         ));
@@ -145,7 +149,6 @@ class BookingRepositoryImpl implements BookingRepository {
     try {
       final booking = await remoteDataSource.createBooking(
         serviceId: serviceId,
-        providerId: providerId,
         date: date,
         timeSlot: timeSlot,
         area: area,
@@ -182,6 +185,86 @@ class BookingRepositoryImpl implements BookingRepository {
 
     try {
       final booking = await remoteDataSource.cancelBooking(bookingId);
+      return Right(booking);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<BookingModel>>> getProviderBookings({String? status}) async {
+    final hasInternet = await connectivityService.hasInternetConnection();
+    
+    if (!hasInternet) {
+      return const Left(CacheFailure('No internet connection'));
+    }
+
+    try {
+      final bookings = await remoteDataSource.getProviderBookings(status: status);
+      return Right(bookings);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BookingModel>> acceptBooking(String bookingId) async {
+    final hasInternet = await connectivityService.hasInternetConnection();
+    
+    if (!hasInternet) {
+      return const Left(CacheFailure('No internet connection'));
+    }
+
+    try {
+      final booking = await remoteDataSource.acceptBooking(bookingId);
+      return Right(booking);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BookingModel>> declineBooking(String bookingId) async {
+    final hasInternet = await connectivityService.hasInternetConnection();
+    
+    if (!hasInternet) {
+      return const Left(CacheFailure('No internet connection'));
+    }
+
+    try {
+      final booking = await remoteDataSource.declineBooking(bookingId);
+      return Right(booking);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BookingModel>> completeBooking(String bookingId) async {
+    final hasInternet = await connectivityService.hasInternetConnection();
+    
+    if (!hasInternet) {
+      return const Left(CacheFailure('No internet connection'));
+    }
+
+    try {
+      final booking = await remoteDataSource.completeBooking(bookingId);
+      return Right(booking);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BookingModel>> updateBookingStatus(String bookingId, String status) async {
+    final hasInternet = await connectivityService.hasInternetConnection();
+    
+    if (!hasInternet) {
+      return const Left(CacheFailure('No internet connection'));
+    }
+
+    try {
+      final booking = await remoteDataSource.updateBookingStatus(bookingId, status);
       return Right(booking);
     } catch (e) {
       return Left(CacheFailure(e.toString()));

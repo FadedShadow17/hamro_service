@@ -34,28 +34,59 @@ class ProviderRemoteDataSourceImpl implements ProviderRemoteDataSource {
       final data = response.data;
       List<ProviderOrderModel> orders = [];
 
-      if (data is Map && data.containsKey('bookings')) {
-        final bookingsList = data['bookings'] as List;
-        orders = bookingsList.map((booking) {
-          final bookingModel = BookingModel.fromJson(booking);
+      List<dynamic> bookingsList = [];
+      
+      if (data is Map) {
+        if (data.containsKey('bookings')) {
+          bookingsList = data['bookings'] as List? ?? [];
+        } else if (data.containsKey('data')) {
+          final dataList = data['data'];
+          if (dataList is List) {
+            bookingsList = dataList;
+          } else if (dataList is Map<String, dynamic> && dataList.containsKey('bookings')) {
+            bookingsList = dataList['bookings'] as List? ?? [];
+          }
+        } else if (data.containsKey('results')) {
+          bookingsList = data['results'] as List? ?? [];
+        }
+      } else if (data is List) {
+        bookingsList = data;
+      }
+
+      orders = bookingsList.map((booking) {
+        try {
+          final bookingMap = booking is Map<String, dynamic> 
+              ? booking 
+              : booking as Map<String, dynamic>;
+          final bookingModel = BookingModel.fromJson(bookingMap);
+          
+          final price = bookingModel.service?['price'] ?? 
+                       bookingModel.service?['basePrice'] ?? 
+                       bookingModel.service?['priceRs'] ?? 
+                       0;
+          final priceInt = price is int ? price : (price is num ? price.toInt() : 0);
+          
           return ProviderOrderModel(
             id: bookingModel.id,
             customerName: bookingModel.user?['name'] ?? 
                          bookingModel.user?['fullName'] ?? 
+                         bookingModel.user?['username'] ??
                          'Unknown',
             serviceName: bookingModel.service?['name'] ?? 
                         bookingModel.service?['title'] ?? 
+                        bookingModel.service?['serviceName'] ??
                         'Service',
-            status: bookingModel.status.toUpperCase(),
-            priceRs: (bookingModel.service?['price'] ?? 
-                     bookingModel.service?['basePrice'] ?? 
-                     0) as int,
+            status: bookingModel.status.toUpperCase().trim(),
+            priceRs: priceInt,
             location: bookingModel.area,
             createdAt: bookingModel.createdAt,
             scheduledDate: DateTime.tryParse(bookingModel.date),
+            paymentStatus: bookingModel.paymentStatus,
           );
-        }).toList();
-      }
+        } catch (e) {
+          return null;
+        }
+      }).whereType<ProviderOrderModel>().toList();
 
       return orders;
     } on DioException catch (e) {

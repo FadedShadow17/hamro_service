@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/kathmandu_areas.dart';
 import '../../../services/domain/entities/service_item.dart';
 import '../providers/booking_provider.dart';
 import '../widgets/service_option_selector.dart';
@@ -24,8 +25,8 @@ class BookingScreen extends ConsumerStatefulWidget {
 
 class _BookingScreenState extends ConsumerState<BookingScreen> {
   final _addressController = TextEditingController();
-  final _areaController = TextEditingController();
   final _notesController = TextEditingController();
+  String? _selectedArea;
 
   @override
   void initState() {
@@ -39,7 +40,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   @override
   void dispose() {
     _addressController.dispose();
-    _areaController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -75,15 +75,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       return;
     }
 
-    if (_areaController.text.trim().isEmpty) {
+    if (_selectedArea == null || _selectedArea!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an area')),
+        const SnackBar(content: Text('Please select an area')),
       );
       return;
     }
 
     ref.read(bookingProvider.notifier).updateAddress(_addressController.text.trim());
-    ref.read(bookingProvider.notifier).updateArea(_areaController.text.trim());
+    ref.read(bookingProvider.notifier).updateArea(_selectedArea!);
     ref.read(bookingProvider.notifier).updateNotes(_notesController.text.trim());
 
     // Create cart item from booking
@@ -97,8 +97,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       serviceOptionPrice: bookingState.selectedServiceOption!.price,
       serviceOptionDuration: bookingState.selectedServiceOption!.duration,
       selectedDate: bookingState.selectedDate!,
-      selectedTimeSlot: bookingState.selectedTimeSlot!.time,
+      selectedTimeSlot: bookingState.selectedTimeSlot!.id,
       address: _addressController.text.trim(),
+      area: _selectedArea!,
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
       totalPrice: bookingState.selectedServiceOption!.price,
     );
@@ -264,44 +265,63 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _areaController,
-              decoration: InputDecoration(
-                hintText: 'Enter area (e.g., Kathmandu, Lalitpur)',
-                filled: true,
-                fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: AppColors.primaryBlue,
-                    width: 2,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
+            Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
                 ),
               ),
-              style: TextStyle(
-                color: isDark ? Colors.white : Colors.black87,
+              child: DropdownButtonFormField<String>(
+                value: _selectedArea,
+                decoration: InputDecoration(
+                  hintText: 'Select area',
+                  filled: true,
+                  fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.primaryBlue,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
+                dropdownColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                items: KathmanduAreas.areas.map((area) {
+                  return DropdownMenuItem<String>(
+                    value: area,
+                    child: Text(area),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedArea = value;
+                  });
+                  if (value != null && bookingState.selectedDate != null) {
+                    ref.read(bookingProvider.notifier).updateArea(value);
+                  }
+                },
               ),
-              onChanged: (value) {
-                if (value.isNotEmpty && bookingState.selectedDate != null) {
-                  ref.read(bookingProvider.notifier).updateArea(value);
-                }
-              },
             ),
             const SizedBox(height: 24),
 

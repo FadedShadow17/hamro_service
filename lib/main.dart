@@ -164,10 +164,16 @@ void main() async {
               final dioClient = DioClient(session: sessionService);
               final remoteDataSource = ProviderRemoteDataSourceImpl(dio: dioClient.dio);
               final localDataSource = ProviderLocalDataSourceImpl();
+              final verificationRemoteDataSource = ProviderVerificationRemoteDataSourceImpl(dio: dioClient.dio);
+              final verificationRepository = ProviderVerificationRepositoryImpl(
+                remoteDataSource: verificationRemoteDataSource,
+                connectivityService: connectivityService,
+              );
               return ProviderRepositoryImpl(
                 remoteDataSource: remoteDataSource,
                 localDataSource: localDataSource,
                 connectivityService: connectivityService,
+                verificationRepository: verificationRepository,
               );
             },
           ),

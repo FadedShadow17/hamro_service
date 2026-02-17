@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/phone_number_field.dart';
 import '../providers/image_upload_provider.dart';
 import '../viewmodel/profile_viewmodel.dart';
 import '../../domain/entities/profile_entity.dart';
@@ -39,7 +40,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     if (profile != null) {
       _nameController.text = profile.fullName;
       _emailController.text = profile.email;
-      _phoneController.text = profile.phoneNumber ?? '';
+      // Remove +977- prefix if present when loading
+      final phone = profile.phoneNumber ?? '';
+      _phoneController.text = phone.replaceFirst(RegExp(r'^\+977-'), '');
       _addressController.text = profile.address ?? '';
       _currentAvatarUrl = profile.avatarUrl;
     }
@@ -134,15 +137,22 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         throw Exception('Profile not found');
       }
 
-      final String? avatarUrl = _currentAvatarUrl;
+      String? avatarUrl = _currentAvatarUrl;
+      
+      final imageUploadState = ref.read(imageUploadNotifierProvider);
+      if (imageUploadState.url != null && imageUploadState.url!.isNotEmpty) {
+        avatarUrl = imageUploadState.url;
+      }
+
+      // Add +977- prefix to phone number if provided
+      final phone = _phoneController.text.trim();
+      final formattedPhone = phone.isEmpty ? null : '+977-$phone';
 
       final updatedProfile = ProfileEntity(
         userId: currentProfile.userId,
         fullName: _nameController.text.trim(),
         email: _emailController.text.trim(),
-        phoneNumber: _phoneController.text.trim().isEmpty 
-            ? null 
-            : _phoneController.text.trim(),
+        phoneNumber: formattedPhone,
         avatarUrl: avatarUrl,
         address: _addressController.text.trim().isEmpty 
             ? null 
@@ -381,11 +391,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                _buildTextField(
+                PhoneNumberField(
                   controller: _phoneController,
                   label: 'Phone Number',
-                  icon: Icons.phone,
-                  keyboardType: TextInputType.phone,
+                  hintText: 'XXXXXXXXXX',
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(

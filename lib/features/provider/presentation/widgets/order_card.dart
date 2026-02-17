@@ -144,6 +144,43 @@ class OrderCard extends ConsumerWidget {
                 ),
             ],
           ),
+          if (order.paymentStatus != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: (order.paymentStatus?.toUpperCase() == 'PAID' 
+                    ? Colors.green 
+                    : Colors.orange).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    order.paymentStatus?.toUpperCase() == 'PAID' 
+                        ? Icons.check_circle 
+                        : Icons.payment,
+                    size: 14,
+                    color: order.paymentStatus?.toUpperCase() == 'PAID' 
+                        ? Colors.green 
+                        : Colors.orange,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    order.paymentStatus?.toUpperCase() == 'PAID' ? 'Paid' : 'Unpaid',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: order.paymentStatus?.toUpperCase() == 'PAID' 
+                          ? Colors.green 
+                          : Colors.orange,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (BookingStatus.canAccept(upperStatus) || 
               BookingStatus.canDecline(upperStatus) || 
               BookingStatus.canComplete(upperStatus)) ...[

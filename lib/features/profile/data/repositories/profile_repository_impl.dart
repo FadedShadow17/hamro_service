@@ -106,6 +106,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
         final updatedProfile = await remoteDataSource.updateProfile(
           name: profile.fullName,
           phone: profile.phoneNumber,
+          address: profile.address,
+          description: profile.description,
         );
         final model = _entityToModel(updatedProfile);
         await localDatasource.updateProfile(model);

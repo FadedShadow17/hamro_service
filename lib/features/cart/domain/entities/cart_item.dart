@@ -12,6 +12,7 @@ class CartItem extends Equatable {
   final DateTime selectedDate;
   final String selectedTimeSlot;
   final String address;
+  final String area;
   final String? notes;
   final double totalPrice;
 
@@ -27,6 +28,7 @@ class CartItem extends Equatable {
     required this.selectedDate,
     required this.selectedTimeSlot,
     required this.address,
+    required this.area,
     this.notes,
     required this.totalPrice,
   });
@@ -44,6 +46,7 @@ class CartItem extends Equatable {
         selectedDate,
         selectedTimeSlot,
         address,
+        area,
         notes,
         totalPrice,
       ];

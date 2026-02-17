@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/phone_number_field.dart';
 import '../../../profile/presentation/viewmodel/profile_viewmodel.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../profile/presentation/providers/image_upload_provider.dart';
@@ -61,7 +62,9 @@ class _ProviderEditProfilePageState extends ConsumerState<ProviderEditProfilePag
     if (profile != null) {
       _nameController.text = profile.fullName;
       _emailController.text = profile.email;
-      _phoneController.text = profile.phoneNumber ?? '';
+      // Remove +977- prefix if present when loading
+      final phone = profile.phoneNumber ?? '';
+      _phoneController.text = phone.replaceFirst(RegExp(r'^\+977-'), '');
       _addressController.text = profile.address ?? '';
       _descriptionController.text = profile.description ?? '';
       _currentAvatarUrl = profile.avatarUrl;
@@ -165,7 +168,7 @@ class _ProviderEditProfilePageState extends ConsumerState<ProviderEditProfilePag
         email: _emailController.text.trim(),
         phoneNumber: _phoneController.text.trim().isEmpty 
             ? null 
-            : _phoneController.text.trim(),
+            : '+977-${_phoneController.text.trim()}',
         avatarUrl: avatarUrl,
         address: _addressController.text.trim().isEmpty 
             ? null 
@@ -176,6 +179,7 @@ class _ProviderEditProfilePageState extends ConsumerState<ProviderEditProfilePag
       );
 
       await ref.read(profileViewModelProvider.notifier).updateProfile(updatedProfile);
+      ref.invalidate(profileViewModelProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -387,11 +391,10 @@ class _ProviderEditProfilePageState extends ConsumerState<ProviderEditProfilePag
                   },
                 ),
                 const SizedBox(height: 16),
-                _buildTextField(
+                PhoneNumberField(
                   controller: _phoneController,
                   label: 'Phone Number',
-                  icon: Icons.phone,
-                  keyboardType: TextInputType.phone,
+                  hintText: 'XXXXXXXXXX',
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(

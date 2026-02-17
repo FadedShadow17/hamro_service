@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/booking_status.dart';
+import '../../../../core/services/verification_service.dart';
+import '../../../../core/services/category_matcher_service.dart';
+import '../../../booking/presentation/widgets/booking_status_badge.dart';
 import '../../domain/entities/provider_order.dart';
 import '../providers/provider_dashboard_provider.dart';
 
@@ -34,7 +37,8 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
     setState(() => _isLoading = true);
 
     final providerRepository = ref.read(providerRepositoryProvider);
-    final result = await providerRepository.getProviderBookings(status: _selectedFilter);
+    final statusFilter = _selectedFilter == 'ALL' ? null : _selectedFilter;
+    final result = await providerRepository.getProviderBookings(status: statusFilter);
 
     result.fold(
       (failure) {
@@ -43,8 +47,15 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
           _orders = [];
         });
         if (mounted) {
+          String errorMsg = 'Failed to load orders: ${failure.message}';
+          if (failure.message.contains('network') || failure.message.contains('connection')) {
+            errorMsg = 'No internet connection. Please check your network.';
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to load orders: ${failure.message}')),
+            SnackBar(
+              content: Text(errorMsg),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       },
@@ -58,8 +69,8 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
   }
 
   List<ProviderOrder> get _filteredOrders {
-    if (_selectedFilter == null || _selectedFilter == 'all') return _orders;
-    return _orders.where((o) => o.status.toLowerCase() == _selectedFilter!.toLowerCase()).toList();
+    if (_selectedFilter == null || _selectedFilter == 'ALL') return _orders;
+    return _orders.where((o) => o.status.toUpperCase() == _selectedFilter!.toUpperCase()).toList();
   }
 
   @override
@@ -90,17 +101,13 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip('All', 'all'),
+                  _buildFilterChip('All', 'ALL'),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Pending', 'pending'),
+                  _buildFilterChip('Pending', BookingStatus.pending),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Confirmed', 'confirmed'),
+                  _buildFilterChip('Confirmed', BookingStatus.confirmed),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Completed', 'completed'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Declined', 'declined'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Cancelled', 'cancelled'),
+                  _buildFilterChip('Completed', BookingStatus.completed),
                 ],
               ),
             ),
@@ -217,7 +224,7 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
                       ),
                     ),
                   ),
-                  _buildStatusBadge(order.status),
+                  BookingStatusBadge(status: order.status),
                 ],
               ),
               const SizedBox(height: 12),
@@ -277,7 +284,8 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
               const SizedBox(height: 12),
               if (BookingStatus.canAccept(upperStatus) ||
                   BookingStatus.canDecline(upperStatus) ||
-                  BookingStatus.canComplete(upperStatus)) ...[
+                  BookingStatus.canComplete(upperStatus) ||
+                  (upperStatus == BookingStatus.confirmed && BookingStatus.canCancel(upperStatus))) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -318,52 +326,6 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color color;
-    String label;
-
-    switch (status.toUpperCase()) {
-      case 'PENDING':
-        color = AppColors.statusPending;
-        label = 'Pending';
-        break;
-      case 'CONFIRMED':
-        color = AppColors.statusConfirmed;
-        label = 'Confirmed';
-        break;
-      case 'COMPLETED':
-        color = AppColors.statusCompleted;
-        label = 'Completed';
-        break;
-      case 'CANCELLED':
-        color = AppColors.statusCancelled;
-        label = 'Cancelled';
-        break;
-      case 'DECLINED':
-        color = AppColors.statusRejected;
-        label = 'Declined';
-        break;
-      default:
-        color = AppColors.textLight;
-        label = status;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
-      ),
-    );
-  }
 
   void _showOrderDetails(BuildContext context, ProviderOrder order) {
     showModalBottomSheet(
@@ -375,42 +337,106 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
   }
 
   Future<void> _handleAccept(BuildContext context, ProviderOrder order) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Accept Job'),
-        content: const Text('Are you sure you want to accept this job?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
+    final verificationStatusAsync = ref.read(providerVerificationStatusForDashboardProvider);
+    
+    await verificationStatusAsync.when(
+      data: (verificationSummary) async {
+        final status = verificationSummary['status'] as String? ?? 'NOT_SUBMITTED';
+        final serviceRole = verificationSummary['serviceRole'] as String?;
+        
+        if (!VerificationService.isVerified(status)) {
+          final errorMsg = VerificationService.getErrorMessage(status);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMsg ?? 'Verification required'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+        
+        if (serviceRole != null && serviceRole.isNotEmpty) {
+          final serviceName = order.serviceName;
+          if (!CategoryMatcherService.isCategoryMatch(serviceRole, serviceName)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('You are not verified for this service category. This booking is for "$serviceName", but you are verified as "$serviceRole".'),
+                backgroundColor: Colors.orange,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+            return;
+          }
+        }
+        
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Accept Job'),
+            content: const Text('Are you sure you want to accept this job?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Yes'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
-    );
+        );
 
-    if (confirmed == true) {
-      final repository = ref.read(providerRepositoryProvider);
-      final result = await repository.acceptBooking(order.id);
-      result.fold(
-        (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to accept job: ${failure.message}')),
+        if (confirmed == true && mounted) {
+          _showLoading(context);
+          final repository = ref.read(providerRepositoryProvider);
+          final result = await repository.acceptBooking(order.id);
+          if (mounted) Navigator.pop(context);
+          
+          result.fold(
+            (failure) {
+              String errorMsg = 'Failed to accept job: ${failure.message}';
+              if (failure.message.contains('verification') || failure.message.contains('Verification')) {
+                errorMsg = 'Verification required. Please complete your verification first.';
+              } else if (failure.message.contains('category') || failure.message.contains('Category')) {
+                errorMsg = 'You are not verified for this service category.';
+              } else if (failure.message.contains('already') || failure.message.contains('assigned')) {
+                errorMsg = 'This booking has already been accepted by another provider.';
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(errorMsg),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            (_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Job accepted successfully'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              _loadOrders();
+              ref.invalidate(providerDashboardDataProvider);
+            },
           );
-        },
-        (_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Job accepted successfully')),
-          );
-          _loadOrders();
-          ref.invalidate(providerDashboardDataProvider);
-        },
-      );
-    }
+        }
+      },
+      loading: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Checking verification status...')),
+        );
+      },
+      error: (error, stack) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to verify status. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _handleDecline(BuildContext context, ProviderOrder order) async {
@@ -432,18 +458,31 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
+      _showLoading(context);
       final repository = ref.read(providerRepositoryProvider);
       final result = await repository.declineBooking(order.id);
+      if (mounted) Navigator.pop(context);
+      
       result.fold(
         (failure) {
+          String errorMsg = 'Failed to decline job: ${failure.message}';
+          if (failure.message.contains('assigned')) {
+            errorMsg = 'This booking is assigned to another provider.';
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to decline job: ${failure.message}')),
+            SnackBar(
+              content: Text(errorMsg),
+              backgroundColor: Colors.red,
+            ),
           );
         },
         (_) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Job declined successfully')),
+            const SnackBar(
+              content: Text('Job declined successfully'),
+              backgroundColor: Colors.green,
+            ),
           );
           _loadOrders();
           ref.invalidate(providerDashboardDataProvider);
@@ -453,42 +492,99 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
   }
 
   Future<void> _handleComplete(BuildContext context, ProviderOrder order) async {
-    final confirmed = await showDialog<bool>(
+    final verificationStatusAsync = ref.read(providerVerificationStatusForDashboardProvider);
+    
+    await verificationStatusAsync.when(
+      data: (verificationSummary) async {
+        final status = verificationSummary['status'] as String? ?? 'NOT_SUBMITTED';
+        
+        if (!VerificationService.isVerified(status)) {
+          final errorMsg = VerificationService.getErrorMessage(status);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMsg ?? 'Verification required'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+        
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Complete Job'),
+            content: const Text('Are you sure you want to mark this job as complete?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Yes'),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed == true && mounted) {
+          _showLoading(context);
+          final repository = ref.read(providerRepositoryProvider);
+          final result = await repository.completeBooking(order.id);
+          if (mounted) Navigator.pop(context);
+          
+          result.fold(
+            (failure) {
+              String errorMsg = 'Failed to complete job: ${failure.message}';
+              if (failure.message.contains('verification') || failure.message.contains('Verification')) {
+                errorMsg = 'Verification required. Please complete your verification first.';
+              } else if (failure.message.contains('assigned')) {
+                errorMsg = 'Only the assigned provider can complete this booking.';
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(errorMsg),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            (_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Job marked as complete'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              _loadOrders();
+              ref.invalidate(providerDashboardDataProvider);
+            },
+          );
+        }
+      },
+      loading: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Checking verification status...')),
+        );
+      },
+      error: (error, stack) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to verify status. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      },
+    );
+  }
+  
+  void _showLoading(BuildContext context) {
+    showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Complete Job'),
-        content: const Text('Are you sure you want to mark this job as complete?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Yes'),
-          ),
-        ],
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
       ),
     );
-
-    if (confirmed == true) {
-      final repository = ref.read(providerRepositoryProvider);
-      final result = await repository.completeBooking(order.id);
-      result.fold(
-        (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to complete job: ${failure.message}')),
-          );
-        },
-        (_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Job marked as complete')),
-          );
-          _loadOrders();
-          ref.invalidate(providerDashboardDataProvider);
-        },
-      );
-    }
   }
 }
 
@@ -538,6 +634,8 @@ class _OrderDetailsSheet extends StatelessWidget {
           _buildDetailRow(context, 'Location', order.location),
           _buildDetailRow(context, 'Status', order.status),
           _buildDetailRow(context, 'Price', 'Rs. ${order.priceRs.toStringAsFixed(2)}'),
+          if (order.paymentStatus != null)
+            _buildDetailRow(context, 'Payment Status', order.paymentStatus!.toUpperCase() == 'PAID' ? 'Paid' : 'Unpaid'),
         ],
       ),
     );

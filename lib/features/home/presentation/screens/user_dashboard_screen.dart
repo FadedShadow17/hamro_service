@@ -15,6 +15,7 @@ import '../../../services/presentation/screens/services_by_category_screen.dart'
 import '../../../booking/presentation/pages/user_bookings_page.dart';
 import '../../../payment/presentation/pages/payment_page.dart';
 import '../../../services/presentation/widgets/service_item_card.dart';
+import '../../../services/presentation/widgets/service_grid_card.dart';
 import '../../../services/domain/entities/service_item.dart';
 import '../../../booking/presentation/screens/booking_screen.dart';
 import 'popular_near_you_screen.dart';
@@ -94,6 +95,8 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
           ),
           const SizedBox(height: 16),
 
+          const PromoBanner(),
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: _buildSearchField(ref, context),
@@ -103,7 +106,6 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
           if (searchQuery.isNotEmpty) ...[
             _buildSearchResults(ref, context, searchResultsAsync),
           ] else ...[
-            const PromoBanner(),
 
             KSectionHeader(
               title: 'Popular Near You',
@@ -233,21 +235,16 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.75,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.7,
                 ),
                 itemCount: services.length,
                 itemBuilder: (context, index) {
                   final service = services[index];
-                  return ServiceItemCard(
+                  return ServiceGridCard(
                     service: service,
-                    onViewProfile: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('View Profile - Coming soon')),
-                      );
-                    },
-                    onBookNow: () {
+                    onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => BookingScreen(service: service),
@@ -288,11 +285,11 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.75,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.7,
         ),
-        itemCount: services.length,
+        itemCount: services.length > 10 ? 10 : services.length,
         itemBuilder: (context, index) {
           final service = services[index];
           final serviceItem = ServiceItem(
@@ -303,14 +300,9 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
             reviewsCount: 0,
             categoryTag: service.categoryTag,
           );
-          return ServiceItemCard(
+          return ServiceGridCard(
             service: serviceItem,
-            onViewProfile: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('View Profile - Coming soon')),
-              );
-            },
-            onBookNow: () {
+            onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => BookingScreen(service: serviceItem),

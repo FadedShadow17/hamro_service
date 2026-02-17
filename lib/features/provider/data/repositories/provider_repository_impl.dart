@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/services/connectivity/connectivity_service.dart';
 import '../../domain/entities/provider_order.dart';
@@ -7,19 +6,21 @@ import '../../domain/entities/provider_stats.dart';
 import '../../domain/repositories/provider_repository.dart';
 import '../datasources/provider_local_datasource.dart';
 import '../datasources/provider_remote_datasource.dart';
-import '../models/provider_dashboard_model.dart';
 import '../models/provider_order_model.dart';
 import '../../../booking/data/models/booking_model.dart';
+import '../../domain/repositories/provider_verification_repository.dart';
 
 class ProviderRepositoryImpl implements ProviderRepository {
   final ProviderRemoteDataSource remoteDataSource;
   final ProviderLocalDataSource localDataSource;
   final ConnectivityService connectivityService;
+  final ProviderVerificationRepository? verificationRepository;
 
   ProviderRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
     required this.connectivityService,
+    this.verificationRepository,
   });
 
   ProviderOrderModel _bookingToOrderModel(BookingModel booking) {
@@ -73,14 +74,8 @@ class ProviderRepositoryImpl implements ProviderRepository {
     
     if (hasInternet) {
       try {
-        // Get dashboard summary which includes upcoming bookings
-        final dashboard = await remoteDataSource.getDashboardSummary();
-        // Filter upcoming bookings by PENDING status
-        final pending = dashboard.upcomingBookings
-            .where((b) => b.status.toUpperCase() == 'PENDING')
-            .map((b) => _bookingToOrderModel(b).toEntity())
-            .toList();
-        return Right(pending);
+        final models = await remoteDataSource.getProviderBookings(status: 'PENDING');
+        return Right(models.map((model) => model.toEntity()).toList());
       } catch (e) {
         try {
           final models = await localDataSource.getPendingOrders();
@@ -105,14 +100,8 @@ class ProviderRepositoryImpl implements ProviderRepository {
     
     if (hasInternet) {
       try {
-        // Get dashboard summary which includes upcoming bookings
-        final dashboard = await remoteDataSource.getDashboardSummary();
-        // Filter upcoming bookings by CONFIRMED status
-        final active = dashboard.upcomingBookings
-            .where((b) => b.status.toUpperCase() == 'CONFIRMED')
-            .map((b) => _bookingToOrderModel(b).toEntity())
-            .toList();
-        return Right(active);
+        final models = await remoteDataSource.getProviderBookings(status: 'CONFIRMED');
+        return Right(models.map((model) => model.toEntity()).toList());
       } catch (e) {
         try {
           final models = await localDataSource.getActiveOrders();
@@ -137,10 +126,14 @@ class ProviderRepositoryImpl implements ProviderRepository {
     
     if (hasInternet) {
       try {
-        // Get dashboard summary which includes recent bookings
-        final dashboard = await remoteDataSource.getDashboardSummary();
-        final recent = dashboard.recentBookings
-            .map((b) => _bookingToOrderModel(b).toEntity())
+        final allBookings = await remoteDataSource.getProviderBookings();
+        final recent = allBookings
+            .where((order) {
+              final status = order.status.toUpperCase();
+              return status == 'COMPLETED' || status == 'CANCELLED' || status == 'DECLINED';
+            })
+            .take(10)
+            .map((model) => model.toEntity())
             .toList();
         return Right(recent);
       } catch (e) {
@@ -249,5 +242,23 @@ class ProviderRepositoryImpl implements ProviderRepository {
     } catch (e) {
       return Left(CacheFailure(e.toString()));
     }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> checkVerificationStatus() async {
+    if (verificationRepository == null) {
+      return const Left(CacheFailure('Verification repository not available'));
+    }
+
+    final result = await verificationRepository!.getVerificationSummary();
+    return result.fold(
+      (failure) => Left(failure),
+      (summary) {
+        return Right({
+          'verificationStatus': summary['status'] ?? summary['verificationStatus'] ?? 'NOT_SUBMITTED',
+          'serviceRole': summary['serviceRole'],
+        });
+      },
+    );
   }
 }

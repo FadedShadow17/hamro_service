@@ -47,7 +47,7 @@ class _CartPageState extends ConsumerState<CartPage> {
           serviceId: item.serviceId,
           date: dateStr,
           timeSlot: item.selectedTimeSlot,
-          area: item.address,
+          area: item.area,
         );
 
         result.fold(

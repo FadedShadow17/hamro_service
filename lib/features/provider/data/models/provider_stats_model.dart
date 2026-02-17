@@ -4,6 +4,7 @@ class ProviderStatsModel extends ProviderStats {
   const ProviderStatsModel({
     required super.totalOrders,
     required super.pendingOrders,
+    super.confirmedOrders = 0,
     required super.completedOrders,
     required super.totalEarnings,
     required super.averageRating,
@@ -14,6 +15,7 @@ class ProviderStatsModel extends ProviderStats {
     return ProviderStatsModel(
       totalOrders: stats.totalOrders,
       pendingOrders: stats.pendingOrders,
+      confirmedOrders: stats.confirmedOrders,
       completedOrders: stats.completedOrders,
       totalEarnings: stats.totalEarnings,
       averageRating: stats.averageRating,
@@ -25,6 +27,7 @@ class ProviderStatsModel extends ProviderStats {
     return ProviderStats(
       totalOrders: totalOrders,
       pendingOrders: pendingOrders,
+      confirmedOrders: confirmedOrders,
       completedOrders: completedOrders,
       totalEarnings: totalEarnings,
       averageRating: averageRating,

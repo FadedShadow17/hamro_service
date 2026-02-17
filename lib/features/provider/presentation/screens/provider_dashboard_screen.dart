@@ -32,10 +32,53 @@ class ProviderDashboardScreen extends ConsumerWidget {
             }
             
             return dashboardDataAsync.when(
-              data: (data) => _buildContent(data, ref, context, verificationSummary),
+              data: (data) => RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(providerDashboardDataProvider);
+                  ref.invalidate(providerVerificationStatusForDashboardProvider);
+                  await Future.wait([
+                    ref.read(providerDashboardDataProvider.future),
+                    ref.read(providerVerificationStatusForDashboardProvider.future),
+                  ]);
+                },
+                child: _buildContent(data, ref, context, verificationSummary),
+              ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(
-                child: Text('Error: $error'),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error loading dashboard',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      error.toString(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        ref.invalidate(providerDashboardDataProvider);
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -43,10 +86,49 @@ class ProviderDashboardScreen extends ConsumerWidget {
           error: (error, stack) {
             // If verification check fails, still show dashboard but with warning
             return dashboardDataAsync.when(
-              data: (data) => _buildContent(data, ref, context, {}),
+              data: (data) => RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(providerDashboardDataProvider);
+                  await ref.read(providerDashboardDataProvider.future);
+                },
+                child: _buildContent(data, ref, context, {}),
+              ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(
-                child: Text('Error: $error'),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error loading dashboard',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      error.toString(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        ref.invalidate(providerDashboardDataProvider);
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               ),
             );
           },

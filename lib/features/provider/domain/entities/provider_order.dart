@@ -2,11 +2,12 @@ class ProviderOrder {
   final String id;
   final String customerName;
   final String serviceName;
-  final String status; // pending, accepted, in_progress, completed, cancelled
+  final String status;
   final int priceRs;
   final String location;
   final DateTime createdAt;
   final DateTime? scheduledDate;
+  final String? paymentStatus;
 
   const ProviderOrder({
     required this.id,
@@ -17,5 +18,6 @@ class ProviderOrder {
     required this.location,
     required this.createdAt,
     this.scheduledDate,
+    this.paymentStatus,
   });
 }

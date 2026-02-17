@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/booking_status.dart';
 import '../../data/models/booking_model.dart';
 import '../providers/booking_provider.dart';
+import '../widgets/booking_status_badge.dart';
 
 class UserBookingsPage extends ConsumerStatefulWidget {
   final String? filterStatus; // 'active', 'completed', 'pending', 'confirmed', 'cancelled', or null for all
@@ -33,7 +35,10 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
     setState(() => _isLoading = true);
     
     final bookingRepository = ref.read(bookingRepositoryProvider);
-    final result = await bookingRepository.getMyBookings();
+    final statusFilter = _selectedFilter == 'active' 
+        ? null 
+        : _selectedFilter?.toUpperCase();
+    final result = await bookingRepository.getMyBookings(status: statusFilter);
     
     result.fold(
       (failure) {
@@ -56,34 +61,27 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
     );
   }
 
-  List<BookingModel> get _filteredBookings {
-    if (_selectedFilter == null) return _bookings;
-    
-    switch (_selectedFilter!.toLowerCase()) {
-      case 'active':
-        return _bookings.where((b) => 
-          b.status.toUpperCase() == 'PENDING' || 
-          b.status.toUpperCase() == 'CONFIRMED'
-        ).toList();
-      case 'completed':
-        return _bookings.where((b) => 
-          b.status.toUpperCase() == 'COMPLETED'
-        ).toList();
-      case 'pending':
-        return _bookings.where((b) => 
-          b.status.toUpperCase() == 'PENDING'
-        ).toList();
-      case 'confirmed':
-        return _bookings.where((b) => 
-          b.status.toUpperCase() == 'CONFIRMED'
-        ).toList();
-      case 'cancelled':
-        return _bookings.where((b) => 
-          b.status.toUpperCase() == 'CANCELLED'
-        ).toList();
-      default:
-        return _bookings;
+  @override
+  void didUpdateWidget(UserBookingsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filterStatus != widget.filterStatus) {
+      setState(() {
+        _selectedFilter = widget.filterStatus;
+      });
     }
+  }
+
+  List<BookingModel> get _filteredBookings {
+    if (_selectedFilter == null || _selectedFilter!.isEmpty) {
+      return _bookings;
+    }
+    
+    final filter = _selectedFilter!.toUpperCase().trim();
+    
+    return _bookings.where((b) {
+      final status = b.status.toUpperCase().trim();
+      return status == filter;
+    }).toList();
   }
 
   @override
@@ -117,15 +115,13 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
                 children: [
                   _buildFilterChip('All', null),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Active', 'active'),
+                  _buildFilterChip('Pending', BookingStatus.pending),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Pending', 'pending'),
+                  _buildFilterChip('Confirmed', BookingStatus.confirmed),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Confirmed', 'confirmed'),
+                  _buildFilterChip('Completed', BookingStatus.completed),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Completed', 'completed'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Cancelled', 'cancelled'),
+                  _buildFilterChip('Cancelled', BookingStatus.cancelled),
                 ],
               ),
             ),
@@ -164,6 +160,7 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
         setState(() {
           _selectedFilter = selected ? value : null;
         });
+        _loadBookings();
       },
       selectedColor: AppColors.primary.withValues(alpha: 0.2),
       checkmarkColor: AppColors.primary,
@@ -244,7 +241,7 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
                       ),
                     ),
                   ),
-                  _buildStatusBadge(status),
+                  BookingStatusBadge(status: status),
                 ],
               ),
               const SizedBox(height: 12),
@@ -299,7 +296,7 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
                   ),
                 ],
               ),
-              if (booking.provider != null) ...[
+              if ((status == 'CONFIRMED' || status == 'COMPLETED') && booking.provider != null) ...[
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -318,28 +315,54 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
                     ),
                   ],
                 ),
+              ] else if (status == 'PENDING') ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.hourglass_empty,
+                      size: 16,
+                      color: isDark ? AppColors.textWhite70 : AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Awaiting Provider',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: isDark ? AppColors.textWhite70 : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
               ],
-              if (paymentStatus == 'UNPAID' && status == 'CONFIRMED') ...[
+              if (booking.paymentStatus != null) ...[
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.accentYellow.withValues(alpha: 0.2),
+                    color: (paymentStatus == 'PAID' 
+                        ? Colors.green 
+                        : AppColors.accentYellow).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        Icons.payment,
+                        paymentStatus == 'PAID' ? Icons.check_circle : Icons.payment,
                         size: 16,
-                        color: AppColors.accentYellow,
+                        color: paymentStatus == 'PAID' 
+                            ? Colors.green 
+                            : AppColors.accentYellow,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Payment Pending',
+                        paymentStatus == 'PAID' ? 'Paid' : 'Payment Pending',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.accentYellow,
+                          color: paymentStatus == 'PAID' 
+                              ? Colors.green 
+                              : AppColors.accentYellow,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -348,25 +371,25 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
                 ),
               ],
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (status == 'PENDING' || status == 'CONFIRMED')
+              if (BookingStatus.canCancel(status))
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
                     TextButton(
                       onPressed: () => _cancelBooking(booking),
                       child: const Text('Cancel'),
                     ),
-                  if (paymentStatus == 'UNPAID' && status == 'CONFIRMED')
-                    ElevatedButton(
-                      onPressed: () => _makePayment(booking),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accentGreen,
-                        foregroundColor: AppColors.primary,
+                    if (paymentStatus == 'UNPAID' && status == 'CONFIRMED')
+                      ElevatedButton(
+                        onPressed: () => _makePayment(booking),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accentGreen,
+                          foregroundColor: AppColors.primary,
+                        ),
+                        child: const Text('Pay Now'),
                       ),
-                      child: const Text('Pay Now'),
-                    ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -374,52 +397,6 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color color;
-    String label;
-    
-    switch (status) {
-      case 'PENDING':
-        color = AppColors.statusPending;
-        label = 'Pending';
-        break;
-      case 'CONFIRMED':
-        color = AppColors.statusConfirmed;
-        label = 'Confirmed';
-        break;
-      case 'COMPLETED':
-        color = AppColors.statusCompleted;
-        label = 'Completed';
-        break;
-      case 'CANCELLED':
-        color = AppColors.statusCancelled;
-        label = 'Cancelled';
-        break;
-      case 'DECLINED':
-        color = AppColors.statusRejected;
-        label = 'Declined';
-        break;
-      default:
-        color = AppColors.textLight;
-        label = status;
-    }
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
-      ),
-    );
-  }
 
   String _formatDate(String dateStr) {
     try {

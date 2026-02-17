@@ -7,6 +7,8 @@ abstract class ProfileRemoteDataSource {
   Future<ProfileEntity> updateProfile({
     String? name,
     String? phone,
+    String? address,
+    String? description,
   });
   Future<ProfileEntity> updateRole(String role);
   Future<ProfileEntity> uploadAvatar(File imageFile);
@@ -53,6 +55,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   Future<ProfileEntity> updateProfile({
     String? name,
     String? phone,
+    String? address,
+    String? description,
   }) async {
     try {
       final body = <String, dynamic>{};
@@ -61,6 +65,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       }
       if (phone != null && phone.isNotEmpty) {
         body['phone'] = phone;
+      }
+      if (address != null && address.isNotEmpty) {
+        body['address'] = address;
+      }
+      if (description != null && description.isNotEmpty) {
+        body['description'] = description;
       }
 
       final response = await _dio.patch('/api/users/me', data: body);

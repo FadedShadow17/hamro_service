@@ -47,7 +47,7 @@ class BookingModel {
       date: json['date'] ?? '',
       timeSlot: json['timeSlot'] ?? '',
       area: json['area'] ?? '',
-      status: json['status'] ?? 'PENDING',
+      status: (json['status'] ?? 'PENDING').toString().toUpperCase().trim(),
       paymentStatus: json['paymentStatus'],
       paidAt: json['paidAt'] != null ? DateTime.parse(json['paidAt']) : null,
       paymentMethod: json['paymentMethod'],
