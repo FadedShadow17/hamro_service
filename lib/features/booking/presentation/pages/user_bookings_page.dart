@@ -6,6 +6,7 @@ import '../../../../core/constants/booking_status.dart';
 import '../../data/models/booking_model.dart';
 import '../providers/booking_provider.dart';
 import '../widgets/booking_status_badge.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 
 class UserBookingsPage extends ConsumerStatefulWidget {
   final String? filterStatus; // 'active', 'completed', 'pending', 'confirmed', 'cancelled', or null for all
@@ -450,6 +451,8 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
             const SnackBar(content: Text('Booking cancelled successfully')),
           );
           _loadBookings();
+          ref.invalidate(notificationsProvider);
+          ref.invalidate(unreadNotificationCountProvider);
         },
       );
     }

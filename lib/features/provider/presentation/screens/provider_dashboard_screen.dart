@@ -9,12 +9,57 @@ import '../widgets/order_card.dart';
 import '../../../profile/presentation/viewmodel/profile_viewmodel.dart';
 import '../pages/provider_verification_page.dart';
 import '../pages/provider_bookings_page.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../notifications/presentation/screens/notifications_screen.dart';
+import 'dart:async';
 
-class ProviderDashboardScreen extends ConsumerWidget {
+class ProviderDashboardScreen extends ConsumerStatefulWidget {
   const ProviderDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProviderDashboardScreen> createState() => _ProviderDashboardScreenState();
+}
+
+class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScreen> with WidgetsBindingObserver {
+  Timer? _notificationRefreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _startNotificationRefreshTimer();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _notificationRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(notificationsProvider);
+      ref.invalidate(unreadNotificationCountProvider);
+      _startNotificationRefreshTimer();
+    } else {
+      _notificationRefreshTimer?.cancel();
+    }
+  }
+
+  void _startNotificationRefreshTimer() {
+    _notificationRefreshTimer?.cancel();
+    _notificationRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) {
+        ref.invalidate(notificationsProvider);
+        ref.invalidate(unreadNotificationCountProvider);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final dashboardDataAsync = ref.watch(providerDashboardDataProvider);
     final verificationStatusAsync = ref.watch(providerVerificationStatusForDashboardProvider);
 
@@ -156,6 +201,13 @@ class ProviderDashboardScreen extends ConsumerWidget {
                     value: '${data.stats.totalOrders}',
                     icon: Icons.shopping_bag_outlined,
                     color: AppColors.badgeBlue,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ProviderBookingsPage(),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -165,6 +217,13 @@ class ProviderDashboardScreen extends ConsumerWidget {
                     value: '${data.stats.pendingOrders}',
                     icon: Icons.pending_outlined,
                     color: Colors.orange,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ProviderBookingsPage(filterStatus: 'PENDING'),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -181,6 +240,13 @@ class ProviderDashboardScreen extends ConsumerWidget {
                     value: '${data.stats.completedOrders}',
                     icon: Icons.check_circle_outline,
                     color: Colors.green,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ProviderBookingsPage(filterStatus: 'COMPLETED'),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -190,6 +256,13 @@ class ProviderDashboardScreen extends ConsumerWidget {
                     value: 'Rs. ${data.stats.totalEarnings}',
                     icon: Icons.account_balance_wallet_outlined,
                     color: Colors.purple,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ProviderBookingsPage(filterStatus: 'COMPLETED'),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -412,32 +485,66 @@ class ProviderDashboardScreen extends ConsumerWidget {
               ],
             ),
           ),
-          Stack(
-            children: [
-              IconButton(
-                icon: Icon(Icons.notifications_outlined, size: 28),
-                onPressed: () {},
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: AppColors.badgeBlue,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text(
-                    '3',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+          Consumer(
+            builder: (context, ref, child) {
+              final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
+              return unreadCountAsync.when(
+                data: (count) => Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_outlined, size: 28),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationsScreen(),
+                          ),
+                        );
+                      },
                     ),
-                  ),
+                    if (count > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: AppColors.badgeBlue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            count > 99 ? '99+' : '$count',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-            ],
+                loading: () => IconButton(
+                  icon: const Icon(Icons.notifications_outlined, size: 28),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                error: (_, __) => IconButton(
+                  icon: const Icon(Icons.notifications_outlined, size: 28),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           ),
         ],
       ),

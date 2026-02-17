@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dartz/dartz.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../../core/widgets/error_widget.dart';
 import '../widgets/payment_method_card.dart';
-import '../../data/repositories/payment_repository_impl.dart';
+import '../widgets/payment_phone_dialog.dart';
+import '../widgets/payment_code_dialog.dart';
 import '../../domain/entities/payment_entity.dart';
 import '../../presentation/providers/payment_provider.dart';
-import '../../../cart/presentation/providers/cart_provider.dart';
 
 final payableBookingsProvider = FutureProvider<List<PaymentEntity>>((ref) async {
   final repository = ref.watch(paymentRepositoryProvider);
@@ -376,6 +375,24 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         ? 'ESEWA'
         : 'FONEPAY';
 
+    final phoneNumber = await showDialog<String>(
+      context: context,
+      builder: (context) => const PaymentPhoneDialog(),
+    );
+
+    if (phoneNumber == null || phoneNumber.isEmpty || !mounted) {
+      return;
+    }
+
+    final code = await showDialog<String>(
+      context: context,
+      builder: (context) => const PaymentCodeDialog(),
+    );
+
+    if (code == null || code.isEmpty || !mounted) {
+      return;
+    }
+
     setState(() {
       _isProcessing = true;
     });
@@ -383,6 +400,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     try {
       final repository = ref.read(paymentRepositoryProvider);
       final result = await repository.payForBooking(booking.bookingId, methodName);
+
+      if (!mounted) return;
 
       result.fold(
         (failure) {
@@ -401,17 +420,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             _isProcessing = false;
           });
           ref.invalidate(payableBookingsProvider);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Payment successful via ${_selectedPaymentMethod == PaymentMethod.esewa ? 'eSewa' : 'FonePay'}!'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-          Navigator.of(context).pop();
+          if (mounted) {
+            _showPaymentConfirmed(context, booking, methodName);
+          }
         },
       );
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isProcessing = false;
       });
@@ -422,5 +437,138 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         ),
       );
     }
+  }
+
+  void _showPaymentConfirmed(BuildContext context, PaymentEntity booking, String methodName) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Payment Confirmed',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Your payment has been successfully processed',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[900] : Colors.grey[50],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Payment Method:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                        Text(
+                          methodName == 'ESEWA' ? 'eSewa' : 'FonePay',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Amount:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                        Text(
+                          'Rs ${booking.amount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryBlue,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

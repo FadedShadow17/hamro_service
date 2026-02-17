@@ -7,6 +7,7 @@ import '../../domain/repositories/provider_repository.dart';
 import '../datasources/provider_local_datasource.dart';
 import '../datasources/provider_remote_datasource.dart';
 import '../models/provider_order_model.dart';
+import '../models/provider_stats_model.dart';
 import '../../../booking/data/models/booking_model.dart';
 import '../../domain/repositories/provider_verification_repository.dart';
 
@@ -49,7 +50,36 @@ class ProviderRepositoryImpl implements ProviderRepository {
     if (hasInternet) {
       try {
         final dashboard = await remoteDataSource.getDashboardSummary();
-        return Right(dashboard.stats.toEntity());
+        final allBookingsResponse = await remoteDataSource.getProviderBookings();
+        
+        int totalOrders = allBookingsResponse.length;
+        int pendingOrders = 0;
+        int confirmedOrders = 0;
+        int completedOrders = 0;
+        int totalEarnings = 0;
+
+        for (final order in allBookingsResponse) {
+          final status = order.status.toUpperCase().trim();
+          
+          if (status == 'PENDING') {
+            pendingOrders++;
+          } else if (status == 'CONFIRMED') {
+            confirmedOrders++;
+          } else if (status == 'COMPLETED') {
+            completedOrders++;
+            totalEarnings += order.priceRs;
+          }
+        }
+
+        return Right(ProviderStatsModel(
+          totalOrders: totalOrders,
+          pendingOrders: pendingOrders,
+          confirmedOrders: confirmedOrders,
+          completedOrders: completedOrders,
+          totalEarnings: totalEarnings,
+          averageRating: dashboard.stats.averageRating,
+          totalReviews: dashboard.stats.totalReviews,
+        ).toEntity());
       } catch (e) {
         try {
           final model = await localDataSource.getProviderStats();

@@ -8,6 +8,7 @@ import '../../../../core/services/category_matcher_service.dart';
 import '../../../booking/presentation/widgets/booking_status_badge.dart';
 import '../../domain/entities/provider_order.dart';
 import '../providers/provider_dashboard_provider.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 
 class ProviderBookingsPage extends ConsumerStatefulWidget {
   final String? filterStatus;
@@ -419,6 +420,8 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
               );
               _loadOrders();
               ref.invalidate(providerDashboardDataProvider);
+              ref.invalidate(notificationsProvider);
+              ref.invalidate(unreadNotificationCountProvider);
             },
           );
         }
@@ -557,6 +560,8 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
               );
               _loadOrders();
               ref.invalidate(providerDashboardDataProvider);
+              ref.invalidate(notificationsProvider);
+              ref.invalidate(unreadNotificationCountProvider);
             },
           );
         }

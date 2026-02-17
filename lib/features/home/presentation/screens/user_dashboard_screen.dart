@@ -18,6 +18,8 @@ import '../../../services/presentation/widgets/service_item_card.dart';
 import '../../../services/presentation/widgets/service_grid_card.dart';
 import '../../../services/domain/entities/service_item.dart';
 import '../../../booking/presentation/screens/booking_screen.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../notifications/presentation/screens/notifications_screen.dart';
 import 'popular_near_you_screen.dart';
 
 class UserDashboardScreen extends ConsumerStatefulWidget {
@@ -27,21 +29,47 @@ class UserDashboardScreen extends ConsumerStatefulWidget {
   ConsumerState<UserDashboardScreen> createState() => _UserDashboardScreenState();
 }
 
-class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
+class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounceTimer;
+  Timer? _notificationRefreshTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _searchController.addListener(_onSearchChanged);
+    _startNotificationRefreshTimer();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _debounceTimer?.cancel();
+    _notificationRefreshTimer?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(notificationsProvider);
+      ref.invalidate(unreadNotificationCountProvider);
+      _startNotificationRefreshTimer();
+    } else {
+      _notificationRefreshTimer?.cancel();
+    }
+  }
+
+  void _startNotificationRefreshTimer() {
+    _notificationRefreshTimer?.cancel();
+    _notificationRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) {
+        ref.invalidate(notificationsProvider);
+        ref.invalidate(unreadNotificationCountProvider);
+      }
+    });
   }
 
   void _onSearchChanged() {
@@ -351,32 +379,66 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
               ],
             ),
           ),
-          Stack(
-            children: [
-              IconButton(
-                icon: Icon(Icons.notifications_outlined, size: 28),
-                onPressed: () {},
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: AppColors.badgeBlue,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text(
-                    '2',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+          Consumer(
+            builder: (context, ref, child) {
+              final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
+              return unreadCountAsync.when(
+                data: (count) => Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_outlined, size: 28),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationsScreen(),
+                          ),
+                        );
+                      },
                     ),
-                  ),
+                    if (count > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: AppColors.badgeBlue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            count > 99 ? '99+' : '$count',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-            ],
+                loading: () => IconButton(
+                  icon: const Icon(Icons.notifications_outlined, size: 28),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                error: (_, __) => IconButton(
+                  icon: const Icon(Icons.notifications_outlined, size: 28),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           ),
         ],
       ),
