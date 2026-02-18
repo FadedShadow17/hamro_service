@@ -381,11 +381,11 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('No'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Yes'),
+                child: const Text('Accept'),
               ),
             ],
           ),
@@ -455,11 +455,14 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Yes'),
+            child: const Text(
+              'Decline',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),

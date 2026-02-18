@@ -11,6 +11,7 @@ import '../../../notifications/presentation/providers/notification_provider.dart
 import '../../../ratings/presentation/widgets/rating_dialog.dart';
 import '../../../ratings/presentation/providers/rating_provider.dart';
 import '../widgets/edit_booking_dialog.dart';
+import '../../../payment/presentation/screens/payment_screen.dart';
 
 class UserBookingsPage extends ConsumerStatefulWidget {
   final String? filterStatus;
@@ -555,6 +556,26 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> with Widget
   }
 
   Future<void> _editBooking(BookingModel booking) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Booking'),
+        content: const Text('Are you sure you want to edit this booking?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Edit'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => EditBookingDialog(booking: booking),
@@ -660,11 +681,14 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> with Widget
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('No'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Yes'),
+            child: const Text(
+              'Cancel Booking',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -692,8 +716,35 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> with Widget
     }
   }
 
-  void _makePayment(BookingModel booking) {
-    Navigator.of(context).pushNamed('/payment', arguments: booking);
+  Future<void> _makePayment(BookingModel booking) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Proceed to Payment'),
+        content: const Text('Are you sure you want to proceed to payment for this booking?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Pay Now',
+              style: TextStyle(color: Colors.green),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const PaymentScreen(),
+        ),
+      );
+    }
   }
 }
 

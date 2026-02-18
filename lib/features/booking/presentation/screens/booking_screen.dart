@@ -163,8 +163,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Booking created successfully!'),
+                content: Text('Booking placed! Please wait for providers to accept your order'),
                 backgroundColor: Colors.green,
+                duration: Duration(seconds: 4),
               ),
             );
             Navigator.of(context).pop();
