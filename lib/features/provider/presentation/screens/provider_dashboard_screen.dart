@@ -27,6 +27,11 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(notificationsProvider);
+      ref.invalidate(unreadNotificationCountProvider);
+      ref.invalidate(providerDashboardDataProvider);
+    });
     _startNotificationRefreshTimer();
   }
 
@@ -51,10 +56,11 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
 
   void _startNotificationRefreshTimer() {
     _notificationRefreshTimer?.cancel();
-    _notificationRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _notificationRefreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       if (mounted) {
         ref.invalidate(notificationsProvider);
         ref.invalidate(unreadNotificationCountProvider);
+        ref.invalidate(providerDashboardDataProvider);
       }
     });
   }

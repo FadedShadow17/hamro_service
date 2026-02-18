@@ -7,6 +7,7 @@ import '../../../services/domain/entities/service_item.dart';
 import '../../../services/presentation/providers/services_list_provider.dart';
 import '../../../provider/presentation/providers/provider_dashboard_provider.dart';
 import '../../../home/presentation/providers/user_dashboard_stats_provider.dart';
+import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../domain/repositories/booking_repository.dart';
 import '../providers/booking_provider.dart';
 
@@ -159,6 +160,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         (booking) {
           ref.invalidate(providerDashboardDataProvider);
           ref.invalidate(userDashboardStatsProvider);
+          ref.invalidate(notificationsProvider);
+          ref.invalidate(unreadNotificationCountProvider);
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

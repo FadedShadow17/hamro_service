@@ -482,12 +482,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
             ),
           );
         },
-        (payment) {
+        (payment) async {
           setState(() {
             _isProcessing = false;
           });
           ref.invalidate(payableBookingsProvider);
           ref.invalidate(paymentHistoryProvider);
+          await ref.read(payableBookingsProvider.future);
+          await ref.read(paymentHistoryProvider.future);
           if (mounted) {
             _showPaymentConfirmed(context, booking, methodName);
           }
@@ -510,11 +512,13 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
   void _showPaymentConfirmed(BuildContext context, PaymentEntity booking, String methodName) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final navigator = Navigator.of(context);
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Consumer(
+        builder: (context, ref, _) => Dialog(
         backgroundColor: cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -613,8 +617,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    Navigator.of(dialogContext).pop();
+                    ref.invalidate(payableBookingsProvider);
+                    ref.invalidate(paymentHistoryProvider);
+                    if (mounted) {
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        if (mounted) {
+                          _tabController.animateTo(1);
+                        }
+                      });
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryBlue,
@@ -636,6 +648,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
             ],
           ),
         ),
+      ),
       ),
     );
   }

@@ -38,6 +38,12 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _searchController.addListener(_onSearchChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(notificationsProvider);
+      ref.invalidate(unreadNotificationCountProvider);
+      ref.invalidate(userDashboardStatsProvider);
+      ref.invalidate(homeDashboardDataProvider);
+    });
     _startNotificationRefreshTimer();
   }
 
@@ -55,6 +61,8 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with 
     if (state == AppLifecycleState.resumed) {
       ref.invalidate(notificationsProvider);
       ref.invalidate(unreadNotificationCountProvider);
+      ref.invalidate(userDashboardStatsProvider);
+      ref.invalidate(homeDashboardDataProvider);
       _startNotificationRefreshTimer();
     } else {
       _notificationRefreshTimer?.cancel();
@@ -63,10 +71,12 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with 
 
   void _startNotificationRefreshTimer() {
     _notificationRefreshTimer?.cancel();
-    _notificationRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _notificationRefreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       if (mounted) {
         ref.invalidate(notificationsProvider);
         ref.invalidate(unreadNotificationCountProvider);
+        ref.invalidate(userDashboardStatsProvider);
+        ref.invalidate(homeDashboardDataProvider);
       }
     });
   }
