@@ -30,6 +30,7 @@ class UserSessionService {
     final isLoggedInRemoved = await _prefs.remove(_sessionIsLoggedInKey);
     await clearToken();
     await clearRole();
+    await _prefs.remove('role_selected');
     return userIdRemoved && isLoggedInRemoved;
   }
 

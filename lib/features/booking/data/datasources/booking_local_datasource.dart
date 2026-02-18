@@ -18,19 +18,19 @@ class BookingLocalDataSourceImpl implements BookingLocalDataSource {
         ServiceOption(
           id: 'basic_clean',
           name: 'Basic Clean',
-          price: 500.0,
+          price: 5000.0,
           duration: '2 hours',
         ),
         ServiceOption(
           id: 'deep_clean',
           name: 'Deep Clean',
-          price: 1200.0,
+          price: 5000.0,
           duration: '4 hours',
         ),
         ServiceOption(
           id: 'premium_clean',
           name: 'Premium Clean',
-          price: 2000.0,
+          price: 5000.0,
           duration: '6 hours',
         ),
       ];
@@ -39,19 +39,19 @@ class BookingLocalDataSourceImpl implements BookingLocalDataSource {
         ServiceOption(
           id: 'quick_fix',
           name: 'Quick Fix',
-          price: 800.0,
+          price: 5000.0,
           duration: '1 hour',
         ),
         ServiceOption(
           id: 'standard',
           name: 'Standard',
-          price: 1500.0,
+          price: 5000.0,
           duration: '2 hours',
         ),
         ServiceOption(
           id: 'complete',
           name: 'Complete',
-          price: 3000.0,
+          price: 5000.0,
           duration: '4 hours',
         ),
       ];
@@ -60,19 +60,19 @@ class BookingLocalDataSourceImpl implements BookingLocalDataSource {
         ServiceOption(
           id: 'basic',
           name: 'Basic',
-          price: 600.0,
+          price: 5000.0,
           duration: '1 hour',
         ),
         ServiceOption(
           id: 'standard',
           name: 'Standard',
-          price: 1200.0,
+          price: 5000.0,
           duration: '2 hours',
         ),
         ServiceOption(
           id: 'full_service',
           name: 'Full Service',
-          price: 2500.0,
+          price: 5000.0,
           duration: '4 hours',
         ),
       ];
@@ -81,19 +81,19 @@ class BookingLocalDataSourceImpl implements BookingLocalDataSource {
         ServiceOption(
           id: 'basic',
           name: 'Basic',
-          price: 700.0,
+          price: 5000.0,
           duration: '2 hours',
         ),
         ServiceOption(
           id: 'standard',
           name: 'Standard',
-          price: 1400.0,
+          price: 5000.0,
           duration: '4 hours',
         ),
         ServiceOption(
           id: 'complete',
           name: 'Complete',
-          price: 2800.0,
+          price: 5000.0,
           duration: '6 hours',
         ),
       ];
@@ -102,7 +102,7 @@ class BookingLocalDataSourceImpl implements BookingLocalDataSource {
         ServiceOption(
           id: 'single_room',
           name: 'Single Room',
-          price: 2000.0,
+          price: 5000.0,
           duration: '1 day',
         ),
         ServiceOption(
@@ -114,7 +114,7 @@ class BookingLocalDataSourceImpl implements BookingLocalDataSource {
         ServiceOption(
           id: 'full_house',
           name: 'Full House',
-          price: 12000.0,
+          price: 5000.0,
           duration: '7 days',
         ),
       ];
@@ -123,19 +123,19 @@ class BookingLocalDataSourceImpl implements BookingLocalDataSource {
         ServiceOption(
           id: 'basic',
           name: 'Basic',
-          price: 1000.0,
+          price: 5000.0,
           duration: '1 hour',
         ),
         ServiceOption(
           id: 'standard',
           name: 'Standard',
-          price: 2000.0,
+          price: 5000.0,
           duration: '2 hours',
         ),
         ServiceOption(
           id: 'premium',
           name: 'Premium',
-          price: 4000.0,
+          price: 5000.0,
           duration: '4 hours',
         ),
       ];

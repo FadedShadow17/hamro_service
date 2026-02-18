@@ -1,4 +1,9 @@
+
+
 part of 'profession_hive_model.dart';
+
+
+
 
 class ProfessionHiveModelAdapter extends TypeAdapter<ProfessionHiveModel> {
   @override

@@ -69,8 +69,8 @@ class BookingRepositoryImpl implements BookingRepository {
                 final startTime = slot['start'] as String?;
                 if (startTime != null && !uniqueTimes.contains(startTime)) {
                   uniqueTimes.add(startTime);
-                  // Use startTime directly as id (it should be in HH:mm format from API)
-                  // If not, we'll use it as-is since backend expects HH:mm format
+
+
                   timeSlots.add(TimeSlot(
                     id: startTime,
                     time: _formatTime(startTime),
@@ -120,7 +120,7 @@ class BookingRepositoryImpl implements BookingRepository {
         final period = hour >= 12 ? 'PM' : 'AM';
         final displayHour = hour > 12 ? hour - 12 : (hour == 12 ? 12 : hour);
         final timeStr = '$displayHour:${minute.toString().padLeft(2, '0')} $period';
-        // Use HH:mm format for id (backend expects this format)
+
         final idStr = '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
         slots.add(TimeSlot(
           id: idStr,

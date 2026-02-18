@@ -51,7 +51,7 @@ class ProviderAboutPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Role Display
+
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -109,7 +109,6 @@ class ProviderAboutPage extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
 
-              // Verification Status Section
               Text(
                 'Verification Status',
                 style: TextStyle(
@@ -145,7 +144,6 @@ class ProviderAboutPage extends ConsumerWidget {
               ),
               const SizedBox(height: 24),
 
-              // Profile Information
               Text(
                 'Profile Information',
                 style: TextStyle(

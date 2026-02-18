@@ -21,17 +21,15 @@ class LandingPageScreen extends ConsumerWidget {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Header with Logo and Auth Buttons
+
             SliverToBoxAdapter(
               child: _buildHeader(context),
             ),
-            
-            // Hero Section
+
             SliverToBoxAdapter(
               child: _buildHeroSection(context),
             ),
-            
-            // Services Section
+
             SliverToBoxAdapter(
               child: dashboardDataAsync.when(
                 data: (data) => _buildServicesSection(context, data),
@@ -42,23 +40,19 @@ class LandingPageScreen extends ConsumerWidget {
                 error: (error, stack) => const SizedBox.shrink(),
               ),
             ),
-            
-            // How It Works Section
+
             SliverToBoxAdapter(
               child: _buildHowItWorksSection(context),
             ),
-            
-            // Why Us Section
+
             SliverToBoxAdapter(
               child: _buildWhyUsSection(context),
             ),
-            
-            // CTA Section
+
             SliverToBoxAdapter(
               child: _buildCTASection(context),
             ),
-            
-            // Footer
+
             SliverToBoxAdapter(
               child: _buildFooter(context),
             ),
@@ -86,7 +80,7 @@ class LandingPageScreen extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Logo
+
           Row(
             children: [
               Container(
@@ -113,8 +107,7 @@ class LandingPageScreen extends ConsumerWidget {
               ),
             ],
           ),
-          
-          // Auth Buttons
+
           Row(
             children: [
               TextButton(
@@ -212,7 +205,7 @@ class LandingPageScreen extends ConsumerWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    // Navigate to services
+
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const ServicesByCategoryScreen(

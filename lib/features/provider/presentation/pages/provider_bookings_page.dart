@@ -9,6 +9,7 @@ import '../../../booking/presentation/widgets/booking_status_badge.dart';
 import '../../domain/entities/provider_order.dart';
 import '../providers/provider_dashboard_provider.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../home/presentation/providers/user_dashboard_stats_provider.dart';
 
 class ProviderBookingsPage extends ConsumerStatefulWidget {
   final String? filterStatus;
@@ -30,7 +31,7 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
   @override
   void initState() {
     super.initState();
-    _selectedFilter = widget.filterStatus;
+    _selectedFilter = widget.filterStatus ?? 'ALL';
     _loadOrders();
   }
 
@@ -38,7 +39,10 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
     setState(() => _isLoading = true);
 
     final providerRepository = ref.read(providerRepositoryProvider);
-    final statusFilter = _selectedFilter == 'ALL' ? null : _selectedFilter;
+    String? statusFilter;
+    if (_selectedFilter != null && _selectedFilter != 'ALL') {
+      statusFilter = _selectedFilter!.toUpperCase();
+    }
     final result = await providerRepository.getProviderBookings(status: statusFilter);
 
     result.fold(
@@ -70,8 +74,13 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
   }
 
   List<ProviderOrder> get _filteredOrders {
-    if (_selectedFilter == null || _selectedFilter == 'ALL') return _orders;
-    return _orders.where((o) => o.status.toUpperCase() == _selectedFilter!.toUpperCase()).toList();
+    var filtered = _orders;
+    
+    if (_selectedFilter != null && _selectedFilter != 'ALL') {
+      filtered = filtered.where((o) => o.status.toUpperCase() == _selectedFilter!.toUpperCase()).toList();
+    }
+    
+    return filtered;
   }
 
   @override
@@ -102,13 +111,13 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip('All', 'ALL'),
+                  _buildStatusFilterChip('All', 'ALL'),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Pending', BookingStatus.pending),
+                  _buildStatusFilterChip('Pending', BookingStatus.pending),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Confirmed', BookingStatus.confirmed),
+                  _buildStatusFilterChip('Confirmed', BookingStatus.confirmed),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Completed', BookingStatus.completed),
+                  _buildStatusFilterChip('Completed', BookingStatus.completed),
                 ],
               ),
             ),
@@ -134,7 +143,7 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
     );
   }
 
-  Widget _buildFilterChip(String label, String value) {
+  Widget _buildStatusFilterChip(String label, String value) {
     final isSelected = _selectedFilter == value;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -143,18 +152,12 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
       selected: isSelected,
       onSelected: (selected) {
         setState(() {
-          _selectedFilter = selected ? value : null;
-          _loadOrders();
+          _selectedFilter = selected ? value : 'ALL';
         });
+        _loadOrders();
       },
       selectedColor: AppColors.primary.withValues(alpha: 0.2),
       checkmarkColor: AppColors.primary,
-      labelStyle: TextStyle(
-        color: isSelected
-            ? AppColors.primary
-            : (isDark ? AppColors.textWhite70 : AppColors.textSecondary),
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-      ),
     );
   }
 
@@ -181,9 +184,9 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            _selectedFilter == null || _selectedFilter == 'all'
-                ? 'You don\'t have any jobs yet'
-                : 'No $_selectedFilter jobs found',
+            _selectedFilter == null || _selectedFilter == 'ALL'
+                ? 'You don\'t have any jobs yet. New bookings will appear here when users request your services.'
+                : 'No ${_selectedFilter?.toLowerCase() ?? ''} jobs found',
             style: TextStyle(
               fontSize: 14,
               color: isDark ? AppColors.textWhite50 : AppColors.textLight,
@@ -420,6 +423,7 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
               );
               _loadOrders();
               ref.invalidate(providerDashboardDataProvider);
+              ref.invalidate(userDashboardStatsProvider);
               ref.invalidate(notificationsProvider);
               ref.invalidate(unreadNotificationCountProvider);
             },

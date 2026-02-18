@@ -50,4 +50,21 @@ class ServicesRepositoryImpl implements ServicesRepository {
       }
     }
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAvailableProviders({
+    required String serviceId,
+    required String date,
+    required String area,
+  }) async {
+    try {
+      return await remoteDataSource.getAvailableProviders(
+        serviceId: serviceId,
+        date: date,
+        area: area,
+      );
+    } catch (e) {
+      return [];
+    }
+  }
 }

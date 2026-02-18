@@ -14,6 +14,7 @@ abstract class BookingRepository {
   });
   Future<Either<Failure, BookingModel>> createBooking({
     required String serviceId,
+    String? providerId,
     required String date,
     required String timeSlot,
     required String area,

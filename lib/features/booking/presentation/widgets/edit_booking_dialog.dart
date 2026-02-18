@@ -66,6 +66,23 @@ class _EditBookingDialogState extends ConsumerState<EditBookingDialog> {
     }
   }
 
+  String _normalizeTimeSlot(String timeSlot) {
+    if (timeSlot.isEmpty) return '';
+    final cleaned = timeSlot.replaceAll(RegExp(r'[:\s]'), '').toLowerCase();
+    if (cleaned.contains('pm') || cleaned.contains('am')) {
+      return cleaned;
+    }
+    final hour = int.tryParse(timeSlot.split(':').first);
+    if (hour != null) {
+      if (hour >= 12) {
+        return '${hour == 12 ? 12 : hour - 12}pm';
+      } else {
+        return '${hour == 0 ? 12 : hour}am';
+      }
+    }
+    return cleaned;
+  }
+
   Future<void> _loadAvailableTimeSlots() async {
     if (_selectedDate == null || widget.booking.service == null) return;
 
@@ -95,9 +112,24 @@ class _EditBookingDialogState extends ConsumerState<EditBookingDialog> {
           setState(() {
             _isLoadingTimeSlots = false;
             _availableTimeSlots = timeSlots.map((slot) => slot.time).toList();
-            if (_availableTimeSlots.isNotEmpty && _selectedTimeSlot == null) {
-              _selectedTimeSlot = _availableTimeSlots.first;
+            
+            final currentBookingTimeSlot = widget.booking.timeSlot;
+            final matchingSlot = _availableTimeSlots.firstWhere(
+              (slot) => slot == currentBookingTimeSlot || 
+                        _normalizeTimeSlot(slot) == _normalizeTimeSlot(currentBookingTimeSlot),
+              orElse: () => '',
+            );
+            
+            if (matchingSlot.isNotEmpty) {
+              _selectedTimeSlot = matchingSlot;
               _timeSlotController.text = _selectedTimeSlot!;
+            } else if (_availableTimeSlots.isNotEmpty) {
+              if (_selectedTimeSlot == null || !_availableTimeSlots.contains(_selectedTimeSlot)) {
+                _selectedTimeSlot = _availableTimeSlots.first;
+                _timeSlotController.text = _selectedTimeSlot!;
+              }
+            } else if (_selectedTimeSlot != null) {
+              _availableTimeSlots.add(_selectedTimeSlot!);
             }
           });
         },
@@ -205,7 +237,9 @@ class _EditBookingDialogState extends ConsumerState<EditBookingDialog> {
                 )
               else
                 DropdownButtonFormField<String>(
-                  initialValue: _selectedTimeSlot,
+                  value: _selectedTimeSlot != null && _availableTimeSlots.contains(_selectedTimeSlot)
+                      ? _selectedTimeSlot
+                      : (_availableTimeSlots.isNotEmpty ? _availableTimeSlots.first : null),
                   decoration: InputDecoration(
                     labelText: 'Time Slot',
                     prefixIcon: const Icon(Icons.access_time),

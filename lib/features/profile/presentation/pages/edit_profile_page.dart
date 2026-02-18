@@ -40,7 +40,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     if (profile != null) {
       _nameController.text = profile.fullName;
       _emailController.text = profile.email;
-      // Remove +977- prefix if present when loading
+
       final phone = profile.phoneNumber ?? '';
       _phoneController.text = phone.replaceFirst(RegExp(r'^\+977-'), '');
       _addressController.text = profile.address ?? '';
@@ -169,7 +169,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         avatarUrl = imageUploadState.url;
       }
 
-      // Add +977- prefix to phone number if provided
       final phone = _phoneController.text.trim();
       final formattedPhone = phone.isEmpty ? null : '+977-$phone';
 

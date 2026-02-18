@@ -73,7 +73,7 @@ class AuthRemoteDatasource {
         if (e.response!.data is Map) {
           message = e.response!.data['message'] as String? ??
               e.response!.data['error'] as String?;
-          // Handle validation errors
+
           if (message == null && e.response!.data.containsKey('errors')) {
             final errors = e.response!.data['errors'];
             if (errors is Map) {

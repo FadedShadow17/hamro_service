@@ -44,10 +44,10 @@ class FavoritesPage extends ConsumerWidget {
                       );
                     },
                     onBookNow: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => BookingScreen(service: service),
-                        ),
+                      showDialog(
+                        context: context,
+                        barrierColor: Colors.black.withValues(alpha: 0.6),
+                        builder: (context) => BookingScreen(service: service),
                       );
                     },
                   ),

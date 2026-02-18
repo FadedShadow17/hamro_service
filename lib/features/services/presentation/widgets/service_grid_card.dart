@@ -116,10 +116,16 @@ class ServiceGridCard extends ConsumerWidget {
           color: cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-            width: 1,
+            color: iconColor.withValues(alpha: 0.3),
+            width: 1.5,
           ),
           boxShadow: [
+            BoxShadow(
+              color: iconColor.withValues(alpha: isDark ? 0.25 : 0.15),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+              spreadRadius: 0,
+            ),
             BoxShadow(
               color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
               blurRadius: 12,
@@ -215,15 +221,20 @@ class ServiceGridCard extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.accentOrange.withValues(alpha: 0.1),
+                        color: iconColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: iconColor.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
                       ),
                       child: Text(
-                        service.categoryTag,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.accentOrange,
+                        service.categoryTag.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: iconColor,
+                          letterSpacing: 0.5,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -254,7 +265,7 @@ class ServiceGridCard extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primaryBlue,
+                        color: iconColor,
                       ),
                     ),
                   ],

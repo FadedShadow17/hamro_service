@@ -6,6 +6,7 @@ import '../providers/cart_provider.dart';
 import '../../../payment/presentation/screens/payment_screen.dart';
 import '../../../booking/presentation/providers/booking_provider.dart';
 import '../../../provider/presentation/providers/provider_dashboard_provider.dart';
+import '../../../home/presentation/providers/user_dashboard_stats_provider.dart';
 
 class CartPage extends ConsumerStatefulWidget {
   const CartPage({super.key});
@@ -94,13 +95,31 @@ class _CartPageState extends ConsumerState<CartPage> {
       await ref.read(cartProvider.notifier).clearCart();
 
       ref.invalidate(providerDashboardDataProvider);
+      ref.invalidate(userDashboardStatsProvider);
+
+      setState(() {
+        _isCreatingBookings = false;
+      });
+      ref.read(cartProvider.notifier).state = cartState.copyWith(isLoading: false);
 
       if (mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const PaymentScreen(),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Booking placed! Please wait for service experts to accept your booking'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
           ),
         );
+
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const PaymentScreen(),
+              ),
+            );
+          }
+        });
       }
     } catch (e) {
       setState(() {

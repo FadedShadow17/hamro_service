@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/booking_status.dart';
+import '../../../../core/utils/pricing_helper.dart';
 import '../../data/models/booking_model.dart';
 import '../providers/booking_provider.dart';
 import '../widgets/booking_status_badge.dart';
@@ -12,7 +13,7 @@ import '../../../ratings/presentation/providers/rating_provider.dart';
 import '../widgets/edit_booking_dialog.dart';
 
 class UserBookingsPage extends ConsumerStatefulWidget {
-  final String? filterStatus; // 'active', 'completed', 'pending', 'confirmed', 'cancelled', or null for all
+  final String? filterStatus;
 
   const UserBookingsPage({
     super.key,
@@ -23,7 +24,7 @@ class UserBookingsPage extends ConsumerStatefulWidget {
   ConsumerState<UserBookingsPage> createState() => _UserBookingsPageState();
 }
 
-class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
+class _UserBookingsPageState extends ConsumerState<UserBookingsPage> with WidgetsBindingObserver {
   String? _selectedFilter;
   bool _isLoading = false;
   List<BookingModel> _bookings = [];
@@ -31,17 +32,43 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _selectedFilter = widget.filterStatus;
     _loadBookings();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadBookings();
+    }
   }
 
   Future<void> _loadBookings() async {
     setState(() => _isLoading = true);
     
     final bookingRepository = ref.read(bookingRepositoryProvider);
-    final statusFilter = _selectedFilter == 'active' 
-        ? null 
-        : _selectedFilter?.toUpperCase();
+    String? statusFilter;
+    
+    if (_selectedFilter != null && _selectedFilter!.isNotEmpty) {
+      final filterUpper = _selectedFilter!.toUpperCase();
+      if (filterUpper == 'ACTIVE') {
+        statusFilter = null;
+      } else if (filterUpper == 'PENDING') {
+        statusFilter = BookingStatus.pending;
+      } else {
+        statusFilter = filterUpper;
+      }
+    } else {
+      statusFilter = null;
+    }
+    
     final result = await bookingRepository.getMyBookings(status: statusFilter);
     
     result.fold(
@@ -72,6 +99,7 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
       setState(() {
         _selectedFilter = widget.filterStatus;
       });
+      _loadBookings();
     }
   }
 
@@ -81,6 +109,13 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
     }
     
     final filter = _selectedFilter!.toUpperCase().trim();
+    
+    if (filter == 'ACTIVE') {
+      return _bookings.where((b) {
+        final status = b.status.toUpperCase().trim();
+        return status == 'PENDING' || status == 'CONFIRMED';
+      }).toList();
+    }
     
     return _bookings.where((b) {
       final status = b.status.toUpperCase().trim();
@@ -100,7 +135,6 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
       ),
       body: Column(
         children: [
-          // Filter Chips
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
@@ -131,7 +165,6 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
             ),
           ),
           
-          // Bookings List
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -201,8 +234,8 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
           const SizedBox(height: 8),
           Text(
             _selectedFilter == null
-                ? 'You haven\'t made any bookings yet'
-                : 'No $_selectedFilter bookings found',
+                ? 'You haven\'t made any bookings yet. Book a service to get started!'
+                : 'No ${_selectedFilter == 'active' ? 'active' : _selectedFilter?.toLowerCase() ?? ''} bookings found',
             style: TextStyle(
               fontSize: 14,
               color: isDark ? AppColors.textWhite50 : AppColors.textLight,
@@ -296,6 +329,29 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
                         fontSize: 14,
                         color: isDark ? AppColors.textWhite70 : AppColors.textSecondary,
                       ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Amount',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? AppColors.textWhite70 : AppColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    'Rs. ${_getBookingPrice(booking)}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark 
+                        ? Colors.blue.shade300
+                        : AppColors.primaryBlue,
                     ),
                   ),
                 ],
@@ -462,6 +518,23 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
     );
   }
 
+  double _getBookingPrice(BookingModel booking) {
+    if (booking.service != null) {
+      final price = booking.service?['totalPrice'] ??
+          booking.service?['serviceOptionPrice'] ??
+          booking.service?['price'] ??
+          booking.service?['basePrice'] ??
+          booking.service?['priceRs'] ??
+          0.0;
+      final priceDouble = (price is num ? price : 0.0).toDouble();
+      if (priceDouble > 0) {
+        return priceDouble;
+      }
+      final categoryTag = booking.service?['categoryTag'] ?? '';
+      return PricingHelper.getPriceWithFallback(0, categoryTag);
+    }
+    return 0.0;
+  }
 
   String _formatDate(String dateStr) {
     try {
@@ -620,7 +693,6 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
   }
 
   void _makePayment(BookingModel booking) {
-    // Navigate to payment page
     Navigator.of(context).pushNamed('/payment', arguments: booking);
   }
 }

@@ -36,6 +36,40 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
 
   BookingRemoteDataSourceImpl({required Dio dio}) : _dio = dio;
 
+  static String _normalizeTimeSlotToHHmm(String timeSlot) {
+    final trimmed = timeSlot.trim();
+    
+    if (RegExp(r'^([0-1][0-9]|2[0-3]):[0-5][0-9]$').hasMatch(trimmed)) {
+      return trimmed;
+    }
+    
+    final timeMatch = RegExp(r'(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)').firstMatch(trimmed);
+    if (timeMatch != null) {
+      int hour = int.parse(timeMatch.group(1)!);
+      final minute = timeMatch.group(2)!;
+      final ampm = timeMatch.group(3)!.toUpperCase();
+      
+      if (ampm == 'PM' && hour != 12) {
+        hour += 12;
+      } else if (ampm == 'AM' && hour == 12) {
+        hour = 0;
+      }
+      
+      return '${hour.toString().padLeft(2, '0')}:$minute';
+    }
+    
+    final rangeMatch = RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(trimmed);
+    if (rangeMatch != null) {
+      final hour = int.parse(rangeMatch.group(1)!);
+      final minute = rangeMatch.group(2)!;
+      if (hour >= 0 && hour <= 23) {
+        return '${hour.toString().padLeft(2, '0')}:$minute';
+      }
+    }
+    
+    return trimmed;
+  }
+
   @override
   Future<BookingModel> createBooking({
     required String serviceId,
@@ -47,7 +81,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       final body = <String, dynamic>{
         'serviceId': serviceId,
         'date': date,
-        'timeSlot': timeSlot,
+        'timeSlot': _normalizeTimeSlotToHHmm(timeSlot),
         'area': area,
       };
 
@@ -55,14 +89,23 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       final data = response.data;
 
       Map<String, dynamic> bookingData;
-      if (data is Map) {
+      if (data is Map<String, dynamic>) {
         if (data.containsKey('booking')) {
-          bookingData = Map<String, dynamic>.from(data['booking'] as Map);
+          final booking = data['booking'];
+          if (booking is Map<String, dynamic>) {
+            bookingData = booking;
+          } else if (booking is Map) {
+            bookingData = Map<String, dynamic>.from(booking);
+          } else {
+            throw Exception('Invalid booking data format: expected Map, got ${booking.runtimeType}');
+          }
         } else {
-          bookingData = Map<String, dynamic>.from(data);
+          bookingData = data;
         }
+      } else if (data is Map) {
+        bookingData = Map<String, dynamic>.from(data);
       } else {
-        throw Exception('Invalid response format');
+        throw Exception('Invalid response format: expected Map, got ${data.runtimeType}');
       }
 
       return BookingModel.fromJson(bookingData);
@@ -97,12 +140,28 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         if (data.containsKey('bookings')) {
           final bookingsList = data['bookings'] as List;
           bookings = bookingsList
-              .map((booking) => BookingModel.fromJson(Map<String, dynamic>.from(booking as Map)))
+              .map((booking) {
+                if (booking is Map<String, dynamic>) {
+                  return BookingModel.fromJson(booking);
+                } else if (booking is Map) {
+                  return BookingModel.fromJson(Map<String, dynamic>.from(booking));
+                } else {
+                  throw Exception('Invalid booking format: expected Map, got ${booking.runtimeType}');
+                }
+              })
               .toList();
         } else if (data.containsKey('data')) {
           final bookingsList = data['data'] as List;
           bookings = bookingsList
-              .map((booking) => BookingModel.fromJson(Map<String, dynamic>.from(booking as Map)))
+              .map((booking) {
+                if (booking is Map<String, dynamic>) {
+                  return BookingModel.fromJson(booking);
+                } else if (booking is Map) {
+                  return BookingModel.fromJson(Map<String, dynamic>.from(booking));
+                } else {
+                  throw Exception('Invalid booking format: expected Map, got ${booking.runtimeType}');
+                }
+              })
               .toList();
         }
       } else if (data is List) {
@@ -130,14 +189,23 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       final data = response.data;
 
       Map<String, dynamic> bookingData;
-      if (data is Map) {
+      if (data is Map<String, dynamic>) {
         if (data.containsKey('booking')) {
-          bookingData = Map<String, dynamic>.from(data['booking'] as Map);
+          final booking = data['booking'];
+          if (booking is Map<String, dynamic>) {
+            bookingData = booking;
+          } else if (booking is Map) {
+            bookingData = Map<String, dynamic>.from(booking);
+          } else {
+            throw Exception('Invalid booking data format: expected Map, got ${booking.runtimeType}');
+          }
         } else {
-          bookingData = Map<String, dynamic>.from(data);
+          bookingData = data;
         }
+      } else if (data is Map) {
+        bookingData = Map<String, dynamic>.from(data);
       } else {
-        throw Exception('Invalid response format');
+        throw Exception('Invalid response format: expected Map, got ${data.runtimeType}');
       }
 
       return BookingModel.fromJson(bookingData);
@@ -172,12 +240,28 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         if (data.containsKey('bookings')) {
           final bookingsList = data['bookings'] as List;
           bookings = bookingsList
-              .map((booking) => BookingModel.fromJson(Map<String, dynamic>.from(booking as Map)))
+              .map((booking) {
+                if (booking is Map<String, dynamic>) {
+                  return BookingModel.fromJson(booking);
+                } else if (booking is Map) {
+                  return BookingModel.fromJson(Map<String, dynamic>.from(booking));
+                } else {
+                  throw Exception('Invalid booking format: expected Map, got ${booking.runtimeType}');
+                }
+              })
               .toList();
         } else if (data.containsKey('data')) {
           final bookingsList = data['data'] as List;
           bookings = bookingsList
-              .map((booking) => BookingModel.fromJson(Map<String, dynamic>.from(booking as Map)))
+              .map((booking) {
+                if (booking is Map<String, dynamic>) {
+                  return BookingModel.fromJson(booking);
+                } else if (booking is Map) {
+                  return BookingModel.fromJson(Map<String, dynamic>.from(booking));
+                } else {
+                  throw Exception('Invalid booking format: expected Map, got ${booking.runtimeType}');
+                }
+              })
               .toList();
         }
       } else if (data is List) {
@@ -204,9 +288,25 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       final response = await _dio.patch('/api/provider/bookings/$bookingId/accept');
       final data = response.data;
 
-      final bookingData = data is Map && data.containsKey('booking')
-          ? data['booking']
-          : data;
+      Map<String, dynamic> bookingData;
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('booking')) {
+          final booking = data['booking'];
+          if (booking is Map<String, dynamic>) {
+            bookingData = booking;
+          } else if (booking is Map) {
+            bookingData = Map<String, dynamic>.from(booking);
+          } else {
+            throw Exception('Invalid booking data format: expected Map, got ${booking.runtimeType}');
+          }
+        } else {
+          bookingData = data;
+        }
+      } else if (data is Map) {
+        bookingData = Map<String, dynamic>.from(data);
+      } else {
+        throw Exception('Invalid response format: expected Map, got ${data.runtimeType}');
+      }
 
       return BookingModel.fromJson(bookingData);
     } on DioException catch (e) {
@@ -226,9 +326,25 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       final response = await _dio.patch('/api/provider/bookings/$bookingId/decline');
       final data = response.data;
 
-      final bookingData = data is Map && data.containsKey('booking')
-          ? data['booking']
-          : data;
+      Map<String, dynamic> bookingData;
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('booking')) {
+          final booking = data['booking'];
+          if (booking is Map<String, dynamic>) {
+            bookingData = booking;
+          } else if (booking is Map) {
+            bookingData = Map<String, dynamic>.from(booking);
+          } else {
+            throw Exception('Invalid booking data format: expected Map, got ${booking.runtimeType}');
+          }
+        } else {
+          bookingData = data;
+        }
+      } else if (data is Map) {
+        bookingData = Map<String, dynamic>.from(data);
+      } else {
+        throw Exception('Invalid response format: expected Map, got ${data.runtimeType}');
+      }
 
       return BookingModel.fromJson(bookingData);
     } on DioException catch (e) {
@@ -248,9 +364,25 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       final response = await _dio.patch('/api/provider/bookings/$bookingId/complete');
       final data = response.data;
 
-      final bookingData = data is Map && data.containsKey('booking')
-          ? data['booking']
-          : data;
+      Map<String, dynamic> bookingData;
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('booking')) {
+          final booking = data['booking'];
+          if (booking is Map<String, dynamic>) {
+            bookingData = booking;
+          } else if (booking is Map) {
+            bookingData = Map<String, dynamic>.from(booking);
+          } else {
+            throw Exception('Invalid booking data format: expected Map, got ${booking.runtimeType}');
+          }
+        } else {
+          bookingData = data;
+        }
+      } else if (data is Map) {
+        bookingData = Map<String, dynamic>.from(data);
+      } else {
+        throw Exception('Invalid response format: expected Map, got ${data.runtimeType}');
+      }
 
       return BookingModel.fromJson(bookingData);
     } on DioException catch (e) {
@@ -274,7 +406,10 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     try {
       final data = <String, dynamic>{};
       if (date != null) data['date'] = date;
-      if (timeSlot != null) data['timeSlot'] = timeSlot;
+      if (timeSlot != null) {
+
+        data['timeSlot'] = _normalizeTimeSlotToHHmm(timeSlot);
+      }
       if (area != null) data['area'] = area;
 
       final response = await _dio.patch(
@@ -283,9 +418,26 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       );
 
       final responseData = response.data;
-      final bookingData = responseData is Map && responseData.containsKey('booking')
-          ? responseData['booking']
-          : responseData;
+      Map<String, dynamic> bookingData;
+      
+      if (responseData is Map<String, dynamic>) {
+        if (responseData.containsKey('booking')) {
+          final booking = responseData['booking'];
+          if (booking is Map<String, dynamic>) {
+            bookingData = booking;
+          } else if (booking is Map) {
+            bookingData = Map<String, dynamic>.from(booking);
+          } else {
+            throw Exception('Invalid booking data format: expected Map, got ${booking.runtimeType}');
+          }
+        } else {
+          bookingData = responseData;
+        }
+      } else if (responseData is Map) {
+        bookingData = Map<String, dynamic>.from(responseData);
+      } else {
+        throw Exception('Invalid response format: expected Map, got ${responseData.runtimeType}');
+      }
 
       return BookingModel.fromJson(bookingData);
     } on DioException catch (e) {
@@ -308,9 +460,25 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       );
       final data = response.data;
 
-      final bookingData = data is Map && data.containsKey('booking')
-          ? data['booking']
-          : data;
+      Map<String, dynamic> bookingData;
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('booking')) {
+          final booking = data['booking'];
+          if (booking is Map<String, dynamic>) {
+            bookingData = booking;
+          } else if (booking is Map) {
+            bookingData = Map<String, dynamic>.from(booking);
+          } else {
+            throw Exception('Invalid booking data format: expected Map, got ${booking.runtimeType}');
+          }
+        } else {
+          bookingData = data;
+        }
+      } else if (data is Map) {
+        bookingData = Map<String, dynamic>.from(data);
+      } else {
+        throw Exception('Invalid response format: expected Map, got ${data.runtimeType}');
+      }
 
       return BookingModel.fromJson(bookingData);
     } on DioException catch (e) {

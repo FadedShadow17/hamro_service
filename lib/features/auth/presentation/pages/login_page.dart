@@ -56,7 +56,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    // Listen to auth state changes and navigate only once
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.isAuthenticated && next.user != null && !_hasNavigated) {
         _hasNavigated = true;
@@ -65,8 +64,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             final prefs = await SharedPreferences.getInstance();
             final sessionService = UserSessionService(prefs: prefs);
             final role = next.user?.role ?? sessionService.getRole();
+            var roleSelected = prefs.getBool('role_selected') ?? false;
             
-            if (role != null && role.isNotEmpty) {
+            if (role != null && role.isNotEmpty && (role == 'user' || role == 'provider')) {
+              if (!roleSelected) {
+                await prefs.setBool('role_selected', true);
+                roleSelected = true;
+              }
+            }
+            
+            if (!roleSelected || role == null || role.isEmpty) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const RolePage()),
+              );
+            } else {
               if (role == 'provider') {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
@@ -76,10 +87,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   MaterialPageRoute(builder: (context) => const DashboardPage()),
                 );
               }
-            } else {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const RolePage()),
-              );
             }
           }
         });

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/profile/presentation/viewmodel/profile_viewmodel.dart';
 import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
 import 'package:hamro_service/core/providers/theme_provider.dart';
+import 'package:hamro_service/features/ratings/presentation/providers/rating_provider.dart';
+import 'package:hamro_service/features/ratings/domain/entities/rating_entity.dart';
 import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'provider_edit_profile_page.dart';
 import 'provider_about_page.dart';
-import 'provider_availability_page.dart';
 import 'provider_settings_page.dart';
 import '../providers/provider_dashboard_provider.dart';
 
@@ -243,7 +245,6 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                 },
               ),
 
-              // Description Section
               if (description != null && description.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 Container(
@@ -294,6 +295,84 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                   ),
                 ),
               ],
+
+              const SizedBox(height: 24),
+              Consumer(
+                builder: (context, ref, child) {
+                  final providerId = authState.user?.authId ?? profile?.userId;
+                  if (providerId == null) {
+                    return const SizedBox.shrink();
+                  }
+                  
+                  final ratingsAsync = ref.watch(providerRatingsProvider(providerId));
+                  return ratingsAsync.when(
+                    data: (ratings) {
+                      if (ratings.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Reviews',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            ...ratings.take(5).map((rating) => _buildRatingItem(context, rating, isDark)),
+                            if (ratings.length > 5)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  'And ${ratings.length - 5} more reviews...',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                    loading: () => Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.all(16),
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (_, __) => const SizedBox.shrink(),
+                  );
+                },
+              ),
 
               const SizedBox(height: 40),
 
@@ -380,6 +459,47 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRatingItem(BuildContext context, RatingEntity rating, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              ...List.generate(5, (index) {
+                return Icon(
+                  index < rating.rating ? Icons.star : Icons.star_border,
+                  size: 16,
+                  color: Colors.amber,
+                );
+              }),
+              const SizedBox(width: 8),
+              Text(
+                DateFormat('MMM dd, yyyy').format(rating.createdAt),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          if (rating.comment != null && rating.comment!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              rating.comment!,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.grey[300] : Colors.grey[700],
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -8,7 +8,7 @@ abstract class CartLocalDataSource {
 }
 
 class CartLocalDataSourceImpl implements CartLocalDataSource {
-  // In-memory storage for session-only cart
+
   final List<CartItem> _cartItems = [];
 
   @override

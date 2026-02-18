@@ -20,15 +20,13 @@ final userDashboardStatsProvider = FutureProvider<UserDashboardStats>((ref) asyn
   final bookingRepository = ref.watch(bookingRepositoryProvider);
   final getServicesByCategory = ref.watch(getServicesByCategoryProvider);
 
-  // Fetch all bookings
   final bookingsResult = await bookingRepository.getMyBookings();
-  
-  // Fetch all services
+
   final servicesResult = await getServicesByCategory('all');
 
   return bookingsResult.fold(
     (failure) {
-      // Return default stats on error
+
       return servicesResult.fold(
         (_) => UserDashboardStats(
           activeBookings: 0,
@@ -45,7 +43,7 @@ final userDashboardStatsProvider = FutureProvider<UserDashboardStats>((ref) asyn
       );
     },
     (bookings) {
-      // Calculate stats from bookings
+
       final activeBookings = bookings.where((b) => 
         b.status.toUpperCase() == 'PENDING' || 
         b.status.toUpperCase() == 'CONFIRMED'

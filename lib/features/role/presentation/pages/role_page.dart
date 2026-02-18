@@ -89,6 +89,7 @@ class RolePage extends ConsumerWidget {
                           },
                           (profile) async {
                             await sessionService.saveRole('user');
+                            await prefs.setBool('role_selected', true);
                             if (context.mounted) {
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
@@ -136,6 +137,7 @@ class RolePage extends ConsumerWidget {
                           },
                           (profile) async {
                             await sessionService.saveRole('provider');
+                            await prefs.setBool('role_selected', true);
                             if (context.mounted) {
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(

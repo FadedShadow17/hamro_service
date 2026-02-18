@@ -62,7 +62,9 @@ class StatsCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  color: isDark 
+                    ? Colors.blue.shade300
+                    : AppColors.primaryBlue,
                 ),
               ),
               const SizedBox(height: 4),

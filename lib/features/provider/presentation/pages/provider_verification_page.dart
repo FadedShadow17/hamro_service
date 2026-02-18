@@ -126,7 +126,6 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
       return;
     }
 
-    // Check if user role is provider
     final prefs = await SharedPreferences.getInstance();
     final sessionService = UserSessionService(prefs: prefs);
     final role = sessionService.getRole();
@@ -177,7 +176,6 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
         if (_streetController.text.trim().isNotEmpty) 'street': _streetController.text.trim(),
       };
 
-      // Phone number already has +977- prefix from PhoneNumberField
       final formattedPhone = '+977-${_phoneController.text.trim()}';
 
       final result = await repository.submitVerification(

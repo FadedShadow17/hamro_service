@@ -64,7 +64,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       return;
     }
 
-    // Add +977- prefix to phone number if provided
     final formattedPhone = phone.isNotEmpty ? '+977-$phone' : null;
 
     ref.read(authViewModelProvider.notifier).register(
@@ -80,13 +79,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
 
-    // Listen to auth state changes and navigate only once
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.isRegistered && next.user != null && !_hasNavigated) {
         _hasNavigated = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (mounted) {
-            // Show success message from backend or default message
+
             final successMessage = next.successMessage ?? 'Your account was created';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -96,29 +94,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               ),
             );
 
-            // Wait a bit for message to be visible, then navigate
             await Future.delayed(const Duration(milliseconds: 500));
 
             if (mounted && Navigator.of(context).canPop() == false) {
-              final prefs = await SharedPreferences.getInstance();
-              final sessionService = UserSessionService(prefs: prefs);
-              final role = next.user?.role ?? sessionService.getRole();
-              
-              if (role != null && role.isNotEmpty) {
-                if (role == 'provider') {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
-                  );
-                } else {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const DashboardPage()),
-                  );
-                }
-              } else {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const RolePage()),
-                );
-              }
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
             }
           }
         });

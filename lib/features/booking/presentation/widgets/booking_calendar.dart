@@ -64,13 +64,11 @@ class _BookingCalendarState extends State<BookingCalendar> {
     final firstWeekday = firstDay.weekday;
 
     final List<DateTime> days = [];
-    
-    // Add empty cells for days before the first day of the month
+
     for (int i = 1; i < firstWeekday; i++) {
       days.add(DateTime(0)); // Placeholder
     }
-    
-    // Add all days of the month
+
     for (int day = 1; day <= daysInMonth; day++) {
       days.add(DateTime(_currentMonth.year, _currentMonth.month, day));
     }
@@ -107,7 +105,7 @@ class _BookingCalendarState extends State<BookingCalendar> {
       ),
       child: Column(
         children: [
-          // Month header
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -136,7 +134,7 @@ class _BookingCalendarState extends State<BookingCalendar> {
             ],
           ),
           const SizedBox(height: 16),
-          // Weekday headers
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) {
@@ -155,7 +153,7 @@ class _BookingCalendarState extends State<BookingCalendar> {
             }).toList(),
           ),
           const SizedBox(height: 12),
-          // Calendar grid
+
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),

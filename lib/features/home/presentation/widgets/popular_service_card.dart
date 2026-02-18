@@ -67,13 +67,19 @@ class PopularServiceCard extends StatelessWidget {
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: categoryColor.withValues(alpha: 0.3),
-          width: 1,
+          color: categoryColor.withValues(alpha: 0.4),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
+            color: categoryColor.withValues(alpha: isDark ? 0.2 : 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-            blurRadius: 10,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -88,26 +94,40 @@ class PopularServiceCard extends StatelessWidget {
             reviewsCount: 0,
             categoryTag: service.categoryTag,
           );
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => BookingScreen(service: serviceItem),
-            ),
+          showDialog(
+            context: context,
+            barrierColor: Colors.black.withValues(alpha: 0.6),
+            builder: (context) => BookingScreen(service: serviceItem),
           );
         },
         borderRadius: BorderRadius.circular(16),
         child: Row(
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
-                color: categoryColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    categoryColor.withValues(alpha: 0.25),
+                    categoryColor.withValues(alpha: 0.15),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: categoryColor.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Icon(
                 categoryIcon,
                 color: categoryColor,
-                size: 30,
+                size: 32,
               ),
             ),
             const SizedBox(width: 12),

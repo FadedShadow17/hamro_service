@@ -272,10 +272,10 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with 
                   return ServiceGridCard(
                     service: service,
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => BookingScreen(service: service),
-                        ),
+                      showDialog(
+                        context: context,
+                        barrierColor: Colors.black.withValues(alpha: 0.6),
+                        builder: (context) => BookingScreen(service: service),
                       );
                     },
                   );
@@ -399,10 +399,9 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with 
           return ServiceGridCard(
             service: serviceItem,
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => BookingScreen(service: serviceItem),
-                ),
+              showDialog(
+                context: context,
+                builder: (context) => BookingScreen(service: serviceItem),
               );
             },
           );

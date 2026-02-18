@@ -19,7 +19,7 @@ class DioClient {
             receiveTimeout: const Duration(seconds: 10),
           ),
         ) {
-    // Add logging interceptor for debugging
+
     dio.interceptors.add(
       LogInterceptor(
         requestBody: true,
@@ -37,8 +37,8 @@ class DioClient {
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
-          // Remove Content-Type header for FormData (multipart uploads)
-          // Dio will automatically set the correct Content-Type with boundary
+
+
           if (options.data is FormData) {
             options.headers.remove('Content-Type');
           }

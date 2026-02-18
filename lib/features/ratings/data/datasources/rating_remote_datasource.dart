@@ -42,14 +42,20 @@ class RatingRemoteDataSourceImpl implements RatingRemoteDataSource {
       if (data is Map<String, dynamic>) {
         if (data.containsKey('rating')) {
           final rating = data['rating'];
-          ratingData = rating is Map<String, dynamic> 
-              ? rating 
-              : Map<String, dynamic>.from(rating as Map);
+          if (rating is Map<String, dynamic>) {
+            ratingData = rating;
+          } else if (rating is Map) {
+            ratingData = Map<String, dynamic>.from(rating);
+          } else {
+            throw Exception('Invalid rating data format: expected Map, got ${rating.runtimeType}');
+          }
         } else {
           ratingData = data;
         }
+      } else if (data is Map) {
+        ratingData = Map<String, dynamic>.from(data);
       } else {
-        ratingData = {};
+        throw Exception('Invalid response format: expected Map, got ${data.runtimeType}');
       }
 
       return RatingModel.fromJson(ratingData);
@@ -86,8 +92,15 @@ class RatingRemoteDataSourceImpl implements RatingRemoteDataSource {
       }
 
       return ratingsList
-          .map((rating) => RatingModel.fromJson(
-              Map<String, dynamic>.from(rating as Map)))
+          .map((rating) {
+            if (rating is Map<String, dynamic>) {
+              return RatingModel.fromJson(rating);
+            } else if (rating is Map) {
+              return RatingModel.fromJson(Map<String, dynamic>.from(rating));
+            } else {
+              throw Exception('Invalid rating format: expected Map, got ${rating.runtimeType}');
+            }
+          })
           .toList();
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
@@ -125,8 +138,15 @@ class RatingRemoteDataSourceImpl implements RatingRemoteDataSource {
       }
 
       return ratingsList
-          .map((rating) => RatingModel.fromJson(
-              Map<String, dynamic>.from(rating as Map)))
+          .map((rating) {
+            if (rating is Map<String, dynamic>) {
+              return RatingModel.fromJson(rating);
+            } else if (rating is Map) {
+              return RatingModel.fromJson(Map<String, dynamic>.from(rating));
+            } else {
+              throw Exception('Invalid rating format: expected Map, got ${rating.runtimeType}');
+            }
+          })
           .toList();
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
@@ -152,9 +172,25 @@ class RatingRemoteDataSourceImpl implements RatingRemoteDataSource {
         return null;
       }
 
-      final ratingData = data is Map && data.containsKey('rating')
-          ? data['rating']
-          : data;
+      Map<String, dynamic> ratingData;
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('rating')) {
+          final rating = data['rating'];
+          if (rating is Map<String, dynamic>) {
+            ratingData = rating;
+          } else if (rating is Map) {
+            ratingData = Map<String, dynamic>.from(rating);
+          } else {
+            return null;
+          }
+        } else {
+          ratingData = data;
+        }
+      } else if (data is Map) {
+        ratingData = Map<String, dynamic>.from(data);
+      } else {
+        return null;
+      }
 
       return RatingModel.fromJson(ratingData);
     } on DioException catch (e) {

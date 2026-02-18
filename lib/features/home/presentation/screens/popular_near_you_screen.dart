@@ -116,10 +116,10 @@ class PopularNearYouScreen extends ConsumerWidget {
                       return ServiceGridCard(
                         service: serviceItem,
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => BookingScreen(service: serviceItem),
-                            ),
+                          showDialog(
+                            context: context,
+                            barrierColor: Colors.black.withValues(alpha: 0.6),
+                            builder: (context) => BookingScreen(service: serviceItem),
                           );
                         },
                       );

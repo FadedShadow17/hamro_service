@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/booking_status.dart';
 import '../../data/repositories/provider_repository_impl.dart';
 import '../providers/provider_dashboard_provider.dart';
+import '../../../home/presentation/providers/user_dashboard_stats_provider.dart';
 
 class OrderCard extends ConsumerWidget {
   final ProviderOrder order;
@@ -235,6 +236,7 @@ class OrderCard extends ConsumerWidget {
         },
         (_) {
           ref.invalidate(providerDashboardDataProvider);
+          ref.invalidate(userDashboardStatsProvider);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Booking accepted')),
           );

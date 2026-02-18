@@ -64,7 +64,7 @@ class _ProviderEditProfilePageState extends ConsumerState<ProviderEditProfilePag
     if (profile != null) {
       _nameController.text = profile.fullName;
       _emailController.text = profile.email;
-      // Remove +977- prefix if present when loading
+
       final phone = profile.phoneNumber ?? '';
       _phoneController.text = phone.replaceFirst(RegExp(r'^\+977-'), '');
       _addressController.text = profile.address ?? '';

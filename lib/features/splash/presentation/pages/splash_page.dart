@@ -6,6 +6,7 @@ import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmod
 import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
 import 'package:hamro_service/features/icon_screen/presentation/pages/icon_page.dart';
+import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
 import 'package:hamro_service/core/services/storage/user_session_service.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
@@ -64,19 +65,29 @@ class _SplashPageState extends ConsumerState<SplashPage>
           final prefs = await SharedPreferences.getInstance();
           final sessionService = UserSessionService(prefs: prefs);
           final role = authState.user?.role ?? sessionService.getRole();
+          var roleSelected = prefs.getBool('role_selected') ?? false;
           
-          if (role == 'provider') {
+          if (role != null && role.isNotEmpty && (role == 'user' || role == 'provider')) {
+            if (!roleSelected) {
+              await prefs.setBool('role_selected', true);
+              roleSelected = true;
+            }
+          }
+          
+          if (!roleSelected || role == null || role.isEmpty) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
-            );
-          } else if (role == 'user') {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const DashboardPage()),
+              MaterialPageRoute(builder: (context) => const RolePage()),
             );
           } else {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const IconPage()),
-            );
+            if (role == 'provider') {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
+              );
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const DashboardPage()),
+              );
+            }
           }
         }
       } else {

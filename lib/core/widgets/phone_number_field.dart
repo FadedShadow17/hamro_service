@@ -25,7 +25,6 @@ class PhoneNumberField extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
-    // Ensure controller value doesn't include +977 prefix
     if (controller.text.startsWith('+977-')) {
       controller.text = controller.text.replaceFirst('+977-', '');
     }

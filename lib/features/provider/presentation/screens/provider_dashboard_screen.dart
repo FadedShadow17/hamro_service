@@ -42,6 +42,7 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
     if (state == AppLifecycleState.resumed) {
       ref.invalidate(notificationsProvider);
       ref.invalidate(unreadNotificationCountProvider);
+      ref.invalidate(providerDashboardDataProvider);
       _startNotificationRefreshTimer();
     } else {
       _notificationRefreshTimer?.cancel();
@@ -129,7 +130,7 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) {
-            // If verification check fails, still show dashboard but with warning
+
             return dashboardDataAsync.when(
               data: (data) => RefreshIndicator(
                 onRefresh: () async {
@@ -190,7 +191,6 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
           _buildHeader(ref, context, verificationSummary),
           const SizedBox(height: 16),
 
-          // Stats Cards
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -270,7 +270,6 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
           ),
           const SizedBox(height: 24),
 
-          // Rating Card
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
@@ -356,7 +355,6 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
           ),
           const SizedBox(height: 24),
 
-          // Pending Orders
           if (data.pendingOrders.isNotEmpty) ...[
             KSectionHeader(
               title: 'Pending Orders',
@@ -376,7 +374,6 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
             const SizedBox(height: 24),
           ],
 
-          // Active Orders
           if (data.activeOrders.isNotEmpty) ...[
             KSectionHeader(
               title: 'Active Orders',
@@ -396,7 +393,6 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
             const SizedBox(height: 24),
           ],
 
-          // Recent Orders
           if (data.recentOrders.isNotEmpty) ...[
             KSectionHeader(
               title: 'Recent Orders',

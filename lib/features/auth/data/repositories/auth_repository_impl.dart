@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
@@ -70,8 +71,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? role,
   }) async {
     final hasInternet = await _connectivityService.hasInternetConnection();
-    
-    // If online, use remote datasource
+
     if (hasInternet) {
       try {
         final response = await _remoteDatasource.register(
@@ -93,8 +93,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
         if (authEntity.authId.isNotEmpty) {
           await _sessionService.saveSession(authEntity.authId);
-          
-          // Save role if it exists
+
           if (authEntity.role != null && authEntity.role!.isNotEmpty) {
             await _sessionService.saveRole(authEntity.role!);
           }
@@ -159,8 +158,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     final hasInternet = await _connectivityService.hasInternetConnection();
-    
-    // Try remote login first if internet is available
+
     if (hasInternet) {
       try {
         final response = await _remoteDatasource.login(
@@ -177,10 +175,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
         if (authEntity.authId.isNotEmpty) {
           await _sessionService.saveSession(authEntity.authId);
+
+          final prefs = await SharedPreferences.getInstance();
+          var roleSelected = prefs.getBool('role_selected') ?? false;
           
-          // Save role if it exists
-          if (authEntity.role != null && authEntity.role!.isNotEmpty) {
+          if (authEntity.role != null && authEntity.role!.isNotEmpty && (authEntity.role == 'user' || authEntity.role == 'provider')) {
             await _sessionService.saveRole(authEntity.role!);
+            if (!roleSelected) {
+              await prefs.setBool('role_selected', true);
+            }
           }
           
           if (_localDatasource != null) {
@@ -199,20 +202,20 @@ class AuthRepositoryImpl implements AuthRepository {
 
         return Right(authEntity);
       } on DioException catch (e) {
-        // Handle connection errors (timeout, connection refused, etc.)
-        // Fall back to local storage when backend is unavailable
+
+
         if (e.type == DioExceptionType.connectionTimeout ||
             e.type == DioExceptionType.receiveTimeout ||
             e.type == DioExceptionType.sendTimeout ||
             e.type == DioExceptionType.connectionError) {
-          // Backend is unavailable, try local login
+
           if (_localDatasource == null) {
             return Left(CacheFailure('Backend unavailable and local storage not available'));
           }
           
           try {
             final user = await _localDatasource!.login(emailOrUsername, password);
-            // Get role from session if available
+
             final sessionRole = _sessionService.getRole();
             final userModel = user.copyWith(role: sessionRole ?? user.role);
             if (sessionRole != null && sessionRole.isNotEmpty) {
@@ -229,8 +232,7 @@ class AuthRepositoryImpl implements AuthRepository {
             return Left(AuthenticationFailure('Local login failed: ${e.toString()}'));
           }
         }
-        
-        // Handle authentication errors from backend
+
         final message = e.response?.data?['message'] ??
             e.response?.data?['error'] ??
             e.message ??
@@ -248,7 +250,7 @@ class AuthRepositoryImpl implements AuthRepository {
         return Left(AuthenticationFailure(message.toString()));
       } on Exception catch (e) {
         final message = e.toString().replaceFirst('Exception: ', '');
-        // If it's a connection-related error, try local login
+
         if (message.toLowerCase().contains('timeout') ||
             message.toLowerCase().contains('connection') ||
             message.toLowerCase().contains('failed host lookup')) {
@@ -284,7 +286,7 @@ class AuthRepositoryImpl implements AuthRepository {
         }
         return Left(AuthenticationFailure(message));
       } catch (e) {
-        // For any other errors, try local login as fallback
+
         if (_localDatasource != null) {
           try {
             final user = await _localDatasource!.login(emailOrUsername, password);
@@ -301,7 +303,7 @@ class AuthRepositoryImpl implements AuthRepository {
         return Left(AuthenticationFailure(e.toString()));
       }
     } else {
-      // No internet connection, use local storage
+
       if (_localDatasource == null) {
         return const Left(CacheFailure('No internet connection and local storage not available'));
       }
@@ -343,11 +345,11 @@ class AuthRepositoryImpl implements AuthRepository {
       if (_localDatasource != null) {
         final user = await _localDatasource!.getCurrentUser(userId);
         if (user != null) {
-          // If user model doesn't have role but session has it, update the model
+
           if (user.role == null || user.role!.isEmpty) {
             final sessionRole = _sessionService.getRole();
             if (sessionRole != null && sessionRole.isNotEmpty) {
-              // Update the user model with role from session
+
               final updatedUser = user.copyWith(role: sessionRole);
               await _localDatasource!.saveUser(updatedUser);
               return Right(_modelToEntity(updatedUser));
@@ -377,8 +379,7 @@ class AuthRepositoryImpl implements AuthRepository {
         
         if (authEntity.authId.isNotEmpty) {
           await _sessionService.saveSession(authEntity.authId);
-          
-          // Save role if it exists
+
           if (authEntity.role != null && authEntity.role!.isNotEmpty) {
             await _sessionService.saveRole(authEntity.role!);
           }
@@ -399,17 +400,16 @@ class AuthRepositoryImpl implements AuthRepository {
         
         return Right(authEntity);
       } on DioException catch (e) {
-        // Handle connection errors (timeout, connection refused, etc.)
-        // Fall back to local storage if backend is unavailable
+
+
         if (e.type == DioExceptionType.connectionTimeout ||
             e.type == DioExceptionType.receiveTimeout ||
             e.type == DioExceptionType.sendTimeout ||
             e.type == DioExceptionType.connectionError) {
-          // Backend is unavailable, try to get user from local storage
+
           return getCurrentUser();
         }
-        
-        // Handle authentication errors
+
         final message = e.response?.data?['message'] ??
             e.response?.data?['error'] ??
             e.message ??
@@ -420,8 +420,7 @@ class AuthRepositoryImpl implements AuthRepository {
           await _sessionService.clearSession();
           return const Right(null);
         }
-        
-        // For other errors, fall back to local storage
+
         return getCurrentUser();
       } on Exception catch (e) {
         final message = e.toString().replaceFirst('Exception: ', '');
@@ -430,10 +429,10 @@ class AuthRepositoryImpl implements AuthRepository {
           await _sessionService.clearSession();
           return const Right(null);
         }
-        // For other exceptions, fall back to local storage
+
         return getCurrentUser();
       } catch (e) {
-        // For any other errors, fall back to local storage
+
         return getCurrentUser();
       }
     } else {
