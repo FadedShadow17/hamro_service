@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hamro_service/features/splash/presentation/pages/splash_page.dart';
 import 'package:hamro_service/app/theme/themes.dart';
 import 'package:hamro_service/core/providers/theme_provider.dart';
+import 'package:hamro_service/core/widgets/sensor_wrapper.dart';
 
 class App extends ConsumerWidget {
   const App({super.key});
@@ -11,14 +12,16 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
     
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: getLightTheme(),
-      darkTheme: getDarkTheme(),
-      themeMode: themeMode == AppThemeMode.dark 
-          ? ThemeMode.dark 
-          : ThemeMode.light,
-      home: const SplashPage(),
+    return SensorWrapper(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: getLightTheme(),
+        darkTheme: getDarkTheme(),
+        themeMode: themeMode == AppThemeMode.dark 
+            ? ThemeMode.dark 
+            : ThemeMode.light,
+        home: const SplashPage(),
+      ),
     );
   }
 }
