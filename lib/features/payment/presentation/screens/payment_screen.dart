@@ -616,10 +616,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.of(dialogContext).pop();
                     ref.invalidate(payableBookingsProvider);
                     ref.invalidate(paymentHistoryProvider);
+                    await ref.read(payableBookingsProvider.future);
+                    await ref.read(paymentHistoryProvider.future);
                     if (mounted) {
                       Future.delayed(const Duration(milliseconds: 300), () {
                         if (mounted) {

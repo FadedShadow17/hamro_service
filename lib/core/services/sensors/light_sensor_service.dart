@@ -8,6 +8,9 @@ class LightSensorService with WidgetsBindingObserver {
   bool _isScreenBlack = false;
   Timer? _monitoringTimer;
   bool _isAppInBackground = false;
+  Function(bool)? onOverlayStateChanged;
+
+  LightSensorService({this.onOverlayStateChanged});
 
   Future<void> startMonitoring() async {
     WidgetsBinding.instance.addObserver(this);
@@ -18,7 +21,7 @@ class LightSensorService with WidgetsBindingObserver {
       print('[LightSensor] Failed to get current brightness: $e');
     }
 
-    _monitoringTimer = Timer.periodic(const Duration(milliseconds: 1000), (_) {
+    _monitoringTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
       if (!_isAppInBackground) {
         _checkScreenBrightness();
       }
@@ -32,7 +35,9 @@ class LightSensorService with WidgetsBindingObserver {
       _turnScreenBlack();
     } else if (state == AppLifecycleState.resumed) {
       _isAppInBackground = false;
-      _restoreBrightness();
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _restoreBrightness();
+      });
     }
   }
 
@@ -51,18 +56,23 @@ class LightSensorService with WidgetsBindingObserver {
   }
 
   Future<void> _turnScreenBlack() async {
+    if (_isScreenBlack) return;
+    
     try {
       if (_originalBrightness == null) {
         _originalBrightness = await ScreenBrightness().current;
       }
       await ScreenBrightness().setScreenBrightness(0.0);
       _isScreenBlack = true;
+      onOverlayStateChanged?.call(true);
     } catch (e) {
       print('[LightSensor] Failed to set brightness to 0: $e');
     }
   }
 
   Future<void> _restoreBrightness() async {
+    if (!_isScreenBlack) return;
+    
     try {
       if (_originalBrightness != null && _originalBrightness! > 0) {
         await ScreenBrightness().setScreenBrightness(_originalBrightness!);
@@ -70,6 +80,7 @@ class LightSensorService with WidgetsBindingObserver {
         await ScreenBrightness().resetScreenBrightness();
       }
       _isScreenBlack = false;
+      onOverlayStateChanged?.call(false);
     } catch (e) {
       print('[LightSensor] Failed to restore brightness: $e');
     }

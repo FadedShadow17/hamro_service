@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_provider.dart';
+import '../../../auth/presentation/view_model/auth_viewmodel.dart';
+import '../../../auth/presentation/pages/login_page.dart';
+import '../../../auth/presentation/widgets/logout_confirmation_dialog.dart';
+import 'provider_about_page.dart';
 
 class ProviderSettingsPage extends ConsumerStatefulWidget {
   const ProviderSettingsPage({super.key});
@@ -135,6 +140,13 @@ class _ProviderSettingsPageState extends ConsumerState<ProviderSettingsPage> {
             ),
             _buildSection(
               context,
+              'Appearance',
+              [
+                _buildThemeToggle(context),
+              ],
+            ),
+            _buildSection(
+              context,
               'Security',
               [
                 _buildSwitchTile(
@@ -164,6 +176,32 @@ class _ProviderSettingsPageState extends ConsumerState<ProviderSettingsPage> {
                     );
                   },
                 ),
+              ],
+            ),
+            _buildSection(
+              context,
+              'Support',
+              [
+                _buildListTile(
+                  context,
+                  'About',
+                  'Learn more about the app',
+                  Icons.info,
+                  () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ProviderAboutPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            _buildSection(
+              context,
+              'Account',
+              [
+                _buildLogoutTile(context),
               ],
             ),
             const SizedBox(height: 24),
@@ -323,6 +361,110 @@ class _ProviderSettingsPageState extends ConsumerState<ProviderSettingsPage> {
           height: 1,
           indent: 60,
           color: isDark ? Colors.grey[800] : Colors.grey[300],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildThemeToggle(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final themeMode = ref.watch(themeProvider);
+
+    return Column(
+      children: [
+        ListTile(
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[800] : Colors.grey[100],
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              themeMode == AppThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
+              color: AppColors.primaryBlue,
+              size: 22,
+            ),
+          ),
+          title: Text(
+            'Dark Mode',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          subtitle: Text(
+            'Switch between light and dark theme',
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+          trailing: Switch(
+            value: themeMode == AppThemeMode.dark,
+            onChanged: (value) {
+              ref.read(themeProvider.notifier).toggleTheme();
+            },
+            activeTrackColor: AppColors.primaryBlue.withValues(alpha: 0.5),
+            activeThumbColor: AppColors.primaryBlue,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLogoutTile(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      children: [
+        ListTile(
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[800] : Colors.grey[100],
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.logout,
+              color: Colors.red,
+              size: 22,
+            ),
+          ),
+          title: const Text(
+            'Logout',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.red,
+            ),
+          ),
+          subtitle: Text(
+            'Sign out of your account',
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: isDark ? Colors.grey[600] : Colors.grey[400],
+          ),
+          onTap: () async {
+            final confirmed = await LogoutConfirmationDialog.show(context);
+            if (confirmed == true && mounted) {
+              final navigator = Navigator.of(context);
+              await ref.read(authViewModelProvider.notifier).logout();
+              if (mounted) {
+                navigator.pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (route) => false,
+                );
+              }
+            }
+          },
         ),
       ],
     );

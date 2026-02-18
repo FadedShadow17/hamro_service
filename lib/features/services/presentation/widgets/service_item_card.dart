@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/pricing_helper.dart';
+import '../../../../core/utils/service_icon_helper.dart';
 import '../../domain/entities/service_item.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
 
@@ -43,10 +44,22 @@ class ServiceItemCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              KAvatar(
-                size: 50,
-                imageUrl: service.providerAvatarUrl,
-                backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: ServiceIconHelper.getGradientColorsForService(service.title, service.categoryTag),
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  ServiceIconHelper.getIconForService(service.title, service.categoryTag),
+                  color: ServiceIconHelper.getIconColorForService(service.title, service.categoryTag),
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

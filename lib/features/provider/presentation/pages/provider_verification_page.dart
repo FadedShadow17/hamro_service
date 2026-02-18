@@ -77,8 +77,18 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = 'Error picking image';
+        if (e.toString().contains('permission') || e.toString().contains('Permission')) {
+          errorMessage = 'Permission denied. Please grant camera/storage permission in app settings.';
+        } else {
+          errorMessage = 'Error picking image: ${e.toString()}';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }
@@ -983,24 +993,67 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
 
     return professionsAsync.when(
       data: (professions) {
-        final activeProfessions = professions.where((p) => p.active).toList();
+        print('[ProviderVerification] Loaded ${professions.length} professions');
+        print('[ProviderVerification] Professions: ${professions.map((p) => '${p.name} (active: ${p.active})').join(', ')}');
         
-        if (activeProfessions.isEmpty) {
+        // Always show all professions, don't filter by active
+        // The backend should handle filtering if needed
+        final visibleProfessions = professions;
+
+        if (visibleProfessions.isEmpty) {
+          print('[ProviderVerification] No professions available after loading');
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              'No professions available',
-              style: TextStyle(
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+              border: Border.all(
+                color: Colors.orange.withValues(alpha: 0.5),
+                width: 1,
               ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.orange,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'No professions available',
+                      style: TextStyle(
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please contact support or try refreshing.',
+                  style: TextStyle(
+                    color: isDark ? Colors.grey[500] : Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () {
+                    ref.invalidate(professionsProvider);
+                  },
+                  icon: const Icon(Icons.refresh, size: 16),
+                  label: const Text('Refresh'),
+                ),
+              ],
             ),
           );
         }
 
+        print('[ProviderVerification] Showing ${visibleProfessions.length} professions in dropdown');
         return DropdownButtonFormField<String>(
           value: _selectedServiceRole,
           decoration: InputDecoration(
@@ -1013,7 +1066,7 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
               borderSide: BorderSide.none,
             ),
           ),
-          items: activeProfessions.map((profession) {
+          items: visibleProfessions.map((profession) {
             return DropdownMenuItem(
               value: profession.name,
               child: Text(profession.name),
@@ -1046,41 +1099,68 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
           ),
         ),
       ),
-      error: (error, stack) => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Failed to load professions',
-              style: TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
+      error: (error, stack) {
+        print('[ProviderVerification] Error loading professions: $error');
+        print('[ProviderVerification] Stack trace: $stack');
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.red.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Failed to load professions',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              error.toString(),
-              style: TextStyle(
-                color: Colors.red[700],
-                fontSize: 12,
+              const SizedBox(height: 8),
+              Text(
+                error.toString().replaceAll('Exception: ', ''),
+                style: TextStyle(
+                  color: Colors.red[700],
+                  fontSize: 12,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () {
-                ref.invalidate(professionsProvider);
-              },
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        ref.invalidate(professionsProvider);
+                      },
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('Retry'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: BorderSide(color: Colors.red.withValues(alpha: 0.5)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -5,8 +5,8 @@ import 'package:sensors_plus/sensors_plus.dart';
 class ShakeDetectorService {
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   final Function() onShakeDetected;
-  final double _shakeThreshold = 15.0;
-  final int _shakeWindowMs = 300;
+  final double _shakeThreshold = 12.0;
+  final int _shakeWindowMs = 200;
   final int _minShakeCount = 2;
 
   List<DateTime> _shakeEvents = [];
@@ -49,7 +49,7 @@ class ShakeDetectorService {
           _shakeEvents.clear();
           _lastShakeTime = null;
           
-          Future.delayed(const Duration(milliseconds: 1000), () {
+          Future.delayed(const Duration(milliseconds: 2000), () {
             _isProcessing = false;
           });
 

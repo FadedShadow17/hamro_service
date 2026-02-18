@@ -454,7 +454,7 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Welcome Back 👋',
+                  'Welcome Back',
                   style: TextStyle(
                     fontSize: 14,
                     color: Theme.of(context).brightness == Brightness.dark

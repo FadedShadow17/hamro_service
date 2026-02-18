@@ -10,6 +10,7 @@ import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_pa
 import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
 import 'package:hamro_service/core/services/storage/user_session_service.dart';
 import 'package:hamro_service/core/widgets/animated_text_field.dart';
+import 'package:hamro_service/core/services/sensors/biometric_service.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -23,10 +24,69 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _hasNavigated = false;
+  final BiometricService _biometricService = BiometricService();
+  bool _isBiometricAvailable = false;
+  bool _isCheckingBiometric = true;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    try {
+      final isSupported = await _biometricService.isDeviceSupported();
+      if (!isSupported) {
+        if (mounted) {
+          setState(() {
+            _isBiometricAvailable = false;
+            _isCheckingBiometric = false;
+          });
+        }
+        return;
+      }
+      
+      final hasEnrolled = await _biometricService.hasEnrolledBiometrics();
+      final availableBiometrics = await _biometricService.getAvailableBiometrics();
+      
+      if (mounted) {
+        setState(() {
+          _isBiometricAvailable = hasEnrolled && availableBiometrics.isNotEmpty;
+          _isCheckingBiometric = false;
+        });
+      }
+    } catch (e) {
+      print('[LoginPage] Error checking biometric availability: $e');
+      if (mounted) {
+        setState(() {
+          _isBiometricAvailable = false;
+          _isCheckingBiometric = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleBiometricLogin() async {
+    final authenticated = await _biometricService.authenticate();
+    if (authenticated && mounted) {
+      final prefs = await SharedPreferences.getInstance();
+      final lastEmail = prefs.getString('last_login_email');
+      final lastPassword = prefs.getString('last_login_password');
+      
+      if (lastEmail != null && lastPassword != null) {
+        ref.read(authViewModelProvider.notifier).login(
+          emailOrUsername: lastEmail,
+          password: lastPassword,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please login with email and password first to enable biometric login'),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -36,7 +96,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
@@ -46,6 +106,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       );
       return;
     }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('last_login_email', email);
+    await prefs.setString('last_login_password', password);
 
     ref
         .read(authViewModelProvider.notifier)
@@ -64,16 +128,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             final prefs = await SharedPreferences.getInstance();
             final sessionService = UserSessionService(prefs: prefs);
             final role = next.user?.role ?? sessionService.getRole();
-            var roleSelected = prefs.getBool('role_selected') ?? false;
+            final roleSelected = prefs.getBool('role_selected') ?? false;
             
-            if (role != null && role.isNotEmpty && (role == 'user' || role == 'provider')) {
-              if (!roleSelected) {
-                await prefs.setBool('role_selected', true);
-                roleSelected = true;
-              }
-            }
-            
-            if (!roleSelected || role == null || role.isEmpty) {
+            if (!roleSelected) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => const RolePage()),
               );
@@ -237,6 +294,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   onPressed: _handleLogin,
                                   isLoading: authState.isLoading,
                                 ),
+                                if (!_isCheckingBiometric && _isBiometricAvailable) ...[
+                                  const SizedBox(height: 24),
+                                  Center(
+                                    child: IconButton(
+                                      icon: const Icon(Icons.fingerprint, size: 48),
+                                      color: Theme.of(context).colorScheme.primary,
+                                      onPressed: _handleBiometricLogin,
+                                      tooltip: 'Login with fingerprint',
+                                    ),
+                                  ),
+                                ],
                                 const SizedBox(height: 32),
                                 Row(
                                   children: [

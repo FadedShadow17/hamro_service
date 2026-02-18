@@ -177,13 +177,10 @@ class AuthRepositoryImpl implements AuthRepository {
           await _sessionService.saveSession(authEntity.authId);
 
           final prefs = await SharedPreferences.getInstance();
-          var roleSelected = prefs.getBool('role_selected') ?? false;
+          final roleSelected = prefs.getBool('role_selected') ?? false;
           
-          if (authEntity.role != null && authEntity.role!.isNotEmpty && (authEntity.role == 'user' || authEntity.role == 'provider')) {
+          if (roleSelected && authEntity.role != null && authEntity.role!.isNotEmpty) {
             await _sessionService.saveRole(authEntity.role!);
-            if (!roleSelected) {
-              await prefs.setBool('role_selected', true);
-            }
           }
           
           if (_localDatasource != null) {

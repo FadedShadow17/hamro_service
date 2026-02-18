@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/popular_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/pricing_helper.dart';
+import '../../../../core/utils/service_icon_helper.dart';
 import '../../../services/domain/entities/service_item.dart';
 import '../../../booking/presentation/screens/booking_screen.dart';
 
@@ -13,52 +14,13 @@ class PopularServiceCard extends StatelessWidget {
     required this.service,
   });
 
-  IconData _getCategoryIcon(String categoryTag) {
-    final tag = categoryTag.toLowerCase();
-    if (tag.contains('electric') || tag.contains('electrical')) {
-      return Icons.electrical_services;
-    } else if (tag.contains('plumb')) {
-      return Icons.plumbing;
-    } else if (tag.contains('carpent')) {
-      return Icons.hardware;
-    } else if (tag.contains('paint')) {
-      return Icons.format_paint;
-    } else if (tag.contains('clean')) {
-      return Icons.cleaning_services;
-    } else if (tag.contains('mason') || tag.contains('construction')) {
-      return Icons.construction;
-    } else if (tag.contains('roof')) {
-      return Icons.roofing;
-    } else if (tag.contains('weld')) {
-      return Icons.build;
-    }
-    return Icons.home_repair_service;
-  }
-
-  Color _getCategoryColor(String categoryTag) {
-    final tag = categoryTag.toLowerCase();
-    if (tag.contains('electric') || tag.contains('electrical')) {
-      return Colors.amber;
-    } else if (tag.contains('plumb')) {
-      return Colors.blue;
-    } else if (tag.contains('carpent')) {
-      return Colors.brown;
-    } else if (tag.contains('paint')) {
-      return Colors.purple;
-    } else if (tag.contains('clean')) {
-      return Colors.teal;
-    } else if (tag.contains('mason') || tag.contains('construction')) {
-      return Colors.orange;
-    }
-    return AppColors.primary;
-  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final categoryIcon = _getCategoryIcon(service.categoryTag);
-    final categoryColor = _getCategoryColor(service.categoryTag);
+    final categoryIcon = ServiceIconHelper.getIconForService(service.title, service.categoryTag);
+    final categoryColor = ServiceIconHelper.getIconColorForService(service.title, service.categoryTag);
     
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -110,10 +72,7 @@ class PopularServiceCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    categoryColor.withValues(alpha: 0.25),
-                    categoryColor.withValues(alpha: 0.15),
-                  ],
+                  colors: ServiceIconHelper.getGradientColorsForService(service.title, service.categoryTag),
                 ),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
@@ -127,7 +86,7 @@ class PopularServiceCard extends StatelessWidget {
               child: Icon(
                 categoryIcon,
                 color: categoryColor,
-                size: 32,
+                size: 36,
               ),
             ),
             const SizedBox(width: 12),
