@@ -7,6 +7,9 @@ import '../../data/models/booking_model.dart';
 import '../providers/booking_provider.dart';
 import '../widgets/booking_status_badge.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
+import '../../../ratings/presentation/widgets/rating_dialog.dart';
+import '../../../ratings/presentation/providers/rating_provider.dart';
+import '../widgets/edit_booking_dialog.dart';
 
 class UserBookingsPage extends ConsumerStatefulWidget {
   final String? filterStatus; // 'active', 'completed', 'pending', 'confirmed', 'cancelled', or null for all
@@ -302,16 +305,23 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
                 Row(
                   children: [
                     Icon(
-                      Icons.person,
+                      status == 'CONFIRMED' ? Icons.check_circle : Icons.person,
                       size: 16,
-                      color: isDark ? AppColors.textWhite70 : AppColors.textSecondary,
+                      color: status == 'CONFIRMED' 
+                          ? AppColors.accentGreen 
+                          : (isDark ? AppColors.textWhite70 : AppColors.textSecondary),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      booking.provider!['name'] ?? booking.provider!['fullName'] ?? 'Provider',
+                      status == 'CONFIRMED' 
+                          ? 'Accepted by ${booking.provider!['name'] ?? booking.provider!['fullName'] ?? 'Provider'}'
+                          : (booking.provider!['name'] ?? booking.provider!['fullName'] ?? 'Provider'),
                       style: TextStyle(
                         fontSize: 14,
-                        color: isDark ? AppColors.textWhite70 : AppColors.textSecondary,
+                        fontWeight: status == 'CONFIRMED' ? FontWeight.w600 : FontWeight.normal,
+                        color: status == 'CONFIRMED' 
+                            ? AppColors.accentGreen 
+                            : (isDark ? AppColors.textWhite70 : AppColors.textSecondary),
                       ),
                     ),
                   ],
@@ -372,25 +382,79 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
                 ),
               ],
               const SizedBox(height: 12),
-              if (BookingStatus.canCancel(status))
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => _cancelBooking(booking),
-                      child: const Text('Cancel'),
+              if (status == 'COMPLETED' && booking.providerId != null) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _rateProvider(booking),
+                    icon: const Icon(Icons.star, size: 18),
+                    label: const Text('Rate Provider'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    if (paymentStatus == 'UNPAID' && status == 'CONFIRMED')
-                      ElevatedButton(
-                        onPressed: () => _makePayment(booking),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accentGreen,
-                          foregroundColor: AppColors.primary,
+                  ),
+                ),
+              ] else if ((status == 'PENDING' || status == 'CONFIRMED') && BookingStatus.canCancel(status)) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _editBooking(booking),
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text('Edit'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(
+                            color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                          ),
                         ),
-                        child: const Text('Pay Now'),
                       ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => _cancelBooking(booking),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: const BorderSide(color: Colors.red),
+                          foregroundColor: Colors.red,
+                        ),
+                        child: const Text('Cancel'),
+                      ),
+                    ),
                   ],
                 ),
+                if (paymentStatus == 'UNPAID' && status == 'CONFIRMED') ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => _makePayment(booking),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accentGreen,
+                        foregroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text('Pay Now'),
+                    ),
+                  ),
+                ],
+              ] else if (BookingStatus.canCancel(status)) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => _cancelBooking(booking),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: Colors.red,
+                    ),
+                    child: const Text('Cancel Booking'),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -414,6 +478,103 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _BookingDetailsSheet(booking: booking),
+    );
+  }
+
+  Future<void> _editBooking(BookingModel booking) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => EditBookingDialog(booking: booking),
+    );
+
+    if (result == null || result.isEmpty) return;
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    final bookingRepository = ref.read(bookingRepositoryProvider);
+    final updateResult = await bookingRepository.updateBooking(
+      bookingId: booking.id,
+      date: result['date'] as String?,
+      timeSlot: result['timeSlot'] as String?,
+      area: result['area'] as String?,
+    );
+
+    if (!mounted) return;
+    Navigator.of(context).pop();
+
+    updateResult.fold(
+      (failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update booking: ${failure.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      },
+      (updatedBooking) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Booking updated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _loadBookings();
+        ref.invalidate(notificationsProvider);
+        ref.invalidate(unreadNotificationCountProvider);
+      },
+    );
+  }
+
+  Future<void> _rateProvider(BookingModel booking) async {
+    if (booking.providerId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Provider information not available')),
+      );
+      return;
+    }
+
+    final providerName = booking.provider?['name'] ?? 
+                         booking.provider?['fullName'] ?? 
+                         'Provider';
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => RatingDialog(providerName: providerName),
+    );
+
+    if (result == null) return;
+
+    final rating = result['rating'] as int;
+    final comment = result['comment'] as String?;
+
+    final ratingRepository = ref.read(ratingRepositoryProvider);
+    final submitResult = await ratingRepository.submitRating(
+      bookingId: booking.id,
+      providerId: booking.providerId!,
+      rating: rating,
+      comment: comment,
+    );
+
+    submitResult.fold(
+      (failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit rating: ${failure.message}')),
+        );
+      },
+      (_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Rating submitted successfully')),
+        );
+        _loadBookings();
+      },
     );
   }
 
@@ -512,6 +673,27 @@ class _BookingDetailsSheet extends StatelessWidget {
             _buildDetailRow(context, 'Payment Status', booking.paymentStatus!),
           if (booking.paymentMethod != null)
             _buildDetailRow(context, 'Payment Method', booking.paymentMethod!),
+          if ((booking.status.toUpperCase() == 'CONFIRMED' || booking.status.toUpperCase() == 'COMPLETED') && booking.provider != null) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 8),
+            Text(
+              'Provider Details',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildDetailRow(context, 'Name', booking.provider!['name'] ?? booking.provider!['fullName'] ?? 'N/A'),
+            if (booking.provider!['phoneNumber'] != null)
+              _buildDetailRow(context, 'Phone', booking.provider!['phoneNumber']),
+            if (booking.provider!['serviceRole'] != null)
+              _buildDetailRow(context, 'Service Role', booking.provider!['serviceRole']),
+            if (booking.provider!['averageRating'] != null)
+              _buildDetailRow(context, 'Rating', '${booking.provider!['averageRating']} ⭐'),
+          ],
         ],
       ),
     );

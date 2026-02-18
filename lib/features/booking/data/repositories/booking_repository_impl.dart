@@ -256,6 +256,32 @@ class BookingRepositoryImpl implements BookingRepository {
   }
 
   @override
+  Future<Either<Failure, BookingModel>> updateBooking({
+    required String bookingId,
+    String? date,
+    String? timeSlot,
+    String? area,
+  }) async {
+    final hasInternet = await connectivityService.hasInternetConnection();
+    
+    if (!hasInternet) {
+      return const Left(CacheFailure('No internet connection'));
+    }
+
+    try {
+      final booking = await remoteDataSource.updateBooking(
+        bookingId: bookingId,
+        date: date,
+        timeSlot: timeSlot,
+        area: area,
+      );
+      return Right(booking);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, BookingModel>> updateBookingStatus(String bookingId, String status) async {
     final hasInternet = await connectivityService.hasInternetConnection();
     

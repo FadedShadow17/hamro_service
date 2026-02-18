@@ -18,6 +18,15 @@ final payableBookingsProvider = FutureProvider<List<PaymentEntity>>((ref) async 
   );
 });
 
+final paymentHistoryProvider = FutureProvider<List<PaymentEntity>>((ref) async {
+  final repository = ref.watch(paymentRepositoryProvider);
+  final result = await repository.getPaymentHistory();
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (payments) => payments,
+  );
+});
+
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
 
@@ -25,10 +34,23 @@ class PaymentScreen extends ConsumerStatefulWidget {
   ConsumerState<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-class _PaymentScreenState extends ConsumerState<PaymentScreen> {
+class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTickerProviderStateMixin {
   PaymentMethod? _selectedPaymentMethod;
   String? _selectedBookingId;
   bool _isProcessing = false;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,14 +77,30 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           ),
         ),
         centerTitle: true,
-      ),
-      body: bookingsAsync.when(
-        data: (bookings) => _buildPaymentContent(context, bookings, isDark),
-        loading: () => const AppLoadingWidget(),
-        error: (error, stack) => AppErrorWidget(
-          message: error.toString(),
-          onRetry: () => ref.invalidate(payableBookingsProvider),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppColors.primaryBlue,
+          unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
+          indicatorColor: AppColors.primaryBlue,
+          tabs: const [
+            Tab(text: 'Pending Payments'),
+            Tab(text: 'Payment History'),
+          ],
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          bookingsAsync.when(
+            data: (bookings) => _buildPaymentContent(context, bookings, isDark),
+            loading: () => const AppLoadingWidget(),
+            error: (error, stack) => AppErrorWidget(
+              message: error.toString(),
+              onRetry: () => ref.invalidate(payableBookingsProvider),
+            ),
+          ),
+          _buildPaymentHistory(context, isDark),
+        ],
       ),
     );
   }
@@ -420,6 +458,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             _isProcessing = false;
           });
           ref.invalidate(payableBookingsProvider);
+          ref.invalidate(paymentHistoryProvider);
           if (mounted) {
             _showPaymentConfirmed(context, booking, methodName);
           }
@@ -568,6 +607,160 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentHistory(BuildContext context, bool isDark) {
+    final historyAsync = ref.watch(paymentHistoryProvider);
+
+    return historyAsync.when(
+      data: (payments) {
+        if (payments.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.history,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No payment history',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your completed payments will appear here',
+                  style: TextStyle(
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(paymentHistoryProvider);
+            await ref.read(paymentHistoryProvider.future);
+          },
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: payments.length,
+            itemBuilder: (context, index) {
+              final payment = payments[index];
+              return _buildHistoryCard(payment, isDark);
+            },
+          ),
+        );
+      },
+      loading: () => const AppLoadingWidget(),
+      error: (error, stack) => AppErrorWidget(
+        message: error.toString(),
+        onRetry: () => ref.invalidate(paymentHistoryProvider),
+      ),
+    );
+  }
+
+  Widget _buildHistoryCard(PaymentEntity payment, bool isDark) {
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      payment.serviceName,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${payment.date} at ${payment.timeSlot}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Paid',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    payment.paymentMethod == 'ESEWA' ? Icons.account_balance_wallet : Icons.phone_android,
+                    size: 16,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    payment.paymentMethod == 'ESEWA' ? 'eSewa' : (payment.paymentMethod == 'FONEPAY' ? 'FonePay' : 'N/A'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                'Rs ${payment.amount.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryBlue,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

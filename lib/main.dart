@@ -52,6 +52,9 @@ import 'package:hamro_service/features/profile/presentation/providers/image_uplo
 import 'package:hamro_service/features/notifications/data/datasources/notification_remote_datasource.dart';
 import 'package:hamro_service/features/notifications/data/repositories/notification_repository_impl.dart';
 import 'package:hamro_service/features/notifications/presentation/providers/notification_provider.dart';
+import 'package:hamro_service/features/ratings/data/datasources/rating_remote_datasource.dart';
+import 'package:hamro_service/features/ratings/data/repositories/rating_repository_impl.dart';
+import 'package:hamro_service/features/ratings/presentation/providers/rating_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -249,6 +252,18 @@ void main() async {
               final dioClient = DioClient(session: sessionService);
               final remoteDataSource = NotificationRemoteDataSourceImpl(dio: dioClient.dio);
               return NotificationRepositoryImpl(
+                remoteDataSource: remoteDataSource,
+                connectivityService: connectivityService,
+              );
+            },
+          ),
+          ratingRepositoryProvider.overrideWith(
+            (ref) {
+              final connectivityService = ConnectivityService();
+              final sessionService = UserSessionService(prefs: sharedPreferences);
+              final dioClient = DioClient(session: sessionService);
+              final remoteDataSource = RatingRemoteDataSourceImpl(dio: dioClient.dio);
+              return RatingRepositoryImpl(
                 remoteDataSource: remoteDataSource,
                 connectivityService: connectivityService,
               );

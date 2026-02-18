@@ -5,6 +5,7 @@ import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../state/auth_state.dart';
+import '../../../profile/presentation/viewmodel/profile_viewmodel.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   throw UnimplementedError('authRepositoryProvider must be overridden');
@@ -50,13 +51,21 @@ class AuthViewModel extends Notifier<AuthState> {
     required String password,
   }) async {
     state = const AuthState.loading();
+    ref.invalidate(profileViewModelProvider);
+    ref.read(profileViewModelProvider.notifier).resetProfile();
+    
     final result = await _loginUsecase(
       emailOrUsername: emailOrUsername,
       password: password,
     );
     result.fold(
       (failure) => state = AuthState.error(failure.message),
-      (user) => state = AuthState.authenticated(user),
+      (user) {
+        state = AuthState.authenticated(user);
+        Future.microtask(() {
+          ref.read(profileViewModelProvider.notifier).loadProfile();
+        });
+      },
     );
   }
 
@@ -92,7 +101,11 @@ class AuthViewModel extends Notifier<AuthState> {
     final result = await _logoutUsecase();
     result.fold(
       (failure) => state = AuthState.error(failure.message),
-      (_) => state = const AuthState.initial(),
+      (_) {
+        ref.invalidate(profileViewModelProvider);
+        ref.read(profileViewModelProvider.notifier).resetProfile();
+        state = const AuthState.initial();
+      },
     );
   }
 }

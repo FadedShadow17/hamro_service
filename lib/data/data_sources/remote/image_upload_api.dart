@@ -31,12 +31,8 @@ class ImageUploadApi {
       final response = await _dio.post(
         '/api/upload/image',
         data: formData,
-        options: Options(
-          headers: {
-            // Let Dio set the boundary for multipart.
-            'Content-Type': 'multipart/form-data',
-          },
-        ),
+        // Don't set Content-Type header - Dio will automatically set it with the correct boundary
+        // when using FormData
       );
 
       final data = response.data;

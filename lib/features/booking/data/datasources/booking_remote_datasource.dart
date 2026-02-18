@@ -22,6 +22,13 @@ abstract class BookingRemoteDataSource {
   Future<BookingModel> completeBooking(String bookingId);
 
   Future<BookingModel> updateBookingStatus(String bookingId, String status);
+
+  Future<BookingModel> updateBooking({
+    required String bookingId,
+    String? date,
+    String? timeSlot,
+    String? area,
+  });
 }
 
 class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
@@ -254,6 +261,41 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       throw Exception(message);
     } catch (e) {
       throw Exception('Failed to complete booking: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<BookingModel> updateBooking({
+    required String bookingId,
+    String? date,
+    String? timeSlot,
+    String? area,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+      if (date != null) data['date'] = date;
+      if (timeSlot != null) data['timeSlot'] = timeSlot;
+      if (area != null) data['area'] = area;
+
+      final response = await _dio.patch(
+        '/api/bookings/$bookingId',
+        data: data,
+      );
+
+      final responseData = response.data;
+      final bookingData = responseData is Map && responseData.containsKey('booking')
+          ? responseData['booking']
+          : responseData;
+
+      return BookingModel.fromJson(bookingData);
+    } on DioException catch (e) {
+      final message = e.response?.data?['message'] ??
+          e.response?.data?['error'] ??
+          e.message ??
+          'Failed to update booking';
+      throw Exception(message);
+    } catch (e) {
+      throw Exception('Failed to update booking: ${e.toString()}');
     }
   }
 

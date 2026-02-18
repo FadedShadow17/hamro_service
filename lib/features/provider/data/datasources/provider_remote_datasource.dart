@@ -11,6 +11,7 @@ abstract class ProviderRemoteDataSource {
   Future<BookingModel> cancelBooking(String bookingId);
   Future<BookingModel> updateBookingStatus(String bookingId, String status);
   Future<ProviderDashboardModel> getDashboardSummary();
+  Future<Map<String, dynamic>> getProviderById(String providerId);
 }
 
 class ProviderRemoteDataSourceImpl implements ProviderRemoteDataSource {
@@ -210,6 +211,28 @@ class ProviderRemoteDataSourceImpl implements ProviderRemoteDataSource {
       throw Exception(message);
     } catch (e) {
       throw Exception('Failed to update booking status: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getProviderById(String providerId) async {
+    try {
+      final response = await _dio.get('/api/providers/$providerId');
+      final data = response.data;
+      
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      
+      return {};
+    } on DioException catch (e) {
+      final message = e.response?.data?['message'] ??
+          e.response?.data?['error'] ??
+          e.message ??
+          'Failed to fetch provider';
+      throw Exception(message);
+    } catch (e) {
+      throw Exception('Failed to fetch provider: ${e.toString()}');
     }
   }
 

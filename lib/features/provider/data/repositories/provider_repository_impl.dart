@@ -275,6 +275,22 @@ class ProviderRepositoryImpl implements ProviderRepository {
   }
 
   @override
+  Future<Either<Failure, Map<String, dynamic>>> getProviderById(String providerId) async {
+    final hasInternet = await connectivityService.hasInternetConnection();
+    
+    if (!hasInternet) {
+      return const Left(CacheFailure('No internet connection'));
+    }
+
+    try {
+      final providerData = await remoteDataSource.getProviderById(providerId);
+      return Right(providerData);
+    } catch (e) {
+      return Left(CacheFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, Map<String, dynamic>>> checkVerificationStatus() async {
     if (verificationRepository == null) {
       return const Left(CacheFailure('Verification repository not available'));

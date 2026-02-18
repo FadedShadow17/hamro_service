@@ -123,19 +123,19 @@ class BookingLocalDataSourceImpl implements BookingLocalDataSource {
         ServiceOption(
           id: 'basic',
           name: 'Basic',
-          price: 500.0,
+          price: 1000.0,
           duration: '1 hour',
         ),
         ServiceOption(
           id: 'standard',
           name: 'Standard',
-          price: 1000.0,
+          price: 2000.0,
           duration: '2 hours',
         ),
         ServiceOption(
           id: 'premium',
           name: 'Premium',
-          price: 2000.0,
+          price: 4000.0,
           duration: '4 hours',
         ),
       ];

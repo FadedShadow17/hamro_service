@@ -25,4 +25,10 @@ abstract class BookingRepository {
   Future<Either<Failure, BookingModel>> declineBooking(String bookingId);
   Future<Either<Failure, BookingModel>> completeBooking(String bookingId);
   Future<Either<Failure, BookingModel>> updateBookingStatus(String bookingId, String status);
+  Future<Either<Failure, BookingModel>> updateBooking({
+    required String bookingId,
+    String? date,
+    String? timeSlot,
+    String? area,
+  });
 }

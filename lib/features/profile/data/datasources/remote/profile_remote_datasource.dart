@@ -158,20 +158,29 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       );
 
       final data = response.data;
-      final userData = data is Map && data.containsKey('user')
-          ? data['user']
-          : data;
+      Map<String, dynamic> userData;
+      
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('user')) {
+          final user = data['user'];
+          userData = user is Map<String, dynamic> ? user : Map<String, dynamic>.from(user as Map);
+        } else {
+          userData = data;
+        }
+      } else {
+        userData = {};
+      }
 
       return ProfileEntity(
-        userId: userData['_id'] ?? userData['id'] ?? '',
-        fullName: userData['name'] ?? userData['fullName'] ?? '',
-        email: userData['email'] ?? '',
-        phoneNumber: userData['phone'] ?? userData['phoneNumber'],
-        avatarUrl: userData['profileImageUrl'] ?? 
-                   userData['avatar'] ?? 
-                   userData['avatarUrl'],
-        address: userData['address'],
-        description: userData['description'],
+        userId: userData['_id']?.toString() ?? userData['id']?.toString() ?? '',
+        fullName: userData['name']?.toString() ?? userData['fullName']?.toString() ?? '',
+        email: userData['email']?.toString() ?? '',
+        phoneNumber: userData['phone']?.toString() ?? userData['phoneNumber']?.toString(),
+        avatarUrl: userData['profileImageUrl']?.toString() ?? 
+                   userData['avatar']?.toString() ?? 
+                   userData['avatarUrl']?.toString(),
+        address: userData['address']?.toString(),
+        description: userData['description']?.toString(),
       );
     } on DioException catch (e) {
       final message = e.response?.data?['message'] ??

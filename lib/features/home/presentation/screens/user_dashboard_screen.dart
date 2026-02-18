@@ -5,7 +5,6 @@ import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/widgets/k_section_header.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../widgets/promo_banner.dart';
-import '../widgets/popular_service_card.dart';
 import '../widgets/stats_card.dart';
 import '../providers/home_dashboard_provider.dart';
 import '../providers/user_dashboard_stats_provider.dart';
@@ -14,9 +13,9 @@ import '../../../profile/presentation/viewmodel/profile_viewmodel.dart';
 import '../../../services/presentation/screens/services_by_category_screen.dart';
 import '../../../booking/presentation/pages/user_bookings_page.dart';
 import '../../../payment/presentation/pages/payment_page.dart';
-import '../../../services/presentation/widgets/service_item_card.dart';
 import '../../../services/presentation/widgets/service_grid_card.dart';
 import '../../../services/domain/entities/service_item.dart';
+import '../../../services/presentation/providers/services_list_provider.dart';
 import '../../../booking/presentation/screens/booking_screen.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../../notifications/presentation/screens/notifications_screen.dart';
@@ -147,7 +146,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with 
               },
             ),
             const SizedBox(height: 8),
-            _buildPopularServicesGrid(data.popularServices),
+            _buildPopularServicesGrid(data.popularServices, ref),
             const SizedBox(height: 24),
           ],
         ],
@@ -305,7 +304,76 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with 
     );
   }
 
-  Widget _buildPopularServicesGrid(List<dynamic> services) {
+  Widget _buildPopularServicesGrid(List<dynamic> services, WidgetRef ref) {
+    if (services.isEmpty) {
+      final allServicesAsync = ref.watch(servicesListProvider('all'));
+      return allServicesAsync.when(
+        data: (allServicesState) {
+          final allServices = allServicesState.services;
+          if (allServices.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(32),
+              child: Center(
+                child: Text(
+                  'No services available',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[400]
+                        : Colors.grey[600],
+                  ),
+                ),
+              ),
+            );
+          }
+          final displayServices = allServices.take(10).toList();
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.7,
+              ),
+              itemCount: displayServices.length,
+              itemBuilder: (context, index) {
+                final service = displayServices[index];
+                return ServiceGridCard(
+                  service: service,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => BookingScreen(service: service),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          );
+        },
+        loading: () => const Padding(
+          padding: EdgeInsets.all(32),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (_, __) => Padding(
+          padding: const EdgeInsets.all(32),
+          child: Center(
+            child: Text(
+              'Failed to load services',
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[400]
+                    : Colors.grey[600],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GridView.builder(
@@ -343,6 +411,17 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with 
     );
   }
 
+  static String _getTimeBasedGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good Morning';
+    } else if (hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
+  }
+
   static Widget _buildHeader(WidgetRef ref, BuildContext context) {
     final profileState = ref.watch(profileViewModelProvider);
     final userName = profileState.profile?.fullName ?? 'Alex Carter';
@@ -359,7 +438,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> with 
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hello 👋',
+                  _getTimeBasedGreeting(),
                   style: TextStyle(
                     fontSize: 14,
                     color: Theme.of(context).brightness == Brightness.dark

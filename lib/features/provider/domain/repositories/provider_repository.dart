@@ -13,4 +13,5 @@ abstract class ProviderRepository {
   Future<Either<Failure, ProviderOrder>> declineBooking(String bookingId);
   Future<Either<Failure, ProviderOrder>> completeBooking(String bookingId);
   Future<Either<Failure, Map<String, dynamic>>> checkVerificationStatus();
+  Future<Either<Failure, Map<String, dynamic>>> getProviderById(String providerId);
 }

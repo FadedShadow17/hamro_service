@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import 'provider_edit_profile_page.dart';
 import 'provider_about_page.dart';
 import 'provider_availability_page.dart';
+import '../providers/provider_dashboard_provider.dart';
 
 class ProviderProfilePage extends ConsumerStatefulWidget {
   const ProviderProfilePage({super.key});
@@ -152,6 +153,93 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                     ),
                   ],
                 ),
+              ),
+
+              const SizedBox(height: 24),
+
+              Consumer(
+                builder: (context, ref, child) {
+                  final dashboardAsync = ref.watch(providerDashboardDataProvider);
+                  return dashboardAsync.when(
+                    data: (data) => Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    data.stats.averageRating.toStringAsFixed(1),
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Average Rating',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: isDark ? Colors.grey[700] : Colors.grey[300],
+                          ),
+                          Column(
+                            children: [
+                              Text(
+                                '${data.stats.totalReviews}',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Total Reviews',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  );
+                },
               ),
 
               // Description Section

@@ -4,6 +4,7 @@ import '../models/payment_model.dart';
 abstract class PaymentRemoteDataSource {
   Future<List<PaymentModel>> getPayableBookings();
   Future<PaymentModel> payForBooking(String bookingId, String paymentMethod);
+  Future<List<PaymentModel>> getPaymentHistory();
 }
 
 class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
@@ -47,6 +48,42 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
       throw Exception(message);
     } catch (e) {
       throw Exception('Failed to process payment: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<List<PaymentModel>> getPaymentHistory() async {
+    try {
+      final response = await _dio.get('/api/payments/me/history');
+      final data = response.data;
+      
+      List<dynamic> paymentsList = [];
+      if (data is Map) {
+        if (data.containsKey('payments')) {
+          paymentsList = data['payments'] as List? ?? [];
+        } else if (data.containsKey('data')) {
+          paymentsList = data['data'] as List? ?? [];
+        } else if (data.containsKey('history')) {
+          paymentsList = data['history'] as List? ?? [];
+        }
+      } else if (data is List) {
+        paymentsList = data;
+      }
+      
+      return paymentsList
+          .map((json) => PaymentModel.fromJson(Map<String, dynamic>.from(json as Map)))
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return [];
+      }
+      final message = e.response?.data?['message'] ??
+          e.response?.data?['error'] ??
+          e.message ??
+          'Failed to fetch payment history';
+      throw Exception(message);
+    } catch (e) {
+      throw Exception('Failed to fetch payment history: ${e.toString()}');
     }
   }
 }

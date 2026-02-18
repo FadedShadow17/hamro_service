@@ -75,6 +75,10 @@ class ProfileViewModel extends Notifier<ProfileState> {
       },
     );
   }
+
+  void resetProfile() {
+    state = const ProfileState.initial();
+  }
 }
 
 final profileViewModelProvider =

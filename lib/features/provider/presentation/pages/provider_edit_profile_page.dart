@@ -32,8 +32,10 @@ class _ProviderEditProfilePageState extends ConsumerState<ProviderEditProfilePag
   void initState() {
     super.initState();
     _loadProfileData();
+  }
 
-    ref.listen<ImageUploadState>(imageUploadNotifierProvider, (previous, next) {
+  void _setupImageUploadListener() {
+    ref.listenManual<ImageUploadState>(imageUploadNotifierProvider, (previous, next) {
       if (!mounted) return;
 
       setState(() {
@@ -214,6 +216,7 @@ class _ProviderEditProfilePageState extends ConsumerState<ProviderEditProfilePag
 
   @override
   Widget build(BuildContext context) {
+    _setupImageUploadListener();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     
