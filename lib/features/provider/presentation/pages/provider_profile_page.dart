@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import 'provider_edit_profile_page.dart';
 import 'provider_about_page.dart';
 import 'provider_availability_page.dart';
+import 'provider_settings_page.dart';
 import '../providers/provider_dashboard_provider.dart';
 
 class ProviderProfilePage extends ConsumerStatefulWidget {
@@ -337,8 +338,10 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                       icon: Icons.settings,
                       title: 'Settings',
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Settings coming soon')),
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ProviderSettingsPage(),
+                          ),
                         );
                       },
                     ),

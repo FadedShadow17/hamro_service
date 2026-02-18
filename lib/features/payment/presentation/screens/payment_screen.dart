@@ -48,6 +48,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
 
   @override
   void dispose() {
+    if (_tabController.hasListeners) {
+      _tabController.removeListener(() {});
+    }
     _tabController.dispose();
     super.dispose();
   }
@@ -57,18 +60,21 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bookingsAsync = ref.watch(payableBookingsProvider);
 
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : AppColors.backgroundLight,
-      appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-          onPressed: _isProcessing ? null : () => Navigator.of(context).pop(),
-        ),
+    return PopScope(
+      canPop: !_isProcessing,
+      onPopInvoked: (didPop) {
+        if (!didPop && _isProcessing) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please wait for payment to complete')),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF121212) : AppColors.backgroundLight,
+        appBar: AppBar(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          elevation: 0,
+          automaticallyImplyLeading: false,
         title: Text(
           'Payment',
           style: TextStyle(
@@ -101,6 +107,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
           ),
           _buildPaymentHistory(context, isDark),
         ],
+      ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import '../../../booking/data/models/booking_model.dart';
 import '../../domain/entities/provider_stats.dart';
 import '../../data/models/provider_stats_model.dart';
+import '../../../../core/utils/pricing_helper.dart';
 
 class StatsCalculator {
   static ProviderStatsModel calculateFromBookings(List<BookingModel> bookings) {
@@ -20,12 +21,22 @@ class StatsCalculator {
       } else if (status == 'COMPLETED') {
         completedOrders++;
         
-        final price = booking.service?['price'] ?? 
-                     booking.service?['basePrice'] ?? 
-                     booking.service?['priceRs'] ?? 
-                     0;
-        final priceInt = price is int ? price : (price is num ? price.toInt() : 0);
-        totalEarnings += priceInt;
+        double price = 0.0;
+        
+        if (booking.service != null) {
+          final categoryTag = booking.service?['category']?['name'] ?? 
+                            booking.service?['categoryName'] ?? 
+                            booking.service?['category'] ?? '';
+          final rawPrice = booking.service?['totalPrice'] ?? 
+                          booking.service?['serviceOptionPrice'] ??
+                          booking.service?['price'] ?? 
+                          booking.service?['basePrice'] ?? 
+                          booking.service?['priceRs'] ?? 
+                          0.0;
+          price = PricingHelper.getPriceWithFallback(rawPrice, categoryTag);
+        }
+        
+        totalEarnings += price.toInt();
       }
     }
 

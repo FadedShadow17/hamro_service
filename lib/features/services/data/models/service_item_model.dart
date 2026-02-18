@@ -1,4 +1,5 @@
 import '../../domain/entities/service_item.dart';
+import '../../../../core/utils/pricing_helper.dart';
 
 class ServiceItemModel extends ServiceItem {
   const ServiceItemModel({
@@ -28,15 +29,19 @@ class ServiceItemModel extends ServiceItem {
   }
 
   factory ServiceItemModel.fromJson(Map<String, dynamic> json) {
+    final categoryTag = json['category']?['name'] ?? 
+                       json['categoryName'] ?? 
+                       json['category'] ?? '';
+    final rawPrice = json['price'] ?? json['priceRs'] ?? 0.0;
+    final priceRs = PricingHelper.getPriceWithFallback(rawPrice, categoryTag);
+    
     return ServiceItemModel(
       id: json['_id'] ?? json['id'] ?? '',
       title: json['title'] ?? json['name'] ?? '',
-      priceRs: (json['price'] ?? json['priceRs'] ?? 0.0).toDouble(),
+      priceRs: priceRs,
       rating: (json['rating'] ?? 0.0).toDouble(),
       reviewsCount: json['reviewsCount'] ?? json['reviews'] ?? 0,
-      categoryTag: json['category']?['name'] ?? 
-                  json['categoryName'] ?? 
-                  json['category'] ?? '',
+      categoryTag: categoryTag,
       providerId: json['providerId'] ?? json['provider']?['_id'],
       providerName: json['provider']?['name'] ?? json['providerName'],
       providerAvatarUrl: json['provider']?['avatar'] ?? json['providerAvatarUrl'],

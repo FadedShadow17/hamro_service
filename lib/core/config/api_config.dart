@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 
 class ApiConfig {
   // IMPORTANT: For physical devices, this is your computer's local IP address
-  // Your current IP: 192.168.1.80
+  // Your current IP: 192.168.1.73
   // If your IP changes, update this value
-  static const String physicalDeviceIp = "192.168.1.80";
+  static const String physicalDeviceIp = "192.168.1.73";
   
   static String get baseUrl {
     const envUrl = String.fromEnvironment('API_BASE_URL');

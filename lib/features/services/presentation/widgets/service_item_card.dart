@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/k_avatar.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/pricing_helper.dart';
 import '../../domain/entities/service_item.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
 
@@ -62,7 +63,7 @@ class ServiceItemCard extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Rs ${service.priceRs.toStringAsFixed(0)}',
+                      'Rs ${PricingHelper.getPriceWithFallback(service.priceRs, service.categoryTag).toStringAsFixed(0)}',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

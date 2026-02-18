@@ -638,7 +638,7 @@ class _OrderDetailsSheet extends StatelessWidget {
           _buildDetailRow(context, 'Date', order.scheduledDate != null ? DateFormat('MMM dd, yyyy').format(order.scheduledDate!) : 'N/A'),
           _buildDetailRow(context, 'Location', order.location),
           _buildDetailRow(context, 'Status', order.status),
-          _buildDetailRow(context, 'Price', 'Rs. ${order.priceRs.toStringAsFixed(2)}'),
+          _buildDetailRow(context, 'Price', 'Rs. ${(order.priceRs > 0 ? order.priceRs : 1000).toStringAsFixed(2)}'),
           if (order.paymentStatus != null)
             _buildDetailRow(context, 'Payment Status', order.paymentStatus!.toUpperCase() == 'PAID' ? 'Paid' : 'Unpaid'),
         ],

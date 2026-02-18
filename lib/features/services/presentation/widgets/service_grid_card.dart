@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/pricing_helper.dart';
 import '../../domain/entities/service_item.dart';
 import '../../../favorites/presentation/providers/favorites_provider.dart';
 
@@ -14,11 +15,98 @@ class ServiceGridCard extends ConsumerWidget {
     this.onTap,
   });
 
+  IconData _getServiceIcon(String categoryTag) {
+    final category = categoryTag.toLowerCase();
+    if (category.contains('cleaning') || category.contains('clean')) {
+      return Icons.cleaning_services;
+    } else if (category.contains('plumbing') || category.contains('plumber')) {
+      return Icons.plumbing;
+    } else if (category.contains('electrical') || category.contains('electric')) {
+      return Icons.electrical_services;
+    } else if (category.contains('carpentry') || category.contains('carpenter')) {
+      return Icons.build;
+    } else if (category.contains('painting') || category.contains('paint')) {
+      return Icons.format_paint;
+    } else if (category.contains('gardening') || category.contains('garden')) {
+      return Icons.local_florist;
+    } else if (category.contains('appliance') || category.contains('repair')) {
+      return Icons.build_circle;
+    }
+    return Icons.home_repair_service;
+  }
+
+  List<Color> _getServiceGradient(String categoryTag) {
+    final category = categoryTag.toLowerCase();
+    if (category.contains('cleaning') || category.contains('clean')) {
+      return [
+        Colors.blue.withValues(alpha: 0.15),
+        Colors.lightBlue.withValues(alpha: 0.08),
+      ];
+    } else if (category.contains('plumbing') || category.contains('plumber')) {
+      return [
+        Colors.cyan.withValues(alpha: 0.15),
+        Colors.blue.withValues(alpha: 0.08),
+      ];
+    } else if (category.contains('electrical') || category.contains('electric')) {
+      return [
+        Colors.amber.withValues(alpha: 0.15),
+        Colors.orange.withValues(alpha: 0.08),
+      ];
+    } else if (category.contains('carpentry') || category.contains('carpenter')) {
+      return [
+        Colors.brown.withValues(alpha: 0.15),
+        Colors.orange.withValues(alpha: 0.08),
+      ];
+    } else if (category.contains('painting') || category.contains('paint')) {
+      return [
+        Colors.purple.withValues(alpha: 0.15),
+        Colors.pink.withValues(alpha: 0.08),
+      ];
+    } else if (category.contains('gardening') || category.contains('garden')) {
+      return [
+        Colors.green.withValues(alpha: 0.15),
+        Colors.lightGreen.withValues(alpha: 0.08),
+      ];
+    } else if (category.contains('appliance') || category.contains('repair')) {
+      return [
+        Colors.red.withValues(alpha: 0.15),
+        Colors.orange.withValues(alpha: 0.08),
+      ];
+    }
+    return [
+      AppColors.primaryBlue.withValues(alpha: 0.1),
+      AppColors.accentBlue.withValues(alpha: 0.05),
+    ];
+  }
+
+  Color _getServiceIconColor(String categoryTag) {
+    final category = categoryTag.toLowerCase();
+    if (category.contains('cleaning') || category.contains('clean')) {
+      return Colors.blue;
+    } else if (category.contains('plumbing') || category.contains('plumber')) {
+      return Colors.cyan;
+    } else if (category.contains('electrical') || category.contains('electric')) {
+      return Colors.amber.shade700;
+    } else if (category.contains('carpentry') || category.contains('carpenter')) {
+      return Colors.brown;
+    } else if (category.contains('painting') || category.contains('paint')) {
+      return Colors.purple;
+    } else if (category.contains('gardening') || category.contains('garden')) {
+      return Colors.green;
+    } else if (category.contains('appliance') || category.contains('repair')) {
+      return Colors.red;
+    }
+    return AppColors.primaryBlue;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final isFavoriteAsync = ref.watch(isFavoriteProvider(service.id));
+    final serviceIcon = _getServiceIcon(service.categoryTag);
+    final gradientColors = _getServiceGradient(service.categoryTag);
+    final iconColor = _getServiceIconColor(service.categoryTag);
 
     return InkWell(
       onTap: onTap,
@@ -50,10 +138,7 @@ class ServiceGridCard extends ConsumerWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primaryBlue.withValues(alpha: 0.1),
-                      AppColors.accentBlue.withValues(alpha: 0.05),
-                    ],
+                    colors: gradientColors,
                   ),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(16),
@@ -64,9 +149,9 @@ class ServiceGridCard extends ConsumerWidget {
                   children: [
                     Center(
                       child: Icon(
-                        Icons.home_repair_service,
+                        serviceIcon,
                         size: 48,
-                        color: AppColors.primaryBlue.withValues(alpha: 0.5),
+                        color: iconColor.withValues(alpha: 0.6),
                       ),
                     ),
                     Positioned(
@@ -165,7 +250,7 @@ class ServiceGridCard extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Rs ${service.priceRs.toStringAsFixed(0)}',
+                      'Rs ${PricingHelper.getPriceWithFallback(service.priceRs, service.categoryTag).toStringAsFixed(0)}',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

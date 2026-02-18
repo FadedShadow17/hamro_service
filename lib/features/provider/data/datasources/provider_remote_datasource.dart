@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../models/provider_order_model.dart';
 import '../models/provider_dashboard_model.dart';
 import '../../../booking/data/models/booking_model.dart';
+import '../../../../core/utils/pricing_helper.dart';
 
 abstract class ProviderRemoteDataSource {
   Future<List<ProviderOrderModel>> getProviderBookings({String? status});
@@ -61,11 +62,15 @@ class ProviderRemoteDataSourceImpl implements ProviderRemoteDataSource {
               : booking as Map<String, dynamic>;
           final bookingModel = BookingModel.fromJson(bookingMap);
           
-          final price = bookingModel.service?['price'] ?? 
-                       bookingModel.service?['basePrice'] ?? 
-                       bookingModel.service?['priceRs'] ?? 
-                       0;
-          final priceInt = price is int ? price : (price is num ? price.toInt() : 0);
+          final categoryTag = bookingModel.service?['category']?['name'] ?? 
+                             bookingModel.service?['categoryName'] ?? 
+                             bookingModel.service?['category'] ?? '';
+          final rawPrice = bookingModel.service?['price'] ?? 
+                          bookingModel.service?['basePrice'] ?? 
+                          bookingModel.service?['priceRs'] ?? 
+                          0;
+          final price = PricingHelper.getPriceWithFallback(rawPrice, categoryTag);
+          final priceInt = price.toInt();
           
           return ProviderOrderModel(
             id: bookingModel.id,

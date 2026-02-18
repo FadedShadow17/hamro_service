@@ -60,15 +60,40 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
       if (image == null) return;
 
+      final imageFile = File(image.path);
+      if (!await imageFile.exists()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Selected image file does not exist')),
+          );
+        }
+        return;
+      }
+
       setState(() {
-        _selectedImage = File(image.path);
+        _selectedImage = imageFile;
       });
 
-      await ref.read(imageUploadNotifierProvider.notifier).uploadImage(_selectedImage!);
+      final uploadResult = await ref.read(imageUploadNotifierProvider.notifier).uploadImage(_selectedImage!);
+      
+      if (uploadResult == null && mounted) {
+        final uploadState = ref.read(imageUploadNotifierProvider);
+        if (uploadState.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Upload failed: ${uploadState.errorMessage}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

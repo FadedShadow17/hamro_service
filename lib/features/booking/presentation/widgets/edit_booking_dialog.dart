@@ -35,6 +35,9 @@ class _EditBookingDialogState extends ConsumerState<EditBookingDialog> {
     _areaController = TextEditingController(text: widget.booking.area);
     _selectedDate = DateTime.tryParse(widget.booking.date);
     _selectedTimeSlot = widget.booking.timeSlot;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAvailableTimeSlots();
+    });
   }
 
   @override

@@ -26,13 +26,24 @@ class _ServicesByCategoryScreenState extends ConsumerState<ServicesByCategoryScr
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.categoryName;
+    if (widget.categoryId.toLowerCase() == 'all' || 
+        widget.categoryName.toLowerCase() == 'all' ||
+        widget.categoryName.toLowerCase() == 'all services') {
+      _selectedCategory = 'all';
+    } else {
+      _selectedCategory = widget.categoryName;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final servicesState = ref.watch(servicesListProvider(_selectedCategory));
+    String categoryForProvider = _selectedCategory;
+    if (_selectedCategory.toLowerCase() == 'all services' || 
+        _selectedCategory.toLowerCase() == 'all') {
+      categoryForProvider = 'all';
+    }
+    final servicesState = ref.watch(servicesListProvider(categoryForProvider));
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : AppColors.backgroundLight,
@@ -54,7 +65,7 @@ class _ServicesByCategoryScreenState extends ConsumerState<ServicesByCategoryScr
           ),
         ),
         title: Text(
-          'Most Popular Services',
+          widget.categoryName,
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
             fontWeight: FontWeight.bold,
@@ -79,17 +90,22 @@ class _ServicesByCategoryScreenState extends ConsumerState<ServicesByCategoryScr
     ServicesScreenState state,
     bool isDark,
   ) {
+    final filteredCategories = state.categories.where((cat) => 
+      cat.toLowerCase() != 'all' && cat.toLowerCase() != 'all services'
+    ).toList();
+    
     return Column(
       children: [
-        CategoryChips(
-          categories: state.categories,
-          selectedCategory: state.selectedCategory,
-          onCategorySelected: (category) {
-            setState(() {
-              _selectedCategory = category;
-            });
-          },
-        ),
+        if (filteredCategories.isNotEmpty)
+          CategoryChips(
+            categories: filteredCategories,
+            selectedCategory: state.selectedCategory,
+            onCategorySelected: (category) {
+              setState(() {
+                _selectedCategory = category;
+              });
+            },
+          ),
         Expanded(
           child: state.services.isEmpty
               ? Center(

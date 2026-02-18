@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../models/service_category_model.dart';
 import '../models/popular_service_model.dart';
+import '../../../../core/utils/pricing_helper.dart';
 
 abstract class HomeRemoteDataSource {
   Future<List<ServiceCategoryModel>> getServiceCategories();
@@ -52,25 +53,33 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       if (data is Map && data.containsKey('data')) {
         final servicesList = data['data'] as List;
         services = servicesList.map((service) {
+          final categoryTag = service['category']?['name'] ?? 
+                             service['categoryName'] ?? 
+                             service['category'] ?? '';
+          final rawPrice = service['price'] ?? service['priceRs'] ?? 0.0;
+          final priceRs = PricingHelper.getPriceWithFallback(rawPrice, categoryTag);
+          
           return PopularServiceModel(
             id: service['_id'] ?? service['id'] ?? '',
             title: service['title'] ?? service['name'] ?? '',
-            priceRs: (service['price'] ?? service['priceRs'] ?? 0) as int,
-            categoryTag: service['category']?['name'] ?? 
-                        service['categoryName'] ?? 
-                        service['category'] ?? '',
+            priceRs: priceRs.toInt(),
+            categoryTag: categoryTag,
           );
         }).toList();
       } else if (data is Map && data.containsKey('services')) {
         final servicesList = data['services'] as List;
         services = servicesList.map((service) {
+          final categoryTag = service['category']?['name'] ?? 
+                             service['categoryName'] ?? 
+                             service['category'] ?? '';
+          final rawPrice = service['price'] ?? service['priceRs'] ?? 0.0;
+          final priceRs = PricingHelper.getPriceWithFallback(rawPrice, categoryTag);
+          
           return PopularServiceModel(
             id: service['_id'] ?? service['id'] ?? '',
             title: service['title'] ?? service['name'] ?? '',
-            priceRs: (service['price'] ?? service['priceRs'] ?? 0) as int,
-            categoryTag: service['category']?['name'] ?? 
-                        service['categoryName'] ?? 
-                        service['category'] ?? '',
+            priceRs: priceRs.toInt(),
+            categoryTag: categoryTag,
           );
         }).toList();
       }

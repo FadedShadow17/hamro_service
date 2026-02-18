@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../models/service_item_model.dart';
+import '../../../../core/utils/pricing_helper.dart';
 
 abstract class ServicesRemoteDataSource {
   Future<List<ServiceItemModel>> getServices();
@@ -27,15 +28,19 @@ class ServicesRemoteDataSourceImpl implements ServicesRemoteDataSource {
       if (data is Map && data.containsKey('data')) {
         final servicesList = data['data'] as List;
         services = servicesList.map((service) {
+          final categoryTag = service['category']?['name'] ?? 
+                             service['categoryName'] ?? 
+                             service['category'] ?? '';
+          final rawPrice = service['price'] ?? service['priceRs'] ?? 0.0;
+          final priceRs = PricingHelper.getPriceWithFallback(rawPrice, categoryTag);
+          
           return ServiceItemModel(
             id: service['_id'] ?? service['id'] ?? '',
             title: service['title'] ?? service['name'] ?? '',
-            priceRs: (service['price'] ?? service['priceRs'] ?? 0.0).toDouble(),
+            priceRs: priceRs,
             rating: (service['rating'] ?? 0.0).toDouble(),
             reviewsCount: service['reviewsCount'] ?? service['reviews'] ?? 0,
-            categoryTag: service['category']?['name'] ?? 
-                        service['categoryName'] ?? 
-                        service['category'] ?? '',
+            categoryTag: categoryTag,
             providerId: service['providerId'] ?? service['provider']?['_id'],
             providerName: service['provider']?['name'] ?? 
                          service['providerName'],
@@ -46,15 +51,19 @@ class ServicesRemoteDataSourceImpl implements ServicesRemoteDataSource {
       } else if (data is Map && data.containsKey('services')) {
         final servicesList = data['services'] as List;
         services = servicesList.map((service) {
+          final categoryTag = service['category']?['name'] ?? 
+                             service['categoryName'] ?? 
+                             service['category'] ?? '';
+          final rawPrice = service['price'] ?? service['priceRs'] ?? 0.0;
+          final priceRs = PricingHelper.getPriceWithFallback(rawPrice, categoryTag);
+          
           return ServiceItemModel(
             id: service['_id'] ?? service['id'] ?? '',
             title: service['title'] ?? service['name'] ?? '',
-            priceRs: (service['price'] ?? service['priceRs'] ?? 0.0).toDouble(),
+            priceRs: priceRs,
             rating: (service['rating'] ?? 0.0).toDouble(),
             reviewsCount: service['reviewsCount'] ?? service['reviews'] ?? 0,
-            categoryTag: service['category']?['name'] ?? 
-                        service['categoryName'] ?? 
-                        service['category'] ?? '',
+            categoryTag: categoryTag,
             providerId: service['providerId'] ?? service['provider']?['_id'],
             providerName: service['provider']?['name'] ?? 
                          service['providerName'],
@@ -86,15 +95,19 @@ class ServicesRemoteDataSourceImpl implements ServicesRemoteDataSource {
           ? data['service'] 
           : data;
       
+      final categoryTag = service['category']?['name'] ?? 
+                         service['categoryName'] ?? 
+                         service['category'] ?? '';
+      final rawPrice = service['price'] ?? service['priceRs'] ?? 0.0;
+      final priceRs = PricingHelper.getPriceWithFallback(rawPrice, categoryTag);
+      
       return ServiceItemModel(
         id: service['_id'] ?? service['id'] ?? id,
         title: service['title'] ?? service['name'] ?? '',
-        priceRs: (service['price'] ?? service['priceRs'] ?? 0.0).toDouble(),
+        priceRs: priceRs,
         rating: (service['rating'] ?? 0.0).toDouble(),
         reviewsCount: service['reviewsCount'] ?? service['reviews'] ?? 0,
-        categoryTag: service['category']?['name'] ?? 
-                    service['categoryName'] ?? 
-                    service['category'] ?? '',
+        categoryTag: categoryTag,
         providerId: service['providerId'] ?? service['provider']?['_id'],
         providerName: service['provider']?['name'] ?? 
                      service['providerName'],

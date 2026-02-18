@@ -22,8 +22,31 @@ This project follows Clean Architecture pattern with:
 ### Prerequisites
 - Flutter SDK (3.9.2 or higher)
 - Dart SDK
+- Node.js (for backend)
+- npm or yarn
 
-### Setup
+### Backend Setup
+
+1. Navigate to backend directory:
+```bash
+cd backend
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Run the backend server:
+```bash
+npm run dev
+```
+
+The server will start on port 4000 (or PORT from environment) and listen on all interfaces (0.0.0.0) for LAN access.
+
+**Important:** Ensure your firewall allows incoming connections on port 4000.
+
+### Flutter App Setup
 
 1. Install dependencies:
 ```bash
@@ -39,6 +62,10 @@ dart run build_runner build --delete-conflicting-outputs
 ```bash
 flutter run
 ```
+
+### Android Configuration
+
+The Android manifest already includes `android:usesCleartextTraffic="true"` to allow HTTP connections. This is required for local development when connecting to the backend over HTTP.
 
 ## Project Structure
 

@@ -396,7 +396,7 @@ class _UserBookingsPageState extends ConsumerState<UserBookingsPage> {
                     ),
                   ),
                 ),
-              ] else if ((status == 'PENDING' || status == 'CONFIRMED') && BookingStatus.canCancel(status)) ...[
+              ] else if (status == 'PENDING' || status == 'CONFIRMED') ...[
                 Row(
                   children: [
                     Expanded(

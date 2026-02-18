@@ -127,7 +127,7 @@ class OrderCard extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Rs. ${order.priceRs}',
+                'Rs. ${order.priceRs > 0 ? order.priceRs : 1000}',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

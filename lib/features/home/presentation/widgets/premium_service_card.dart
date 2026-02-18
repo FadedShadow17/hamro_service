@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/pricing_helper.dart';
 import '../../../services/domain/entities/service_item.dart';
 
 class PremiumServiceCard extends StatelessWidget {
@@ -177,7 +178,7 @@ class PremiumServiceCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Rs ${service.priceRs.toStringAsFixed(0)}',
+                            'Rs ${service.priceRs > 0 ? service.priceRs.toStringAsFixed(0) : PricingHelper.getDefaultPriceForCategory(service.categoryTag).toStringAsFixed(0)}',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/popular_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/pricing_helper.dart';
 import '../../../services/domain/entities/service_item.dart';
 import '../../../booking/presentation/screens/booking_screen.dart';
 
@@ -166,7 +167,7 @@ class PopularServiceCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Rs ${service.priceRs.toStringAsFixed(0)}',
+                        'Rs ${service.priceRs > 0 ? service.priceRs.toStringAsFixed(0) : PricingHelper.getDefaultPriceForCategory(service.categoryTag).toStringAsFixed(0)}',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
