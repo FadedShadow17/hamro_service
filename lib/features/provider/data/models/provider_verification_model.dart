@@ -18,7 +18,7 @@ class ProviderVerificationModel extends ProviderVerificationEntity {
 
   factory ProviderVerificationModel.fromJson(Map<String, dynamic> json) {
     return ProviderVerificationModel(
-      verificationStatus: json['verificationStatus'] ?? json['status'] ?? 'NOT_SUBMITTED',
+      verificationStatus: json['verificationStatus'] ?? json['status'] ?? 'not_submitted',
       fullName: json['fullName'],
       phoneNumber: json['phoneNumber'],
       citizenshipNumber: json['citizenshipNumber'],

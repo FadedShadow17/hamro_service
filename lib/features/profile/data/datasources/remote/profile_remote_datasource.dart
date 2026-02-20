@@ -39,6 +39,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                    userData['avatarUrl'],
         address: userData['address'],
         description: userData['description'],
+        role: userData['role'],
       );
     } on DioException catch (e) {
       final message = e.response?.data?['message'] ??
@@ -90,6 +91,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                    userData['avatarUrl'],
         address: userData['address'],
         description: userData['description'],
+        role: userData['role'],
       );
     } on DioException catch (e) {
       final message = e.response?.data?['message'] ??
@@ -125,6 +127,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
                    userData['avatarUrl'],
         address: userData['address'],
         description: userData['description'],
+        role: userData['role'],
       );
     } on DioException catch (e) {
       final message = e.response?.data?['message'] ??

@@ -1,27 +1,22 @@
 class VerificationService {
   static bool canPerformAction(String verificationStatus) {
-    return verificationStatus == 'APPROVED';
+    return verificationStatus == 'verified';
   }
 
   static String? getErrorMessage(String verificationStatus, {String? rejectionReason}) {
     switch (verificationStatus) {
-      case 'NOT_SUBMITTED':
-        return 'Please submit your verification documents first';
-      case 'PENDING_REVIEW':
-        return 'Your verification is pending review. Please wait for approval.';
-      case 'REJECTED':
-        if (rejectionReason != null && rejectionReason.isNotEmpty) {
-          return 'Verification rejected: $rejectionReason. Please resubmit with corrected documents.';
-        }
-        return 'Your verification was rejected. Please resubmit with corrected documents.';
-      case 'APPROVED':
+      case 'not_submitted':
+        return null;
+      case 'pending':
+        return 'Your verification is being processed by admin.';
+      case 'verified':
         return null;
       default:
-        return 'Provider verification required';
+        return 'Please submit your verification documents first';
     }
   }
 
   static bool isVerified(String verificationStatus) {
-    return verificationStatus == 'APPROVED';
+    return verificationStatus == 'verified';
   }
 }

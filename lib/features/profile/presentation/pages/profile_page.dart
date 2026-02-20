@@ -121,6 +121,52 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
               const SizedBox(height: 8),
 
+              // Role Badge
+              Builder(
+                builder: (context) {
+                  final role = authState.user?.role ?? profile?.role;
+                  if (role != null && role.isNotEmpty) {
+                    final roleText = role == 'provider' ? 'Service Provider' : 'User';
+                    final roleColor = role == 'provider' ? AppColors.accentOrange : AppColors.primaryBlue;
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: roleColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: roleColor.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            role == 'provider' ? Icons.work : Icons.person,
+                            color: roleColor,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            roleText,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: roleColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+
+              const SizedBox(height: 12),
+
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

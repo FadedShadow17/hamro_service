@@ -5,7 +5,6 @@ import 'package:hamro_service/features/auth/presentation/pages/signup_page.dart'
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/features/forgot_password/presentation/pages/forgot_password_page.dart';
-import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
 import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
 import 'package:hamro_service/core/services/storage/user_session_service.dart';
@@ -124,24 +123,33 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (next.isAuthenticated && next.user != null && !_hasNavigated) {
         _hasNavigated = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (mounted && Navigator.of(context).canPop() == false) {
-            final prefs = await SharedPreferences.getInstance();
-            final sessionService = UserSessionService(prefs: prefs);
+          if (mounted) {
+            final sessionService = UserSessionService(prefs: await SharedPreferences.getInstance());
+            // Get role from backend (JWT token or user data) - this is the source of truth
             final role = next.user?.role ?? sessionService.getRole();
-            final roleSelected = prefs.getBool('role_selected') ?? false;
             
-            if (!roleSelected) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const RolePage()),
-              );
-            } else {
-              if (role == 'provider') {
-                Navigator.of(context).pushReplacement(
+            // Save role to session service if not already saved
+            if (role != null && role.isNotEmpty) {
+              final currentSessionRole = sessionService.getRole();
+              if (currentSessionRole != role) {
+                await sessionService.saveRole(role);
+              }
+            }
+            
+            // Navigate directly based on role, default to user dashboard if no role
+            if (role == 'provider') {
+              if (mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
+                  (route) => false, // Remove all previous routes
                 );
-              } else {
-                Navigator.of(context).pushReplacement(
+              }
+            } else {
+              // Default to user dashboard if role is null, empty, or 'user'
+              if (mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const DashboardPage()),
+                  (route) => false, // Remove all previous routes
                 );
               }
             }

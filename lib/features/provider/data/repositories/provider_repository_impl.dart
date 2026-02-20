@@ -301,7 +301,7 @@ class ProviderRepositoryImpl implements ProviderRepository {
       (failure) => Left(failure),
       (summary) {
         return Right({
-          'verificationStatus': summary['status'] ?? summary['verificationStatus'] ?? 'NOT_SUBMITTED',
+          'verificationStatus': summary['status'] ?? summary['verificationStatus'] ?? 'not_submitted',
           'serviceRole': summary['serviceRole'],
         });
       },

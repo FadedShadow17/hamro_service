@@ -176,10 +176,8 @@ class AuthRepositoryImpl implements AuthRepository {
         if (authEntity.authId.isNotEmpty) {
           await _sessionService.saveSession(authEntity.authId);
 
-          final prefs = await SharedPreferences.getInstance();
-          final roleSelected = prefs.getBool('role_selected') ?? false;
-          
-          if (roleSelected && authEntity.role != null && authEntity.role!.isNotEmpty) {
+          // Save role if it exists from backend
+          if (authEntity.role != null && authEntity.role!.isNotEmpty) {
             await _sessionService.saveRole(authEntity.role!);
           }
           

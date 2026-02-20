@@ -4,9 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hamro_service/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:hamro_service/features/auth/presentation/state/auth_state.dart';
 import 'package:hamro_service/features/auth/presentation/pages/login_page.dart';
-import 'package:hamro_service/features/role/presentation/pages/role_page.dart';
 import 'package:hamro_service/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:hamro_service/features/provider/presentation/pages/provider_dashboard_page.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'package:hamro_service/core/services/storage/user_session_service.dart';
 import 'package:hamro_service/core/widgets/animated_text_field.dart';
 import 'package:hamro_service/core/widgets/phone_number_field.dart';
@@ -27,6 +27,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _hasNavigated = false;
+  String _selectedRole = 'user'; // Default to 'user'
 
   @override
   void didChangeDependencies() {
@@ -72,6 +73,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           username: username.isNotEmpty ? username : null,
           password: password,
           phoneNumber: formattedPhone,
+          role: _selectedRole,
         );
   }
 
@@ -97,9 +99,17 @@ class _SignupPageState extends ConsumerState<SignupPage> {
             await Future.delayed(const Duration(milliseconds: 500));
 
             if (mounted && Navigator.of(context).canPop() == false) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
+              // Navigate directly to appropriate dashboard based on role
+              final role = next.user?.role ?? 'user';
+              if (role == 'provider') {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const ProviderDashboardPage()),
+                );
+              } else {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const DashboardPage()),
+                );
+              }
             }
           }
         });
@@ -257,6 +267,55 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                           },
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      // Role Selection
+                      Text(
+                        'Select Role',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[800]?.withValues(alpha: 0.5)
+                              : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _RoleOption(
+                                title: 'User',
+                                description: 'Book services',
+                                icon: Icons.person,
+                                isSelected: _selectedRole == 'user',
+                                onTap: () {
+                                  setState(() {
+                                    _selectedRole = 'user';
+                                  });
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: _RoleOption(
+                                title: 'Provider',
+                                description: 'Offer services',
+                                icon: Icons.work,
+                                isSelected: _selectedRole == 'provider',
+                                onTap: () {
+                                  setState(() {
+                                    _selectedRole = 'provider';
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 32),
                       _AppButton(
                         text: 'SIGN UP',
@@ -312,6 +371,78 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   }
 }
 
+
+class _RoleOption extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _RoleOption({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedColor = title == 'Provider' ? AppColors.accentOrange : AppColors.primaryBlue;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.all(4),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? selectedColor.withValues(alpha: 0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected
+                ? selectedColor
+                : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? selectedColor : (isDark ? Colors.grey[400] : Colors.grey[600]),
+              size: 28,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected
+                    ? selectedColor
+                    : (isDark ? Colors.white : Colors.black87),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.grey[500] : Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _AppButton extends StatelessWidget {
   final String text;

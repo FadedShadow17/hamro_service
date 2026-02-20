@@ -345,7 +345,7 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
     
     await verificationStatusAsync.when(
       data: (verificationSummary) async {
-        final status = verificationSummary['status'] as String? ?? 'NOT_SUBMITTED';
+        final status = verificationSummary['status'] as String? ?? 'not_submitted';
         final serviceRole = verificationSummary['serviceRole'] as String?;
         
         if (!VerificationService.isVerified(status)) {
@@ -506,7 +506,7 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
     
     await verificationStatusAsync.when(
       data: (verificationSummary) async {
-        final status = verificationSummary['status'] as String? ?? 'NOT_SUBMITTED';
+        final status = verificationSummary['status'] as String? ?? 'not_submitted';
         
         if (!VerificationService.isVerified(status)) {
           final errorMsg = VerificationService.getErrorMessage(status);

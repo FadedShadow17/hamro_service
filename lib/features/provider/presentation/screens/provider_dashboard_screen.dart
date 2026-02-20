@@ -76,12 +76,7 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
       body: SafeArea(
         child: verificationStatusAsync.when(
           data: (verificationSummary) {
-            final status = verificationSummary['status'] as String? ?? 'NOT_SUBMITTED';
-            final isApproved = status == 'APPROVED';
-            
-            if (!isApproved) {
-              return _buildVerificationRequired(context, isDark, status);
-            }
+            final status = verificationSummary['status'] as String? ?? 'not_submitted';
             
             return dashboardDataAsync.when(
               data: (data) => RefreshIndicator(
@@ -190,12 +185,134 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
   }
 
   static Widget _buildContent(dynamic data, WidgetRef ref, BuildContext context, Map<String, dynamic> verificationSummary) {
+    final status = verificationSummary['status'] as String? ?? 'not_submitted';
+    final isPending = status == 'pending';
+    final isNotSubmitted = status == 'not_submitted';
+    
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(ref, context, verificationSummary),
           const SizedBox(height: 16),
+          
+          // Show pending verification notice if status is pending
+          if (isPending) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.orange,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Verification Under Review',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange[800],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Your verification is being processed by admin.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.orange[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          
+          // Show verification required notice if not submitted
+          if (isNotSubmitted) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ProviderVerificationPage(),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.verified_user_outlined,
+                        color: Colors.blue,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Verification Required',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[800],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Complete your verification to accept bookings.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.blue,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -442,58 +559,93 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
     final userName = profileState.profile?.fullName ?? 'Provider';
     final avatarUrl = profileState.profile?.avatarUrl;
     final profession = verificationSummary['serviceRole'] as String?;
+    final status = verificationSummary['status'] as String? ?? 'not_submitted';
 
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Row(
+      child: Column(
         children: [
-          KAvatar(size: 50, imageUrl: avatarUrl),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome Back',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey[400]
-                        : Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  userName,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87,
-                  ),
-                ),
-                if (profession != null && profession!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    profession!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey[500]
-                          : Colors.grey[600],
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          Consumer(
-            builder: (context, ref, child) {
-              final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
-              return unreadCountAsync.when(
-                data: (count) => Stack(
+          Row(
+            children: [
+              KAvatar(size: 50, imageUrl: avatarUrl),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(
+                    Text(
+                      'Welcome Back',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[400]
+                            : Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      userName,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black87,
+                      ),
+                    ),
+                    if (profession != null && profession!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        profession!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[500]
+                              : Colors.grey[600],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Consumer(
+                builder: (context, ref, child) {
+                  final unreadCountAsync = ref.watch(unreadNotificationCountProvider);
+                  return unreadCountAsync.when(
+                    data: (count) => Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications_outlined, size: 28),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const NotificationsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        if (count > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: AppColors.badgeBlue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                count > 99 ? '99+' : '$count',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    loading: () => IconButton(
                       icon: const Icon(Icons.notifications_outlined, size: 28),
                       onPressed: () {
                         Navigator.of(context).push(
@@ -503,54 +655,124 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
                         );
                       },
                     ),
-                    if (count > 0)
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: AppColors.badgeBlue,
-                            shape: BoxShape.circle,
+                    error: (_, __) => IconButton(
+                      icon: const Icon(Icons.notifications_outlined, size: 28),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationsScreen(),
                           ),
-                          child: Text(
-                            count > 99 ? '99+' : '$count',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                loading: () => IconButton(
-                  icon: const Icon(Icons.notifications_outlined, size: 28),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const NotificationsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                error: (_, __) => IconButton(
-                  icon: const Icon(Icons.notifications_outlined, size: 28),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const NotificationsScreen(),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
+          _buildVerificationBadge(context, status),
         ],
       ),
     );
+  }
+
+  static Widget _buildVerificationBadge(BuildContext context, String status) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    if (status == 'verified') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.green.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.green.withValues(alpha: 0.5),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle, color: Colors.green, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              'Verified',
+              style: TextStyle(
+                color: Colors.green[700],
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (status == 'pending') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.orange.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.orange.withValues(alpha: 0.5),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.pending, color: Colors.orange, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              'Pending Review',
+              style: TextStyle(
+                color: Colors.orange[800],
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const ProviderVerificationPage(),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.blue.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.blue.withValues(alpha: 0.5),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.info_outline, color: Colors.blue, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                'Complete Verification',
+                style: TextStyle(
+                  color: Colors.blue[700],
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_forward, color: Colors.blue, size: 14),
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildVerificationRequired(BuildContext context, bool isDark, String status) {
@@ -558,14 +780,14 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
     String description;
     Color statusColor;
 
-    if (status == 'PENDING_REVIEW') {
+    if (status == 'pending') {
       statusText = 'Pending Review';
-      description = 'Your verification is under review. Please wait for approval.';
+      description = 'Your verification is being processed by admin.';
       statusColor = Colors.orange;
-    } else if (status == 'REJECTED') {
-      statusText = 'Rejected';
-      description = 'Your verification was rejected. Please resubmit your verification.';
-      statusColor = Colors.red;
+    } else if (status == 'not_submitted') {
+      statusText = 'Verification Required';
+      description = 'Please complete verification to browse user requests.';
+      statusColor = Colors.blue;
     } else {
       statusText = 'Verification Required';
       description = 'Please complete verification to browse user requests.';
@@ -630,9 +852,9 @@ class _ProviderDashboardScreenState extends ConsumerState<ProviderDashboardScree
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
-                  status == 'REJECTED' ? 'Resubmit Verification' : 'Complete Verification',
-                  style: const TextStyle(
+                child: const Text(
+                  'Complete Verification',
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),

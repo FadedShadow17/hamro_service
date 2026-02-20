@@ -10,8 +10,23 @@ import '../../../../core/widgets/phone_number_field.dart';
 import '../../../../core/services/storage/user_session_service.dart';
 import '../../data/repositories/provider_verification_repository_impl.dart';
 import '../../presentation/providers/provider_verification_provider.dart';
-import '../../presentation/providers/profession_provider.dart';
-import '../../../role/presentation/pages/role_page.dart';
+import '../../presentation/providers/provider_dashboard_provider.dart';
+import '../../../dashboard/presentation/pages/dashboard_page.dart';
+import 'provider_dashboard_page.dart';
+
+// Hardcoded service roles matching the website
+const List<String> _hardcodedServiceRoles = [
+  'Plumber',
+  'Electrician',
+  'Cleaner',
+  'Carpenter',
+  'Painter',
+  'HVAC Technician',
+  'Appliance Repair Technician',
+  'Gardener/Landscaper',
+  'Pest Control Specialist',
+  'Water Tank Cleaner',
+];
 
 final verificationStatusProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final repository = ref.watch(providerVerificationRepositoryProvider);
@@ -143,14 +158,14 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
     if (role != 'provider') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('You must be a provider to submit verification. Please select provider role first.'),
+          content: Text('You must be a provider to submit verification. Please sign up as a provider.'),
           backgroundColor: Colors.orange,
         ),
       );
       await Future.delayed(const Duration(seconds: 2));
       if (context.mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const RolePage()),
+          MaterialPageRoute(builder: (context) => const DashboardPage()),
         );
       }
       return;
@@ -212,18 +227,31 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
             ),
           );
         },
-        (verification) {
+        (verification) async {
           setState(() {
             _isSubmitting = false;
           });
           ref.invalidate(verificationStatusProvider);
+          ref.invalidate(providerVerificationStatusForDashboardProvider);
+          ref.invalidate(providerDashboardDataProvider);
+          
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Verification submitted successfully!'),
+              content: Text('Verification submitted successfully! Your verification is being processed by admin.'),
               backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
             ),
           );
-          Navigator.of(context).pop();
+          
+          // Navigate to provider dashboard instead of just popping
+          if (context.mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => const ProviderDashboardPage(),
+              ),
+              (route) => false, // Remove all previous routes
+            );
+          }
         },
       );
     } catch (e) {
@@ -276,10 +304,9 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
   }
 
   Widget _buildVerificationForm(BuildContext context, bool isDark, Map<String, dynamic> summary) {
-    final status = summary['status'] as String? ?? 'NOT_SUBMITTED';
-    final isApproved = status == 'APPROVED';
-    final isRejected = status == 'REJECTED';
-    final isPending = status == 'PENDING_REVIEW';
+    final status = summary['status'] as String? ?? 'pending';
+    final isApproved = status == 'verified';
+    final isPending = status == 'pending';
 
     if (isApproved) {
       return Center(
@@ -339,7 +366,7 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
               ),
               const SizedBox(height: 8),
               Text(
-                'Your verification is under review',
+                'Your verification is being processed by admin.',
                 style: TextStyle(
                   fontSize: 16,
                   color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -351,285 +378,6 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
       );
     }
 
-    if (isRejected) {
-      final rejectionReason = summary['rejectionReason'] as String?;
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.red.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.cancel,
-                    color: Colors.red,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Verification Rejected',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                        if (rejectionReason != null) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Reason: $rejectionReason',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Personal Information',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _fullNameController,
-                    label: 'Full Name',
-                    icon: Icons.person,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your full name';
-                      }
-                      if (value.trim().length < 2) {
-                        return 'Name must be at least 2 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  PhoneNumberField(
-                    controller: _phoneController,
-                    label: 'Phone Number',
-                    hintText: 'XXXXXXXXXX',
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your phone number';
-                      }
-                      if (value.trim().length < 9 || value.trim().length > 10) {
-                        return 'Phone number must be 9-10 digits';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _citizenshipController,
-                    label: 'Citizenship Number',
-                    icon: Icons.badge,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your citizenship number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Service Role',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildServiceRoleDropdown(context, isDark),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Address',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _provinceController,
-                    label: 'Province',
-                    icon: Icons.location_city,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter province';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _districtController,
-                    label: 'District',
-                    icon: Icons.map,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter district';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _municipalityController,
-                    label: 'Municipality',
-                    icon: Icons.business,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter municipality';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _wardController,
-                    label: 'Ward',
-                    icon: Icons.home,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter ward';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _toleController,
-                    label: 'Tole (Optional)',
-                    icon: Icons.place,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _streetController,
-                    label: 'Street (Optional)',
-                    icon: Icons.streetview,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Documents',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildImagePicker(
-                    label: 'Citizenship Front',
-                    file: _citizenshipFront,
-                    onTap: () => _showImageSourcePicker((file) {
-                      setState(() {
-                        _citizenshipFront = file;
-                      });
-                    }),
-                    isRequired: true,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildImagePicker(
-                    label: 'Citizenship Back',
-                    file: _citizenshipBack,
-                    onTap: () => _showImageSourcePicker((file) {
-                      setState(() {
-                        _citizenshipBack = file;
-                      });
-                    }),
-                    isRequired: true,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildImagePicker(
-                    label: 'Profile Image (Optional)',
-                    file: _profileImage,
-                    onTap: () => _showImageSourcePicker((file) {
-                      setState(() {
-                        _profileImage = file;
-                      });
-                    }),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildImagePicker(
-                    label: 'Selfie (Optional)',
-                    file: _selfie,
-                    onTap: () => _showImageSourcePicker((file) {
-                      setState(() {
-                        _selfie = file;
-                      });
-                    }),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _submitVerification,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Text(
-                              'Resubmit Verification',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -989,177 +737,34 @@ class _ProviderVerificationPageState extends ConsumerState<ProviderVerificationP
   }
 
   Widget _buildServiceRoleDropdown(BuildContext context, bool isDark) {
-    final professionsAsync = ref.watch(professionsProvider);
-
-    return professionsAsync.when(
-      data: (professions) {
-        print('[ProviderVerification] Loaded ${professions.length} professions');
-        print('[ProviderVerification] Professions: ${professions.map((p) => '${p.name} (active: ${p.active})').join(', ')}');
-        
-        // Always show all professions, don't filter by active
-        // The backend should handle filtering if needed
-        final visibleProfessions = professions;
-
-        if (visibleProfessions.isEmpty) {
-          print('[ProviderVerification] No professions available after loading');
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.orange.withValues(alpha: 0.5),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      color: Colors.orange,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'No professions available',
-                      style: TextStyle(
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Please contact support or try refreshing.',
-                  style: TextStyle(
-                    color: isDark ? Colors.grey[500] : Colors.grey[600],
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextButton.icon(
-                  onPressed: () {
-                    ref.invalidate(professionsProvider);
-                  },
-                  icon: const Icon(Icons.refresh, size: 16),
-                  label: const Text('Refresh'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        print('[ProviderVerification] Showing ${visibleProfessions.length} professions in dropdown');
-        return DropdownButtonFormField<String>(
-          value: _selectedServiceRole,
-          decoration: InputDecoration(
-            labelText: 'Select Service Role',
-            prefixIcon: const Icon(Icons.work),
-            filled: true,
-            fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-          items: visibleProfessions.map((profession) {
-            return DropdownMenuItem(
-              value: profession.name,
-              child: Text(profession.name),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedServiceRole = value;
-            });
-          },
-          validator: (value) {
-            if (value == null) {
-              return 'Please select a service role';
-            }
-            return null;
-          },
-        );
-      },
-      loading: () => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+    return DropdownButtonFormField<String>(
+      value: _selectedServiceRole,
+      decoration: InputDecoration(
+        labelText: 'Select Service Role',
+        prefixIcon: const Icon(Icons.work),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Center(
-          child: SizedBox(
-            height: 20,
-            width: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+          borderSide: BorderSide.none,
         ),
       ),
-      error: (error, stack) {
-        print('[ProviderVerification] Error loading professions: $error');
-        print('[ProviderVerification] Stack trace: $stack');
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.red.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Failed to load professions',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString().replaceAll('Exception: ', ''),
-                style: TextStyle(
-                  color: Colors.red[700],
-                  fontSize: 12,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        ref.invalidate(professionsProvider);
-                      },
-                      icon: const Icon(Icons.refresh, size: 16),
-                      label: const Text('Retry'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: BorderSide(color: Colors.red.withValues(alpha: 0.5)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+      items: _hardcodedServiceRoles.map((role) {
+        return DropdownMenuItem<String>(
+          value: role,
+          child: Text(role),
         );
+      }).toList(),
+      onChanged: (value) {
+        setState(() {
+          _selectedServiceRole = value;
+        });
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please select a service role';
+        }
+        return null;
       },
     );
   }

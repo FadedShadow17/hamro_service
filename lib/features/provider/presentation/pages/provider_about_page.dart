@@ -196,10 +196,9 @@ class ProviderAboutPage extends ConsumerWidget {
   }
 
   Widget _buildVerificationStatus(BuildContext context, bool isDark, Map<String, dynamic> summary) {
-    final status = summary['status'] as String? ?? 'NOT_SUBMITTED';
-    final isApproved = status == 'APPROVED';
-    final isRejected = status == 'REJECTED';
-    final isPending = status == 'PENDING_REVIEW';
+    final status = summary['status'] as String? ?? 'pending';
+    final isApproved = status == 'verified';
+    final isPending = status == 'pending';
     
     final fullName = summary['fullName'] as String?;
     final phoneNumber = summary['phoneNumber'] as String?;
@@ -222,14 +221,7 @@ class ProviderAboutPage extends ConsumerWidget {
       statusColor = Colors.orange;
       statusIcon = Icons.pending;
       statusText = 'Pending Review';
-      statusDescription = 'Your verification is under review. Please wait for approval.';
-    } else if (isRejected) {
-      statusColor = Colors.red;
-      statusIcon = Icons.cancel;
-      statusText = 'Rejected';
-      statusDescription = rejectionReason != null
-          ? 'Rejection reason: $rejectionReason'
-          : 'Your verification was rejected. Please resubmit.';
+      statusDescription = 'Your verification is being processed by admin.';
     } else {
       statusColor = Colors.grey;
       statusIcon = Icons.info_outline;
@@ -340,8 +332,8 @@ class ProviderAboutPage extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
-                  isRejected ? 'Resubmit Verification' : 'Complete Verification',
+                child: const Text(
+                  'Complete Verification',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
