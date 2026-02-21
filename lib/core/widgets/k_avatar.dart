@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../config/api_config.dart';
 
 class KAvatar extends StatelessWidget {
   final String? imageUrl;
@@ -13,21 +14,41 @@ class KAvatar extends StatelessWidget {
     this.backgroundColor,
   });
 
+  String? _normalizeUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+    
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    if (url.startsWith('/')) {
+      final baseUrl = ApiConfig.baseUrl;
+      final cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+      return '$cleanBaseUrl$url';
+    }
+    
+    return url;
+  }
+
   @override
   Widget build(BuildContext context) {
     ImageProvider? imageProvider;
+    String? normalizedUrl;
     
-    if (imageUrl != null) {
-      final url = imageUrl!;
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        imageProvider = NetworkImage(url);
-      } else {
-        final file = File(url);
-        try {
-          if (file.existsSync()) {
-            imageProvider = FileImage(file);
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      normalizedUrl = _normalizeUrl(imageUrl!);
+      
+      if (normalizedUrl != null) {
+        if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+          imageProvider = NetworkImage(normalizedUrl);
+        } else {
+          final file = File(normalizedUrl);
+          try {
+            if (file.existsSync()) {
+              imageProvider = FileImage(file);
+            }
+          } catch (e) {
           }
-        } catch (e) {
         }
       }
     }

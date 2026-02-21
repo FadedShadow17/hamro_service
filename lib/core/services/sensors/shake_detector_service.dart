@@ -21,7 +21,6 @@ class ShakeDetectorService {
         _handleAccelerometerEvent(event);
       },
       onError: (error) {
-        print('[ShakeDetector] Error: $error');
       },
     );
   }

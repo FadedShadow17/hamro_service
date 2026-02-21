@@ -166,10 +166,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       if (data is Map<String, dynamic>) {
         if (data.containsKey('user')) {
           final user = data['user'];
-          userData = user is Map<String, dynamic> ? user : Map<String, dynamic>.from(user as Map);
+          if (user is Map<String, dynamic>) {
+            userData = user;
+          } else if (user is Map) {
+            userData = Map<String, dynamic>.from(user);
+          } else {
+            userData = {};
+          }
         } else {
           userData = data;
         }
+      } else if (data is Map) {
+        userData = Map<String, dynamic>.from(data);
       } else {
         userData = {};
       }

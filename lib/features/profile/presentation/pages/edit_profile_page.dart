@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/phone_number_field.dart';
+import '../../../../core/config/api_config.dart';
 import '../providers/image_upload_provider.dart';
 import '../viewmodel/profile_viewmodel.dart';
 import '../../domain/entities/profile_entity.dart';
@@ -316,37 +317,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                           borderRadius: BorderRadius.circular(60),
                           child: Container(
                             color: isDark ? Colors.grey[800] : Colors.grey[300],
-                            child: (_currentAvatarUrl != null && _currentAvatarUrl!.startsWith('http'))
-                                ? Image.network(
-                                    _currentAvatarUrl!,
-                                    width: 120,
-                                    height: 120,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Icon(
-                                      Icons.person,
-                                      size: 60,
-                                      color: isDark ? Colors.grey[600] : Colors.grey,
-                                    ),
-                                  )
-                                : (_selectedImage != null)
-                                    ? Image.file(
-                                        _selectedImage!,
-                                        width: 120,
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : (_currentAvatarUrl != null && File(_currentAvatarUrl!).existsSync())
-                                        ? Image.file(
-                                            File(_currentAvatarUrl!),
-                                            width: 120,
-                                            height: 120,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : Icon(
-                                            Icons.person,
-                                            size: 60,
-                                            color: isDark ? Colors.grey[600] : Colors.grey,
-                                          ),
+                            child: _buildAvatarImage(),
                           ),
                         ),
                       ),
@@ -433,6 +404,81 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
         ),
       ),
+    );
+  }
+
+  String? _normalizeImageUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+    
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    if (url.startsWith('/')) {
+      final baseUrl = ApiConfig.baseUrl;
+      final cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+      return '$cleanBaseUrl$url';
+    }
+    
+    return url;
+  }
+
+  Widget _buildAvatarImage() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    if (_selectedImage != null) {
+      return Image.file(
+        _selectedImage!,
+        width: 120,
+        height: 120,
+        fit: BoxFit.cover,
+      );
+    }
+    
+    if (_currentAvatarUrl != null && _currentAvatarUrl!.isNotEmpty) {
+      final normalizedUrl = _normalizeImageUrl(_currentAvatarUrl!);
+      
+      if (normalizedUrl != null && (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://'))) {
+        return Image.network(
+          normalizedUrl,
+          width: 120,
+          height: 120,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            );
+          },
+          errorBuilder: (_, __, ___) => Icon(
+            Icons.person,
+            size: 60,
+            color: isDark ? Colors.grey[600] : Colors.grey,
+          ),
+        );
+      }
+      
+      if (_currentAvatarUrl != null) {
+        final file = File(_currentAvatarUrl!);
+        if (file.existsSync()) {
+          return Image.file(
+            file,
+            width: 120,
+            height: 120,
+            fit: BoxFit.cover,
+          );
+        }
+      }
+    }
+    
+    return Icon(
+      Icons.person,
+      size: 60,
+      color: isDark ? Colors.grey[600] : Colors.grey,
     );
   }
 

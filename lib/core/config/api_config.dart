@@ -2,9 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 class ApiConfig {
-
-
-
   static const String physicalDeviceIp = "192.168.1.73";
   
   static String get baseUrl {
@@ -17,20 +14,14 @@ class ApiConfig {
       return "http://localhost:4000";
     }
 
-
     if (Platform.isAndroid) {
-
-
       if (physicalDeviceIp.isNotEmpty && physicalDeviceIp != "YOUR_LOCAL_IP_HERE") {
         return "http://$physicalDeviceIp:4000";
       }
-
       return "http://10.0.2.2:4000";
     } 
 
     if (Platform.isIOS) {
-
-
       if (physicalDeviceIp.isNotEmpty && physicalDeviceIp != "YOUR_LOCAL_IP_HERE") {
         return "http://$physicalDeviceIp:4000";
       }
@@ -44,7 +35,6 @@ class ApiConfig {
     try {
       return baseUrl;
     } catch (e) {
-
       if (kIsWeb) {
         return "http://localhost:4000";
       }

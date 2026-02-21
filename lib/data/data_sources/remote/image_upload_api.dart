@@ -8,9 +8,6 @@ class ImageUploadApi {
 
   ImageUploadApi({required Dio dio}) : _dio = dio;
 
-
-
-
   Future<String> uploadImage({File? file, XFile? xFile}) async {
     if ((file == null && xFile == null) || (file != null && xFile != null)) {
       throw Exception('Please provide exactly one image to upload.');
@@ -65,27 +62,27 @@ class ImageUploadApi {
         final mapData = Map<String, dynamic>.from(data);
         url = mapData['url'] as String?;
       } else if (data is List) {
-        throw Exception('Upload failed: unexpected List response format. Response: ${response.data}');
+        if (data.isNotEmpty && data[0] is Map) {
+          final firstItem = Map<String, dynamic>.from(data[0] as Map);
+          url = firstItem['url'] as String?;
+        } else if (data.isNotEmpty && data[0] is String) {
+          url = data[0] as String;
+        } else {
+          throw Exception('Upload failed: unexpected List response format. Response: ${response.data}');
+        }
       } else {
         throw Exception('Upload failed: unexpected response format. Expected Map, got ${data.runtimeType}. Response: ${response.data}');
       }
 
       if (url == null || url.isEmpty) {
-
-        print('Image upload response: ${response.data}');
         throw Exception('Upload failed: missing image URL in response. Response: ${response.data}');
       }
 
       if (url.startsWith('/')) {
         final baseUrl = _dio.options.baseUrl;
         if (baseUrl.isNotEmpty) {
-
           final cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
           url = '$cleanBaseUrl$url';
-        } else {
-
-
-          print('Warning: Image URL is relative but no baseUrl is set. URL: $url');
         }
       }
 
