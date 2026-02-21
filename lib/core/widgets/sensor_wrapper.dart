@@ -50,11 +50,23 @@ class _SensorWrapperState extends ConsumerState<SensorWrapper> {
     if (!mounted) return;
     
     try {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const ContactPage(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Shake detected! Opening contact page...'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.green,
         ),
       );
+      
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const ContactPage(),
+            ),
+          );
+        }
+      });
     } catch (e) {
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/kathmandu_areas.dart';
+import '../../../../core/utils/pricing_helper.dart';
 import '../../../services/domain/entities/service_item.dart';
 import '../../../services/presentation/providers/services_list_provider.dart';
 import '../../../provider/presentation/providers/provider_dashboard_provider.dart';
@@ -244,6 +245,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             color: isDark ? Colors.white.withValues(alpha: 0.7) : Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Rs ${PricingHelper.getPriceWithFallback(widget.service.priceRs, widget.service.categoryTag).toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryBlue,
                           ),
                         ),
                       ],

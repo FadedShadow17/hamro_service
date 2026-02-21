@@ -127,7 +127,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   final role = authState.user?.role ?? profile?.role;
                   if (role != null && role.isNotEmpty) {
                     final roleText = role == 'provider' ? 'Service Provider' : 'User';
-                    final roleColor = role == 'provider' ? AppColors.accentOrange : AppColors.primaryBlue;
+                    final roleColor = role == 'provider' ? AppColors.accentOrange : AppColors.accentBlue;
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -172,8 +172,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? AppColors.primaryBlue.withValues(alpha: 0.2)
-                      : AppColors.primaryBlue.withValues(alpha: 0.1),
+                      ? AppColors.accentBlue.withValues(alpha: 0.2)
+                      : AppColors.accentBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -181,7 +181,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   children: [
                     const Icon(
                       Icons.email,
-                      color: AppColors.primaryBlue,
+                      color: AppColors.accentBlue,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
@@ -190,7 +190,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         email,
                         style: const TextStyle(
                           fontSize: 16,
-                          color: AppColors.primaryBlue,
+                          color: AppColors.accentBlue,
                         ),
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,

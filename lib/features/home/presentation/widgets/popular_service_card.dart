@@ -146,7 +146,7 @@ class PopularServiceCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Rs ${service.priceRs > 0 ? service.priceRs.toStringAsFixed(0) : PricingHelper.getDefaultPriceForCategory(service.categoryTag).toStringAsFixed(0)}',
+                        'Rs ${PricingHelper.getPriceWithFallback(service.priceRs, service.categoryTag).toStringAsFixed(0)}',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

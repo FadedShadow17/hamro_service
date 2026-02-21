@@ -12,7 +12,19 @@ import '../../../../core/theme/app_colors.dart';
 import 'provider_edit_profile_page.dart';
 import 'provider_about_page.dart';
 import 'provider_settings_page.dart';
+import 'provider_verification_page.dart';
 import '../providers/provider_dashboard_provider.dart';
+import '../../data/repositories/provider_verification_repository_impl.dart';
+import '../../presentation/providers/provider_verification_provider.dart';
+
+final verificationStatusProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final repository = ref.watch(providerVerificationRepositoryProvider);
+  final result = await repository.getVerificationSummary();
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (summary) => summary,
+  );
+});
 
 class ProviderProfilePage extends ConsumerStatefulWidget {
   const ProviderProfilePage({super.key});
@@ -176,8 +188,8 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? AppColors.primaryBlue.withValues(alpha: 0.2)
-                      : AppColors.primaryBlue.withValues(alpha: 0.1),
+                      ? AppColors.accentBlue.withValues(alpha: 0.2)
+                      : AppColors.accentBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -185,7 +197,7 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                   children: [
                     const Icon(
                       Icons.email,
-                      color: AppColors.primaryBlue,
+                      color: AppColors.accentBlue,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
@@ -194,7 +206,7 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                         email,
                         style: const TextStyle(
                           fontSize: 16,
-                          color: AppColors.primaryBlue,
+                          color: AppColors.accentBlue,
                         ),
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
@@ -453,6 +465,79 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
                       indent: 60,
                       color: isDark ? Colors.grey[800] : Colors.grey[300],
                     ),
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final verificationStatusAsync = ref.watch(verificationStatusProvider);
+                        return verificationStatusAsync.when(
+                          data: (summary) {
+                            final status = summary['status'] as String? ?? 'not_verified';
+                            final isVerified = status == 'verified';
+                            final isPending = status == 'pending';
+                            
+                            Color statusColor;
+                            IconData statusIcon;
+                            String statusText;
+                            
+                            if (isVerified) {
+                              statusColor = Colors.green;
+                              statusIcon = Icons.verified;
+                              statusText = 'Verified';
+                            } else if (isPending) {
+                              statusColor = Colors.orange;
+                              statusIcon = Icons.pending;
+                              statusText = 'Pending Review';
+                            } else {
+                              statusColor = AppColors.accentBlue;
+                              statusIcon = Icons.verified_user;
+                              statusText = 'Get Verified';
+                            }
+                            
+                            return _MenuItem(
+                              icon: statusIcon,
+                              title: 'Verification',
+                              subtitle: statusText,
+                              iconColor: statusColor,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const ProviderVerificationPage(),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          loading: () => _MenuItem(
+                            icon: Icons.verified_user,
+                            title: 'Verification',
+                            iconColor: AppColors.accentBlue,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const ProviderVerificationPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          error: (_, __) => _MenuItem(
+                            icon: Icons.verified_user,
+                            title: 'Verification',
+                            iconColor: AppColors.accentBlue,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const ProviderVerificationPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                    Divider(
+                      height: 1,
+                      indent: 60,
+                      color: isDark ? Colors.grey[800] : Colors.grey[300],
+                    ),
                     _DarkModeMenuItem(),
                     Divider(
                       height: 1,
@@ -554,13 +639,17 @@ class _ProviderProfilePageState extends ConsumerState<ProviderProfilePage> {
 class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String? subtitle;
   final Color? titleColor;
+  final Color? iconColor;
   final VoidCallback onTap;
 
   const _MenuItem({
     required this.icon,
     required this.title,
+    this.subtitle,
     this.titleColor,
+    this.iconColor,
     required this.onTap,
   });
 
@@ -586,22 +675,41 @@ class _MenuItem extends StatelessWidget {
                 ),
                 child: Icon(
                   icon,
-                  color: titleColor ?? AppColors.primaryBlue,
+                  color: iconColor ?? titleColor ?? AppColors.primaryBlue,
                   size: 22,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: titleColor ??
-                        (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black87),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: titleColor ??
+                            (Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black87),
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: iconColor ??
+                              (Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600]),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               Icon(

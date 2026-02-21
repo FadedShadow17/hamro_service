@@ -289,12 +289,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
                 ],
               ),
             ),
-            Text(
-              'Rs ${booking.amount.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryBlue,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.accentBlue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.accentBlue.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: Text(
+                'Rs ${booking.amount.toStringAsFixed(0)}',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.accentBlue,
+                ),
               ),
             ),
           ],
@@ -369,12 +380,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
                   ],
                 ),
               ),
-              Text(
-                'Rs ${booking.amount.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryBlue,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.accentBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppColors.accentBlue.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Text(
+                  'Rs ${booking.amount.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.accentBlue,
+                  ),
                 ),
               ),
             ],
@@ -391,12 +413,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
                   color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
-              Text(
-                'Rs ${booking.amount.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryBlue,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.accentBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.accentBlue.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  'Rs ${booking.amount.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.accentBlue,
+                  ),
                 ),
               ),
             ],
@@ -599,12 +632,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
                             color: isDark ? Colors.grey[400] : Colors.grey[600],
                           ),
                         ),
-                        Text(
-                          'Rs ${booking.amount.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryBlue,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.accentBlue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.accentBlue.withValues(alpha: 0.3),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            'Rs ${booking.amount.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.accentBlue,
+                            ),
                           ),
                         ),
                       ],
@@ -794,12 +838,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> with SingleTicker
                   ),
                 ],
               ),
-              Text(
-                'Rs ${payment.amount.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryBlue,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.accentBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.accentBlue.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  'Rs ${payment.amount.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.accentBlue,
+                  ),
                 ),
               ),
             ],
