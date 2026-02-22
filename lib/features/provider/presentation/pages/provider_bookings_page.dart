@@ -10,6 +10,7 @@ import '../../domain/entities/provider_order.dart';
 import '../providers/provider_dashboard_provider.dart';
 import '../../../notifications/presentation/providers/notification_provider.dart';
 import '../../../home/presentation/providers/user_dashboard_stats_provider.dart';
+import 'provider_verification_page.dart';
 
 class ProviderBookingsPage extends ConsumerStatefulWidget {
   final String? filterStatus;
@@ -340,110 +341,142 @@ class _ProviderBookingsPageState extends ConsumerState<ProviderBookingsPage> {
     );
   }
 
+  void _showVerificationDialog(BuildContext context, String status) {
+    final isNotSubmitted = status == 'not_submitted';
+    final isPending = status == 'pending';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          isNotSubmitted ? 'Verification Required' : 'Verification Pending',
+        ),
+        content: Text(
+          isNotSubmitted
+              ? 'Please complete your verification to accept bookings. You need to submit your verification documents first.'
+              : 'Your verification is pending. Please wait for admin approval before you can accept bookings.',
+        ),
+        actions: [
+          if (isNotSubmitted) ...[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ProviderVerificationPage(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Go to Verification'),
+            ),
+          ] else ...[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleAccept(BuildContext context, ProviderOrder order) async {
-    final verificationStatusAsync = ref.read(providerVerificationStatusForDashboardProvider);
-    
-    await verificationStatusAsync.when(
-      data: (verificationSummary) async {
-        final status = verificationSummary['status'] as String? ?? 'not_submitted';
-        final serviceRole = verificationSummary['serviceRole'] as String?;
-        
-        if (!VerificationService.isVerified(status)) {
-          final errorMsg = VerificationService.getErrorMessage(status);
+    try {
+      final verificationSummary = await ref.read(providerVerificationStatusForDashboardProvider.future);
+      final status = verificationSummary['status'] as String? ?? 'not_submitted';
+      final serviceRole = verificationSummary['serviceRole'] as String?;
+      
+      if (!VerificationService.isVerified(status)) {
+        _showVerificationDialog(context, status);
+        return;
+      }
+      
+      if (serviceRole != null && serviceRole.isNotEmpty) {
+        final serviceName = order.serviceName;
+        if (!CategoryMatcherService.isCategoryMatch(serviceRole, serviceName)) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(errorMsg ?? 'Verification required'),
-              backgroundColor: Colors.red,
+              content: Text('You are not verified for this service category. This booking is for "$serviceName", but you are verified as "$serviceRole".'),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 4),
             ),
           );
           return;
         }
+      }
+      
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Accept Job'),
+          content: const Text('Are you sure you want to accept this job?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Accept'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true && mounted) {
+        _showLoading(context);
+        final repository = ref.read(providerRepositoryProvider);
+        final result = await repository.acceptBooking(order.id);
+        if (mounted) Navigator.pop(context);
         
-        if (serviceRole != null && serviceRole.isNotEmpty) {
-          final serviceName = order.serviceName;
-          if (!CategoryMatcherService.isCategoryMatch(serviceRole, serviceName)) {
+        result.fold(
+          (failure) {
+            String errorMsg = 'Failed to accept job: ${failure.message}';
+            if (failure.message.contains('verification') || failure.message.contains('Verification')) {
+              errorMsg = 'Verification required. Please complete your verification first.';
+            } else if (failure.message.contains('category') || failure.message.contains('Category')) {
+              errorMsg = 'You are not verified for this service category.';
+            } else if (failure.message.contains('already') || failure.message.contains('assigned')) {
+              errorMsg = 'This booking has already been accepted by another provider.';
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('You are not verified for this service category. This booking is for "$serviceName", but you are verified as "$serviceRole".'),
-                backgroundColor: Colors.orange,
-                duration: const Duration(seconds: 4),
+                content: Text(errorMsg),
+                backgroundColor: Colors.red,
               ),
             );
-            return;
-          }
-        }
-        
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Accept Job'),
-            content: const Text('Are you sure you want to accept this job?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+          },
+          (_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Job accepted successfully'),
+                backgroundColor: Colors.green,
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Accept'),
-              ),
-            ],
-          ),
+            );
+            _loadOrders();
+            ref.invalidate(providerDashboardDataProvider);
+            ref.invalidate(userDashboardStatsProvider);
+            ref.invalidate(notificationsProvider);
+            ref.invalidate(unreadNotificationCountProvider);
+          },
         );
-
-        if (confirmed == true && mounted) {
-          _showLoading(context);
-          final repository = ref.read(providerRepositoryProvider);
-          final result = await repository.acceptBooking(order.id);
-          if (mounted) Navigator.pop(context);
-          
-          result.fold(
-            (failure) {
-              String errorMsg = 'Failed to accept job: ${failure.message}';
-              if (failure.message.contains('verification') || failure.message.contains('Verification')) {
-                errorMsg = 'Verification required. Please complete your verification first.';
-              } else if (failure.message.contains('category') || failure.message.contains('Category')) {
-                errorMsg = 'You are not verified for this service category.';
-              } else if (failure.message.contains('already') || failure.message.contains('assigned')) {
-                errorMsg = 'This booking has already been accepted by another provider.';
-              }
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(errorMsg),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            },
-            (_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Job accepted successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              _loadOrders();
-              ref.invalidate(providerDashboardDataProvider);
-              ref.invalidate(userDashboardStatsProvider);
-              ref.invalidate(notificationsProvider);
-              ref.invalidate(unreadNotificationCountProvider);
-            },
-          );
-        }
-      },
-      loading: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Checking verification status...')),
-        );
-      },
-      error: (error, stack) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to verify status. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      },
-    );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to verify status: ${error.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _handleDecline(BuildContext context, ProviderOrder order) async {

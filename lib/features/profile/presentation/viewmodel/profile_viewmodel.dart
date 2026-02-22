@@ -11,23 +11,28 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 });
 
 class ProfileViewModel extends Notifier<ProfileState> {
-  late final GetProfileUsecase _getProfileUsecase;
-  late final UpdateProfileUsecase _updateProfileUsecase;
+  GetProfileUsecase? _getProfileUsecase;
+  UpdateProfileUsecase? _updateProfileUsecase;
+
+  GetProfileUsecase get getProfileUsecase {
+    _getProfileUsecase ??= GetProfileUsecase(ref.read(profileRepositoryProvider));
+    return _getProfileUsecase!;
+  }
+
+  UpdateProfileUsecase get updateProfileUsecase {
+    _updateProfileUsecase ??= UpdateProfileUsecase(ref.read(profileRepositoryProvider));
+    return _updateProfileUsecase!;
+  }
 
   @override
   ProfileState build() {
-    final repository = ref.read(profileRepositoryProvider);
-    _getProfileUsecase = GetProfileUsecase(repository);
-    _updateProfileUsecase = UpdateProfileUsecase(repository);
-
     Future.microtask(() => loadProfile());
-
     return const ProfileState.initial();
   }
 
   Future<void> loadProfile() async {
     state = const ProfileState.loading();
-    final result = await _getProfileUsecase();
+    final result = await getProfileUsecase();
     result.fold(
       (failure) {
         final authState = ref.read(authViewModelProvider);
@@ -66,7 +71,7 @@ class ProfileViewModel extends Notifier<ProfileState> {
 
   Future<void> updateProfile(ProfileEntity profile) async {
     state = const ProfileState.loading();
-    final result = await _updateProfileUsecase(profile);
+    final result = await updateProfileUsecase(profile);
     result.fold(
       (failure) => state = ProfileState.error(failure.message),
       (updatedProfile) {

@@ -54,12 +54,12 @@ class AuthRemoteDatasource {
     required String password,
   }) async {
     try {
+      // Only trim email, let backend handle password trimming for consistency
       final trimmedEmailOrUsername = emailOrUsername.trim();
-      final trimmedPassword = password.trim();
       
       final requestBody = {
         'email': trimmedEmailOrUsername,
-        'password': trimmedPassword,
+        'password': password, // Backend will trim this consistently
       };
       
       final response = await _dio.post(

@@ -82,17 +82,16 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     final authState = ref.watch(authViewModelProvider);
 
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-      if (next.isRegistered && next.user != null && !_hasNavigated) {
+      // After registration, user is now authenticated, so check isAuthenticated
+      if (next.isAuthenticated && next.user != null && !_hasNavigated) {
         _hasNavigated = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (mounted) {
-
-            final successMessage = next.successMessage ?? 'Your account was created';
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(successMessage),
+              const SnackBar(
+                content: Text('Your account was created successfully'),
                 backgroundColor: Colors.green,
-                duration: const Duration(seconds: 2),
+                duration: Duration(seconds: 2),
               ),
             );
 

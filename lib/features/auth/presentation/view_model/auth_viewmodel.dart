@@ -90,8 +90,11 @@ class AuthViewModel extends Notifier<AuthState> {
     result.fold(
       (failure) => state = AuthState.error(failure.message),
       (user) {
-        final message = repository.lastRegistrationMessage;
-        state = AuthState.registered(user, message);
+        // Set authenticated state after registration so user is automatically logged in
+        state = AuthState.authenticated(user);
+        Future.microtask(() {
+          ref.read(profileViewModelProvider.notifier).loadProfile();
+        });
       },
     );
   }

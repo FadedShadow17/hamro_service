@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 class ApiConfig {
-  static const String physicalDeviceIp = "192.168.1.73";
+  static const String physicalDeviceIp = "192.168.1.19";
   
   static String get baseUrl {
     const envUrl = String.fromEnvironment('API_BASE_URL');
